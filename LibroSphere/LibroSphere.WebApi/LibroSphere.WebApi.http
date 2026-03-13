@@ -1,0 +1,6 @@
+@LibroSphere.WebApi_HostAddress = http://localhost:5155
+
+GET {{LibroSphere.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
