@@ -4,12 +4,12 @@
     "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.WebApi\\LibroSphere.WebApi.csproj": {}
   },
   "projects": {
-    "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\LibroSphere.Model.csproj": {
+    "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\LibroSphere.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\LibroSphere.Model.csproj",
-        "projectName": "LibroSphere.Model",
-        "projectPath": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\LibroSphere.Model.csproj",
+        "projectUniqueName": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\LibroSphere.Domain.csproj",
+        "projectName": "LibroSphere.Domain",
+        "projectPath": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\LibroSphere.Domain.csproj",
         "packagesPath": "C:\\Users\\dusko\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\obj\\",
         "projectStyle": "PackageReference",
@@ -50,6 +50,16 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "dependencies": {
+            "MediatR": {
+              "target": "Package",
+              "version": "[14.1.0, )"
+            },
+            "MediatR.Contracts": {
+              "target": "Package",
+              "version": "[2.0.1, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
@@ -70,12 +80,12 @@
         }
       }
     },
-    "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\LibroSphere.Services.csproj": {
+    "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\LibroSphere.Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\LibroSphere.Services.csproj",
-        "projectName": "LibroSphere.Services",
-        "projectPath": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\LibroSphere.Services.csproj",
+        "projectUniqueName": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\LibroSphere.Application.csproj",
+        "projectName": "LibroSphere.Application",
+        "projectPath": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\LibroSphere.Application.csproj",
         "packagesPath": "C:\\Users\\dusko\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\obj\\",
         "projectStyle": "PackageReference",
@@ -99,8 +109,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\LibroSphere.Model.csproj": {
-                "projectPath": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\LibroSphere.Model.csproj"
+              "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\LibroSphere.Domain.csproj": {
+                "projectPath": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\LibroSphere.Domain.csproj"
               }
             }
           }
@@ -120,6 +130,12 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "dependencies": {
+            "MediatR": {
+              "target": "Package",
+              "version": "[14.1.0, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
@@ -169,11 +185,11 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\LibroSphere.Model.csproj": {
-                "projectPath": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\LibroSphere.Model.csproj"
+              "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\LibroSphere.Domain.csproj": {
+                "projectPath": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\LibroSphere.Domain.csproj"
               },
-              "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\LibroSphere.Services.csproj": {
-                "projectPath": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\LibroSphere.Services.csproj"
+              "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\LibroSphere.Application.csproj": {
+                "projectPath": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\LibroSphere.Application.csproj"
               }
             }
           }
