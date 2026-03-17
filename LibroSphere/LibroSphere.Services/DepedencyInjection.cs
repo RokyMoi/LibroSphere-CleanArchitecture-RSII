@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using LibroSphere.Application.Abstractions.Behavior;
+using Microsoft.Extensions.DependencyInjection;
 using System.Runtime.CompilerServices;
 
 namespace LibroSphere.Services
@@ -12,6 +13,7 @@ namespace LibroSphere.Services
             services.AddMediatR(configuration =>
             {
                 configuration.RegisterServicesFromAssembly(typeof(DepedencyInjection).Assembly);
+                configuration.AddOpenBehavior(typeof(LoggingBehavior<,>));  
             });
             return services;
         }

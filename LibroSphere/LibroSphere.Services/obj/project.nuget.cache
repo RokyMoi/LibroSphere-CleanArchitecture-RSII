@@ -1,10 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "o15u77WutUk=",
+  "dgSpecHash": "G4afeH/A3Lg=",
   "success": true,
   "projectFilePath": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\LibroSphere.Application.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\dusko\\.nuget\\packages\\dapper\\2.1.72\\dapper.2.1.72.nupkg.sha512",
+    "C:\\Users\\dusko\\.nuget\\packages\\fluentvalidation\\12.1.1\\fluentvalidation.12.1.1.nupkg.sha512",
+    "C:\\Users\\dusko\\.nuget\\packages\\fluentvalidation.dependencyinjectionextensions\\12.1.1\\fluentvalidation.dependencyinjectionextensions.12.1.1.nupkg.sha512",
     "C:\\Users\\dusko\\.nuget\\packages\\mediatr\\14.1.0\\mediatr.14.1.0.nupkg.sha512",
     "C:\\Users\\dusko\\.nuget\\packages\\mediatr.contracts\\2.0.1\\mediatr.contracts.2.0.1.nupkg.sha512",
     "C:\\Users\\dusko\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.5\\microsoft.extensions.dependencyinjection.abstractions.10.0.5.nupkg.sha512",
