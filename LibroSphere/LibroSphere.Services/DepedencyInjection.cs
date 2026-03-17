@@ -8,6 +8,7 @@ namespace LibroSphere.Services
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
 
+            //RegisterServices From Assembly (Tj projekta) 
             services.AddMediatR(configuration =>
             {
                 configuration.RegisterServicesFromAssembly(typeof(DepedencyInjection).Assembly);

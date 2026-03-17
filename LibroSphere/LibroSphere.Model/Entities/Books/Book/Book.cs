@@ -39,7 +39,7 @@ namespace LibroSphere.Domain.Entities.Books
         public ICollection<BookGenre> BookGenres { get; private set; }
         public ICollection<Review> Reviews { get; private set; }
 
-        public static Book Create(
+        public static Book MakeABook(
          
             Title title,
             Description description,
