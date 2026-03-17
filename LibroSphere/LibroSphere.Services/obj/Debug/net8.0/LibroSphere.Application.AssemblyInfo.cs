@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LibroSphere.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f15102af6da34e70a9828e180157e3a2d598462d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+619561a01a635e83d55bbbf03ccda7c481ca4a97")]
 [assembly: System.Reflection.AssemblyProductAttribute("LibroSphere.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LibroSphere.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

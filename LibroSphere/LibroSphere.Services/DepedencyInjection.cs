@@ -1,4 +1,5 @@
-﻿using LibroSphere.Application.Abstractions.Behavior;
+﻿using FluentValidation;
+using LibroSphere.Application.Abstractions.Behavior;
 using Microsoft.Extensions.DependencyInjection;
 using System.Runtime.CompilerServices;
 
@@ -13,8 +14,10 @@ namespace LibroSphere.Services
             services.AddMediatR(configuration =>
             {
                 configuration.RegisterServicesFromAssembly(typeof(DepedencyInjection).Assembly);
-                configuration.AddOpenBehavior(typeof(LoggingBehavior<,>));  
+                configuration.AddOpenBehavior(typeof(LoggingBehavior<,>));
+                configuration.AddOpenBehavior(typeof(ValidationBehavior<,>));
             });
+            services.AddValidatorsFromAssembly(typeof(DepedencyInjection).Assembly);
             return services;
         }
     }
