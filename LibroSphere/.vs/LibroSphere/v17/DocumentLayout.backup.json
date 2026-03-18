@@ -3,12 +3,120 @@
   "WorkspaceRootPath": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\abstraction\\idomainevent.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\abstraction\\idomainevent.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{44F1B128-09A1-4205-9E42-700A2BB35C06}|LibroSphere.Services\\LibroSphere.Application.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.services\\abstractions\\messaging\\iqueryhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{44F1B128-09A1-4205-9E42-700A2BB35C06}|LibroSphere.Services\\LibroSphere.Application.csproj|solutionrelative:librosphere.services\\abstractions\\messaging\\iqueryhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{44F1B128-09A1-4205-9E42-700A2BB35C06}|LibroSphere.Services\\LibroSphere.Application.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.services\\abstractions\\messaging\\iquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{44F1B128-09A1-4205-9E42-700A2BB35C06}|LibroSphere.Services\\LibroSphere.Application.csproj|solutionrelative:librosphere.services\\abstractions\\messaging\\iquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{44F1B128-09A1-4205-9E42-700A2BB35C06}|LibroSphere.Services\\LibroSphere.Application.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.services\\depedencyinjection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{44F1B128-09A1-4205-9E42-700A2BB35C06}|LibroSphere.Services\\LibroSphere.Application.csproj|solutionrelative:librosphere.services\\depedencyinjection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{44F1B128-09A1-4205-9E42-700A2BB35C06}|LibroSphere.Services\\LibroSphere.Application.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.services\\librosphere.application.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{44F1B128-09A1-4205-9E42-700A2BB35C06}|LibroSphere.Services\\LibroSphere.Application.csproj|solutionrelative:librosphere.services\\librosphere.application.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\abstraction\\result.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\abstraction\\result.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\abstraction\\iunitofwork.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\abstraction\\iunitofwork.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\abstraction\\error.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\abstraction\\error.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\orders\\order.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\orders\\order.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\books\\book\\book.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\books\\book\\book.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\books\\book\\events\\bookcreateddomainevent.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\books\\book\\events\\bookcreateddomainevent.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\books\\genre\\genre.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\books\\genre\\genre.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\authors\\authors.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\authors\\authors.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\shared\\money.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\shared\\money.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\shared\\currency.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\shared\\currency.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\reviews\\reviews.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\reviews\\reviews.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\manytomany\\bookgenre.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\manytomany\\bookgenre.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\authors\\biography.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\authors\\biography.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\authors\\name.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\authors\\name.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\books\\genre\\name.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\books\\genre\\name.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\manytomany\\wishlistitems.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\manytomany\\wishlistitems.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\recommended\\recommendedbook.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\recommended\\recommendedbook.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\manytomany\\userbook.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\manytomany\\userbook.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\books\\book\\description.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\books\\book\\description.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\orders\\paymentstatuses.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\orders\\paymentstatuses.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\users\\iuserrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\users\\iuserrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\abstraction\\idomainevent.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\abstraction\\idomainevent.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\abstraction\\baseentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\abstraction\\baseentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\users\\events\\usercreatedidomainevent.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\users\\events\\usercreatedidomainevent.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\shoppingcart\\shoppingcart.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\shoppingcart\\shoppingcart.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\users\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -31,38 +139,6 @@
       "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\users\\firstname.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\orders\\order.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\orders\\order.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\manytomany\\bookgenre.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\manytomany\\bookgenre.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\books\\genre\\name.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\books\\genre\\name.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\books\\genre\\genre.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\books\\genre\\genre.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\books\\book\\book.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\books\\book\\book.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\books\\book\\money.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\books\\book\\money.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\books\\book\\currency.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\books\\book\\currency.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\books\\book\\description.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\books\\book\\description.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\books\\book\\booklinks.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\books\\book\\booklinks.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -71,32 +147,8 @@
       "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\books\\book\\title.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\abstraction\\baseentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\abstraction\\baseentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\recommended\\recommendedbook.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\recommended\\recommendedbook.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\reviews\\reviews.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\reviews\\reviews.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\shoppingcart\\shoppingcart.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\shoppingcart\\shoppingcart.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\wishlist\\wishlist.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\wishlist\\wishlist.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\manytomany\\wishlistitems.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\manytomany\\wishlistitems.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\manytomany\\userbook.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\manytomany\\userbook.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\manytomany\\orderitem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -105,14 +157,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.model\\entities\\manytomany\\shoppingcartitem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B46851C7-296C-4163-827E-96C7E7AA8B42}|LibroSphere.Model\\LibroSphere.Domain.csproj|solutionrelative:librosphere.model\\entities\\manytomany\\shoppingcartitem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{44F1B128-09A1-4205-9E42-700A2BB35C06}|LibroSphere.Services\\LibroSphere.Services.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.services\\librosphere.services.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
-      "RelativeMoniker": "D:0:0:{44F1B128-09A1-4205-9E42-700A2BB35C06}|LibroSphere.Services\\LibroSphere.Services.csproj|solutionrelative:librosphere.services\\librosphere.services.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{44F1B128-09A1-4205-9E42-700A2BB35C06}|LibroSphere.Services\\LibroSphere.Services.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\librosphere.services\\class1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{44F1B128-09A1-4205-9E42-700A2BB35C06}|LibroSphere.Services\\LibroSphere.Services.csproj|solutionrelative:librosphere.services\\class1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -127,71 +171,240 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "IDomainEvent.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Abstraction\\IDomainEvent.cs",
-              "RelativeDocumentMoniker": "LibroSphere.Model\\Abstraction\\IDomainEvent.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Abstraction\\IDomainEvent.cs",
-              "RelativeToolTip": "LibroSphere.Model\\Abstraction\\IDomainEvent.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAGAAAAAAAAAA==",
+              "Title": "IQueryHandler.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\Abstractions\\Messaging\\IQueryHandler.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Services\\Abstractions\\Messaging\\IQueryHandler.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\Abstractions\\Messaging\\IQueryHandler.cs",
+              "RelativeToolTip": "LibroSphere.Services\\Abstractions\\Messaging\\IQueryHandler.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAlAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-13T17:02:32.193Z",
+              "WhenOpened": "2026-03-14T02:15:44.242Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "Username.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\Username.cs",
-              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Users\\Username.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\Username.cs",
-              "RelativeToolTip": "LibroSphere.Model\\Entities\\Users\\Username.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAApAAAAAAAAAA==",
+              "DocumentIndex": 1,
+              "Title": "IQuery.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\Abstractions\\Messaging\\IQuery.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Services\\Abstractions\\Messaging\\IQuery.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\Abstractions\\Messaging\\IQuery.cs",
+              "RelativeToolTip": "LibroSphere.Services\\Abstractions\\Messaging\\IQuery.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAABCAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-13T16:55:25.417Z",
+              "WhenOpened": "2026-03-14T02:13:39.933Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 4,
-              "Title": "Email.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\Email.cs",
-              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Users\\Email.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\Email.cs",
-              "RelativeToolTip": "LibroSphere.Model\\Entities\\Users\\Email.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAA==",
+              "Title": "Result.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Abstraction\\Result.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Abstraction\\Result.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Abstraction\\Result.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Abstraction\\Result.cs",
+              "ViewState": "AgIAACIAAAAAAAAAAADwvzMAAAAUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-13T16:52:19.544Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "LastName.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\LastName.cs",
-              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Users\\LastName.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\LastName.cs",
-              "RelativeToolTip": "LibroSphere.Model\\Entities\\Users\\LastName.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-13T16:51:46.29Z",
+              "WhenOpened": "2026-03-14T01:32:27.29Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 6,
-              "Title": "FirstName.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\FirstName.cs",
-              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Users\\FirstName.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\FirstName.cs",
-              "RelativeToolTip": "LibroSphere.Model\\Entities\\Users\\FirstName.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAA==",
+              "Title": "Error.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Abstraction\\Error.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Abstraction\\Error.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Abstraction\\Error.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Abstraction\\Error.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-13T16:51:20.12Z",
+              "WhenOpened": "2026-03-14T01:25:52.464Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Book.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Books\\Book\\Book.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Books\\Book\\Book.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Books\\Book\\Book.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\Books\\Book\\Book.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-13T14:51:19.292Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Order.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Orders\\Order.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Orders\\Order.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Orders\\Order.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\Orders\\Order.cs",
+              "ViewState": "AgIAAA0AAAAAAAAAAAAmwCkAAAAOAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-13T15:04:37.703Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "IUnitOfWork.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Abstraction\\IUnitOfWork.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Abstraction\\IUnitOfWork.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Abstraction\\IUnitOfWork.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Abstraction\\IUnitOfWork.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-14T00:29:28.299Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "DepedencyInjection.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\DepedencyInjection.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Services\\DepedencyInjection.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\DepedencyInjection.cs",
+              "RelativeToolTip": "LibroSphere.Services\\DepedencyInjection.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAABgAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-11T19:29:23.56Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 9,
+              "Title": "BookCreatedDomainEvent.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Books\\Book\\Events\\BookCreatedDomainEvent.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Books\\Book\\Events\\BookCreatedDomainEvent.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Books\\Book\\Events\\BookCreatedDomainEvent.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\Books\\Book\\Events\\BookCreatedDomainEvent.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-14T01:09:03.485Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "Genre.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Books\\Genre\\Genre.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Books\\Genre\\Genre.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Books\\Genre\\Genre.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\Books\\Genre\\Genre.cs",
+              "ViewState": "AgIAAAsAAAAAAAAAAAA2wBsAAAAwAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-13T15:19:21.712Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "LibroSphere.Services.csproj",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\LibroSphere.Application.csproj",
+              "RelativeDocumentMoniker": "LibroSphere.Services\\LibroSphere.Application.csproj",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\LibroSphere.Application.csproj",
+              "RelativeToolTip": "LibroSphere.Services\\LibroSphere.Application.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-03-11T19:29:32.149Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "Authors.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Authors\\Authors.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Authors\\Authors.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Authors\\Authors.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\Authors\\Authors.cs",
+              "ViewState": "AgIAAAcAAAAAAAAAAAArwA8AAAAnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-13T14:50:04.71Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "Biography.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Authors\\Biography.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Authors\\Biography.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Authors\\Biography.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\Authors\\Biography.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAmAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-14T01:03:33.532Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "BookGenre.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\ManyToMany\\BookGenre.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\ManyToMany\\BookGenre.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\ManyToMany\\BookGenre.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\ManyToMany\\BookGenre.cs",
+              "ViewState": "AgIAAA0AAAAAAAAAAAAzwBQAAAAxAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-13T14:51:59.088Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "Reviews.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Reviews\\Reviews.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Reviews\\Reviews.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Reviews\\Reviews.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\Reviews\\Reviews.cs",
+              "ViewState": "AgIAAA0AAAAAAAAAAAAzwA0AAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-13T14:55:43.539Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "Currency.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Shared\\Currency.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Shared\\Currency.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Shared\\Currency.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\Shared\\Currency.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-13T16:21:14.716Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "Money.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Shared\\Money.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Shared\\Money.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Shared\\Money.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\Shared\\Money.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAuwBMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-13T16:31:49.033Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "Name.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Authors\\Name.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Authors\\Name.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Authors\\Name.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\Authors\\Name.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAlAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-14T01:02:40.473Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
               "Title": "Name.cs",
               "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Books\\Genre\\Name.cs",
               "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Books\\Genre\\Name.cs",
@@ -204,85 +417,46 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Authors.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Authors\\Authors.cs",
-              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Authors\\Authors.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Authors\\Authors.cs",
-              "RelativeToolTip": "LibroSphere.Model\\Entities\\Authors\\Authors.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAKAAAAAAAAAA==",
+              "DocumentIndex": 19,
+              "Title": "WishlistItems.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\ManyToMany\\WishlistItems.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\ManyToMany\\WishlistItems.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\ManyToMany\\WishlistItems.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\ManyToMany\\WishlistItems.cs",
+              "ViewState": "AgIAAAwAAAAAAAAAAAArwBYAAAAPAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-13T14:50:04.71Z",
+              "WhenOpened": "2026-03-13T15:00:01.418Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
-              "Title": "Money.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Books\\Book\\Money.cs",
-              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Books\\Book\\Money.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Books\\Book\\Money.cs",
-              "RelativeToolTip": "LibroSphere.Model\\Entities\\Books\\Book\\Money.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAuwBMAAAAAAAAAAAAAAA==",
+              "DocumentIndex": 20,
+              "Title": "RecommendedBook.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Recommended\\RecommendedBook.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Recommended\\RecommendedBook.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Recommended\\RecommendedBook.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\Recommended\\RecommendedBook.cs",
+              "ViewState": "AgIAAAwAAAAAAAAAAAArwBYAAAAPAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-13T16:31:49.033Z",
+              "WhenOpened": "2026-03-13T15:10:10.238Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
-              "Title": "Book.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Books\\Book\\Book.cs",
-              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Books\\Book\\Book.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Books\\Book\\Book.cs",
-              "RelativeToolTip": "LibroSphere.Model\\Entities\\Books\\Book\\Book.cs",
-              "ViewState": "AgIAAA4AAAAAAAAAAAAAwB8AAAApAAAAAAAAAA==",
+              "DocumentIndex": 21,
+              "Title": "UserBook.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\ManyToMany\\UserBook.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\ManyToMany\\UserBook.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\ManyToMany\\UserBook.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\ManyToMany\\UserBook.cs",
+              "ViewState": "AgIAAA4AAAAAAAAAAAAvwBkAAAAPAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-13T14:51:19.292Z",
+              "WhenOpened": "2026-03-13T14:56:55.89Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "Genre.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Books\\Genre\\Genre.cs",
-              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Books\\Genre\\Genre.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Books\\Genre\\Genre.cs",
-              "RelativeToolTip": "LibroSphere.Model\\Entities\\Books\\Genre\\Genre.cs",
-              "ViewState": "AgIAAAcAAAAAAAAAAAAAABIAAABCAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-13T15:19:21.712Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "User.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\User.cs",
-              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Users\\User.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\User.cs",
-              "RelativeToolTip": "LibroSphere.Model\\Entities\\Users\\User.cs",
-              "ViewState": "AgIAAAkAAAAAAAAAAAAAAAsAAAAIAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-13T14:49:24.744Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 13,
-              "Title": "Currency.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Books\\Book\\Currency.cs",
-              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Books\\Book\\Currency.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Books\\Book\\Currency.cs",
-              "RelativeToolTip": "LibroSphere.Model\\Entities\\Books\\Book\\Currency.cs",
-              "ViewState": "AgIAAAYAAAAAAAAAAAAAAAoAAAAQAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-13T16:21:14.716Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 22,
               "Title": "Description.cs",
               "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Books\\Book\\Description.cs",
               "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Books\\Book\\Description.cs",
@@ -295,33 +469,150 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "BookGenre.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\ManyToMany\\BookGenre.cs",
-              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\ManyToMany\\BookGenre.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\ManyToMany\\BookGenre.cs",
-              "RelativeToolTip": "LibroSphere.Model\\Entities\\ManyToMany\\BookGenre.cs",
-              "ViewState": "AgIAAAsAAAAAAAAAAAAxwA8AAAAAAAAAAAAAAA==",
+              "DocumentIndex": 23,
+              "Title": "PaymentStatuses.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Orders\\PaymentStatuses.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Orders\\PaymentStatuses.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Orders\\PaymentStatuses.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\Orders\\PaymentStatuses.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAVAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-13T14:51:59.088Z",
+              "WhenOpened": "2026-03-14T00:36:43.195Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "Order.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Orders\\Order.cs",
-              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Orders\\Order.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Orders\\Order.cs",
-              "RelativeToolTip": "LibroSphere.Model\\Entities\\Orders\\Order.cs",
-              "ViewState": "AgIAAA4AAAAAAAAAAAAAwBgAAAAFAAAAAAAAAA==",
+              "DocumentIndex": 24,
+              "Title": "IUserRepository.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\IUserRepository.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Users\\IUserRepository.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\IUserRepository.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\Users\\IUserRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAuwAoAAABXAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-13T15:04:37.703Z",
+              "WhenOpened": "2026-03-14T00:27:10.603Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 25,
+              "Title": "IDomainEvent.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Abstraction\\IDomainEvent.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Abstraction\\IDomainEvent.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Abstraction\\IDomainEvent.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Abstraction\\IDomainEvent.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-13T17:02:32.193Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 26,
+              "Title": "BaseEntity.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Abstraction\\BaseEntity.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Abstraction\\BaseEntity.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Abstraction\\BaseEntity.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Abstraction\\BaseEntity.cs",
+              "ViewState": "AgIAAAsAAAAAAAAAAAAIwCEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-13T15:40:50.522Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 29,
+              "Title": "User.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\User.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Users\\User.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\User.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\Users\\User.cs",
+              "ViewState": "AgIAAC8AAAAAAAAAAAA2wEQAAABmAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-13T14:49:24.744Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 28,
+              "Title": "ShoppingCart.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\ShoppingCart\\ShoppingCart.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\ShoppingCart\\ShoppingCart.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\ShoppingCart\\ShoppingCart.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\ShoppingCart\\ShoppingCart.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAABQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-13T15:01:36.11Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 27,
+              "Title": "UserCreatedIDomainEvent.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\Events\\UserCreatedIDomainEvent.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Users\\Events\\UserCreatedIDomainEvent.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\Events\\UserCreatedIDomainEvent.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\Users\\Events\\UserCreatedIDomainEvent.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-13T17:30:20.882Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 30,
+              "Title": "Username.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\Username.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Users\\Username.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\Username.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\Users\\Username.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-13T16:55:25.417Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 33,
+              "Title": "FirstName.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\FirstName.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Users\\FirstName.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\FirstName.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\Users\\FirstName.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-13T16:51:20.12Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 32,
+              "Title": "LastName.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\LastName.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Users\\LastName.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\LastName.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\Users\\LastName.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-13T16:51:46.29Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 31,
+              "Title": "Email.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\Email.cs",
+              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Users\\Email.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Users\\Email.cs",
+              "RelativeToolTip": "LibroSphere.Model\\Entities\\Users\\Email.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-13T16:52:19.544Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 34,
               "Title": "BookLinks.cs",
               "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Books\\Book\\BookLinks.cs",
               "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Books\\Book\\BookLinks.cs",
@@ -334,7 +625,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 35,
               "Title": "Title.cs",
               "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Books\\Book\\Title.cs",
               "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Books\\Book\\Title.cs",
@@ -347,59 +638,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
-              "Title": "RecommendedBook.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Recommended\\RecommendedBook.cs",
-              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Recommended\\RecommendedBook.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Recommended\\RecommendedBook.cs",
-              "RelativeToolTip": "LibroSphere.Model\\Entities\\Recommended\\RecommendedBook.cs",
-              "ViewState": "AgIAAAQAAAAAAAAAAAAAAA0AAAAeAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-13T15:10:10.238Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 19,
-              "Title": "Reviews.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Reviews\\Reviews.cs",
-              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\Reviews\\Reviews.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\Reviews\\Reviews.cs",
-              "RelativeToolTip": "LibroSphere.Model\\Entities\\Reviews\\Reviews.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAVAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-13T14:55:43.539Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 20,
-              "Title": "ShoppingCart.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\ShoppingCart\\ShoppingCart.cs",
-              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\ShoppingCart\\ShoppingCart.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\ShoppingCart\\ShoppingCart.cs",
-              "RelativeToolTip": "LibroSphere.Model\\Entities\\ShoppingCart\\ShoppingCart.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-13T15:01:36.11Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 17,
-              "Title": "BaseEntity.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Abstraction\\BaseEntity.cs",
-              "RelativeDocumentMoniker": "LibroSphere.Model\\Abstraction\\BaseEntity.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Abstraction\\BaseEntity.cs",
-              "RelativeToolTip": "LibroSphere.Model\\Abstraction\\BaseEntity.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAEwAwAAAAMAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-13T15:40:50.522Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 36,
               "Title": "WishList.cs",
               "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\WishList\\WishList.cs",
               "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\WishList\\WishList.cs",
@@ -412,33 +651,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
-              "Title": "WishlistItems.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\ManyToMany\\WishlistItems.cs",
-              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\ManyToMany\\WishlistItems.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\ManyToMany\\WishlistItems.cs",
-              "RelativeToolTip": "LibroSphere.Model\\Entities\\ManyToMany\\WishlistItems.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAoAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-13T15:00:01.418Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 23,
-              "Title": "UserBook.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\ManyToMany\\UserBook.cs",
-              "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\ManyToMany\\UserBook.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\ManyToMany\\UserBook.cs",
-              "RelativeToolTip": "LibroSphere.Model\\Entities\\ManyToMany\\UserBook.cs",
-              "ViewState": "AgIAAAMAAAAAAAAAAAAAABMAAAAGAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-13T14:56:55.89Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 37,
               "Title": "OrderItem.cs",
               "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\ManyToMany\\OrderItem.cs",
               "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\ManyToMany\\OrderItem.cs",
@@ -451,41 +664,15 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 38,
               "Title": "ShoppingCartItem.cs",
               "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\ManyToMany\\ShoppingCartItem.cs",
               "RelativeDocumentMoniker": "LibroSphere.Model\\Entities\\ManyToMany\\ShoppingCartItem.cs",
               "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Model\\Entities\\ManyToMany\\ShoppingCartItem.cs",
               "RelativeToolTip": "LibroSphere.Model\\Entities\\ManyToMany\\ShoppingCartItem.cs",
-              "ViewState": "AgIAAAcAAAAAAAAAAAAAABEAAAADAAAAAAAAAA==",
+              "ViewState": "AgIAAAQAAAAAAAAAAIBJwBEAAAADAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-03-13T15:02:15.524Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 26,
-              "Title": "LibroSphere.Services.csproj",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\LibroSphere.Services.csproj",
-              "RelativeDocumentMoniker": "LibroSphere.Services\\LibroSphere.Services.csproj",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\LibroSphere.Services.csproj",
-              "RelativeToolTip": "LibroSphere.Services\\LibroSphere.Services.csproj",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2026-03-11T19:29:32.149Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 27,
-              "Title": "Class1.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\Class1.cs",
-              "RelativeDocumentMoniker": "LibroSphere.Services\\Class1.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\LibroSphere.Services\\Class1.cs",
-              "RelativeToolTip": "LibroSphere.Services\\Class1.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-11T19:29:23.56Z",
               "EditorCaption": ""
             }
           ]
