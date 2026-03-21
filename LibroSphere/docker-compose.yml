@@ -1,0 +1,6 @@
+services:
+  librosphere.webapi:
+    image: ${DOCKER_REGISTRY-}librospherewebapi
+    build:
+      context: .
+      dockerfile: LibroSphere.WebApi/Dockerfile

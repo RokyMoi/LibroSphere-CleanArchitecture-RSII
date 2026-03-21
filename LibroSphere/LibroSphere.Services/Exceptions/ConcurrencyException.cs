@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace LibroSphere.Application.Exceptions
 {
-    internal class ConcurrencyException
+    public sealed class ConcurrencyException : Exception
     {
+      
+        public ConcurrencyException(string? message, Exception? innerException) : base(message, innerException)
+        {
+        }
     }
 }

@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>7eee7f69-36d9-4def-ade4-d8ba9d317934</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LibroSphere.Model\LibroSphere.Domain.csproj" />
+    <ProjectReference Include="..\LIbroSphere.Infrastructure\LIbroSphere.Infrastructure.csproj" />
     <ProjectReference Include="..\LibroSphere.Services\LibroSphere.Application.csproj" />
   </ItemGroup>
 

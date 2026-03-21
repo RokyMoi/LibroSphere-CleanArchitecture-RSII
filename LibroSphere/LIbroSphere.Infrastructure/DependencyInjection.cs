@@ -1,4 +1,8 @@
-﻿using LibroSphere.Application.Abstractions.Clock;
+﻿using Dapper;
+using LibroSphere.Application.Abstractions.Clock;
+using LibroSphere.Application.Abstractions.Data;
+using LibroSphere.Domain.Abstraction;
+using LibroSphere.Infrastructure.Data;
 using LIbroSphere.Infrastructure.Clock;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -15,7 +19,7 @@ namespace LIbroSphere.Infrastructure
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddInfrastructure(
+        public static IServiceCollection AddInfrastructureServices(
             this IServiceCollection services,
                IConfiguration configuration)
             
@@ -27,7 +31,13 @@ namespace LIbroSphere.Infrastructure
 
             services.AddDbContext<ApplicationDbContext>(options => {
                 options.UseSqlServer(connectionString);
-            
+
+                services.AddScoped<IUnitOfWork>(sp=> sp.GetRequiredService<ApplicationDbContext>());
+                services.AddSingleton<ISqlConnectionFactory>(_ =>
+    new SqlConnectionFactory(connectionString));
+
+                SqlMapper.AddTypeHandler(new DateOnlyTypeHandler());
+
             });
             return services;
         }

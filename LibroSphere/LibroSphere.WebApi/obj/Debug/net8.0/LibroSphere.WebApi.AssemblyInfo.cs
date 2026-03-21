@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LibroSphere.WebApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c9bbb4c1675d3060938c119aa4135ecfacc8ba73")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+45643a24c005d2149de54e294898d64d16797896")]
 [assembly: System.Reflection.AssemblyProductAttribute("LibroSphere.WebApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LibroSphere.WebApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

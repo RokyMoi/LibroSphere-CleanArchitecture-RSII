@@ -1,4 +1,7 @@
-﻿using System;
+﻿
+using LibroSphere.Domain.Entities.Users;
+using LibroSphere.Infrastructure.Repositories;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +9,12 @@ using System.Threading.Tasks;
 
 namespace LIbroSphere.Infrastructure.Repositories
 {
-    internal class UserRepository
+    internal sealed class UserRepository : Repository<User>, IUserRepository
     {
+        public UserRepository(ApplicationDbContext dbContext) : base(dbContext)
+        {
+        }
+
+    
     }
 }

@@ -37,7 +37,7 @@ namespace LIbroSphere.Infrastructure
                 return result;
             }
             catch (DbUpdateConcurrencyException ex) {
-          //Race condition fix. - If many users change same data.
+
                 throw new ConcurrencyException("Concurrency exception occured", ex);
 
             }

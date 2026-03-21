@@ -38,12 +38,12 @@ namespace LibroSphere.Application.Books.Query.GetBookByIdQuery
                     ImageLink,
                     AuthorId
                 FROM Books
-                WHERE Id = @BookId
+                WHERE Id = @Knjiga
                 """;
 
                   var book = await connection.QueryFirstOrDefaultAsync<BookResponse>(
                     sql,
-                     new { BookId = request.bookId }
+                     new { Knjiga = request.bookId }
                      );
 
                    return book;

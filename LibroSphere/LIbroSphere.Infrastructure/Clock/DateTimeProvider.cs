@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 namespace LIbroSphere.Infrastructure.Clock
 {
     //easy for mock, for testing purposes..Maybe later add some method depend on needs
+   
     internal sealed class DateTimeProvider : IDateTimeProvider
     {
         public DateTime UtcNow => DateTime.UtcNow;
