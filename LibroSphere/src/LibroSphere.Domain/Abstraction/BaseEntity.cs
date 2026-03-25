@@ -11,7 +11,7 @@ namespace LibroSphere.Domain.Abstraction
         private readonly List<IDomainEvent> _domainEvents = new List<IDomainEvent>();
         //Setter -> Init - Last for life.
         protected BaseEntity(Guid id) {
-            id = id;
+            this.Id = id;
         }
         protected BaseEntity() { }
 

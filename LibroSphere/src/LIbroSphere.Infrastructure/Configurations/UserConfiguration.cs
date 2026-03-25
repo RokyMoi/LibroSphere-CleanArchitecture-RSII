@@ -34,7 +34,6 @@ namespace LIbroSphere.Infrastructure.Configurations
                    .HasConversion(em => em.Value,
                    value => new Email (value));
 
-            //Dodati mozda Has Index za Username i Email da su UNIQUE!
           
             builder.Property(u => u.PasswordHash)
                    .HasMaxLength(300);
@@ -70,6 +69,8 @@ namespace LIbroSphere.Infrastructure.Configurations
         .WithOne(c => c.User) 
    .HasForeignKey<Wishlist>(c => c.UserId)
      .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasIndex(user => user.IdentityId).IsUnique();
         }
     }
 }

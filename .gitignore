@@ -122,3 +122,12 @@ appsettings.*.json
 *.log
 .localhistory/
 MigrationBackup/
+
+# =========================
+# Containers / Docker / Dev Containers
+# =========================
+.containers/
+docker-compose.override.yml
+docker-compose.override.*.yml
+.docker/
+devcontainer.json

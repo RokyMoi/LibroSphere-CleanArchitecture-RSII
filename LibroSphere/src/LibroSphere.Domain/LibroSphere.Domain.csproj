@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <Folder Include="Entities\Authors\Events\" />
-    <Folder Include="Entities\Books\Book\Errors\" />
     <Folder Include="Entities\Books\Genre\Errors\" />
     <Folder Include="Entities\Orders\Errors\" />
     <Folder Include="Entities\Recommended\Errors\" />

@@ -15,7 +15,7 @@ namespace LibroSphere.Domain.Entities.Books
     public interface IBookRepository
     {
         Task<Book?> GetAsyncById(Guid id, CancellationToken cancellationToken = default);
-        void Add(Book author);
+        void Add(Book book);
 
     }
 }

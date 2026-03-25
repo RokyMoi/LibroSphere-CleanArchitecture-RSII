@@ -1,4 +1,4 @@
-﻿namespace LibroSphere.WebApi.Controllers
+﻿namespace LibroSphere.WebApi.Controllers.Requests
 {
     public class AddNewBookRequest
     {

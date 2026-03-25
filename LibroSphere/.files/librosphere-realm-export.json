@@ -1,6 +1,6 @@
 {
-  "id": "Bookify",
-  "realm": "bookify",
+  "id": "LibroSphere",
+  "realm": "librosphere",
   "notBefore": 0,
   "defaultSignatureAlgorithm": "RS256",
   "revokeRefreshToken": false,
@@ -51,12 +51,12 @@
         "description": "${role_uma_authorization}",
         "composite": false,
         "clientRole": false,
-        "containerId": "Bookify",
+        "containerId": "librosphere",
         "attributes": {}
       },
       {
         "id": "5210598a-1bd0-459d-91a0-a720e9933ad6",
-        "name": "default-roles-bookify",
+        "name": "default-roles-librosphere",
         "description": "${role_default-roles}",
         "composite": true,
         "composites": {
@@ -72,7 +72,7 @@
           }
         },
         "clientRole": false,
-        "containerId": "Bookify",
+        "containerId": "librosphere",
         "attributes": {}
       },
       {
@@ -81,7 +81,7 @@
         "description": "${role_offline-access}",
         "composite": false,
         "clientRole": false,
-        "containerId": "Bookify",
+        "containerId": "librosphere",
         "attributes": {}
       }
     ],
@@ -299,9 +299,9 @@
         }
       ],
       "security-admin-console": [],
-      "bookify-auth-client": [],
+      "librosphere-auth-client": [],
       "admin-cli": [],
-      "bookify-admin-client": [],
+      "librosphere-admin-client": [],
       "account-console": [],
       "broker": [
         {
@@ -398,11 +398,11 @@
   "groups": [],
   "defaultRole": {
     "id": "5210598a-1bd0-459d-91a0-a720e9933ad6",
-    "name": "default-roles-bookify",
+    "name": "default-roles-librosphere",
     "description": "${role_default-roles}",
     "composite": true,
     "clientRole": false,
-    "containerId": "Bookify"
+    "containerId": "librosphere"
   },
   "requiredCredentials": [
     "password"
@@ -445,15 +445,15 @@
     {
       "id": "3538994f-b095-45f6-8f98-a95dd61b84c1",
       "createdTimestamp": 1689227091368,
-      "username": "service-account-bookify-admin-client",
+      "username": "service-account-librosphere-admin-client",
       "enabled": true,
       "totp": false,
       "emailVerified": false,
-      "serviceAccountClientId": "bookify-admin-client",
+      "serviceAccountClientId": "librosphere-admin-client",
       "disableableCredentialTypes": [],
       "requiredActions": [],
       "realmRoles": [
-        "default-roles-bookify"
+        "default-roles-librosphere"
       ],
       "clientRoles": {
         "realm-management": [
@@ -488,13 +488,13 @@
       "clientId": "account",
       "name": "${client_account}",
       "rootUrl": "${authBaseUrl}",
-      "baseUrl": "/realms/bookify/account/",
+      "baseUrl": "/realms/librosphere/account/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "/realms/bookify/account/*"
+        "/realms/librosphere/account/*"
       ],
       "webOrigins": [],
       "notBefore": 0,
@@ -529,13 +529,13 @@
       "clientId": "account-console",
       "name": "${client_account-console}",
       "rootUrl": "${authBaseUrl}",
-      "baseUrl": "/realms/Bookify/account/",
+      "baseUrl": "/realms/librosphere/account/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "/realms/Bookify/account/*"
+        "/realms/librosphere/account/*"
       ],
       "webOrigins": [],
       "notBefore": 0,
@@ -616,7 +616,7 @@
     },
     {
       "id": "c6bfa492-b859-47b2-96e0-18b0ad6c9b6d",
-      "clientId": "bookify-admin-client",
+      "clientId": "librosphere-admin-client",
       "rootUrl": "http://localhost:18080/",
       "adminUrl": "http://localhost:18080/",
       "surrogateAuthRequired": false,
@@ -729,7 +729,7 @@
     },
     {
       "id": "59327369-c4e0-4354-9de4-3194af25fd9d",
-      "clientId": "bookify-auth-client",
+      "clientId": "librosphere-auth-client",
       "rootUrl": "http://localhost:18080/",
       "surrogateAuthRequired": false,
       "enabled": true,
@@ -871,13 +871,13 @@
       "clientId": "security-admin-console",
       "name": "${client_security-admin-console}",
       "rootUrl": "${authAdminUrl}",
-      "baseUrl": "/admin/bookify/console/",
+      "baseUrl": "/admin/librosphere/console/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "/admin/bookify/console/*"
+        "/admin/librosphere/console/*"
       ],
       "webOrigins": [
         "+"

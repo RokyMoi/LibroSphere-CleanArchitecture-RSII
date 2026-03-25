@@ -1,5 +1,5 @@
 services:
-  librosphere.api:
+  librosphere-api:
     image: ${DOCKER_REGISTRY-}librosphereapi
     container_name: LibroSphere.Api
     build:
@@ -13,22 +13,30 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: LibroSphere.Db
     environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrong!Pass123
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "YourStrong!Pass123"
+      MSSQL_SA_PASSWORD: "YourStrong!Pass123"
     ports:
-      - 1433:1433
+      - "1433:1433"
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
     volumes:
-      - ./.containers/mssql:/var/opt/mssql
+      - mssql-data:/var/opt/mssql
 
   librosphere-idp:
-    image: jboss/keycloak:latest
+    image: quay.io/keycloak/keycloak:latest
     container_name: LibroSphere.Identity
+    command: start-dev --import-realm
     environment:
-      - KEYCLOAK_USER=admin
-      - KEYCLOAK_PASSWORD=admin
-      - KEYCLOAK_IMPORT=/tmp/librosphere-realm-export.json
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
     volumes:
-      - ./.containers/identity:/opt/jboss/keycloak/standalone/data
-      - ./.files/librosphere-realm-export.json:/tmp/librosphere-realm-export.json
+      - ./.containers/identity:/opt/keycloak/data
+      - ./.files/librosphere-realm-export.json:/opt/keycloak/data/import/librosphere-realm-export.json
     ports:
-      - 18080:8080
+      - "18080:8080"
+
+volumes:
+  mssql-data:

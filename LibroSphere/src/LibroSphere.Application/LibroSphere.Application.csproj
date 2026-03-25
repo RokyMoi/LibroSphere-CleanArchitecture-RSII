@@ -17,7 +17,10 @@
 
 
   <ItemGroup>
-    <Folder Include="Author\" />
+    <Folder Include="Authors\Command\CreateNewAuthor\DomainEventHandler\" />
+    <Folder Include="Authors\Command\CreateNewAuthor\Validator\" />
+    <Folder Include="Reviews\Command\" />
+    <Folder Include="Reviews\Query\" />
   </ItemGroup>
 
   <ItemGroup>

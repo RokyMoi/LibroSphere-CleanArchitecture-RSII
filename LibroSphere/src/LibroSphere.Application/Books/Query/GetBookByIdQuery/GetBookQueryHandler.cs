@@ -1,6 +1,8 @@
 ﻿using Dapper;
 using LibroSphere.Application.Abstractions.Data;
 using LibroSphere.Application.Abstractions.Messaging;
+
+using LibroSphere.Domain.Entities.Books.Errors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,14 +40,19 @@ namespace LibroSphere.Application.Books.Query.GetBookByIdQuery
                     ImageLink,
                     AuthorId
                 FROM Books
-                WHERE Id = @Knjiga
+                WHERE Id = @Book
                 """;
 
                   var book = await connection.QueryFirstOrDefaultAsync<BookResponse>(
                     sql,
-                     new { Knjiga = request.bookId }
+                     new { Book = request.bookId }
                      );
 
+
+            if(book is null)
+            {
+                return Result.Failure<BookResponse>(BookErrors.NotFound);
+            }
                    return book;
         }
         

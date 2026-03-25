@@ -2,6 +2,7 @@
 using LibroSphere.Application.Books.Query.GetBookByIdQuery;
 using LibroSphere.Domain.Entities.Books;
 using LibroSphere.Domain.Entities.Shared;
+using LibroSphere.WebApi.Controllers.Requests;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
