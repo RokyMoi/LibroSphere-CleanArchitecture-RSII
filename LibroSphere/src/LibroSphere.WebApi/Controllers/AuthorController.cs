@@ -24,21 +24,9 @@ namespace LibroSphere.WebApi.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAuthorById(Guid id, CancellationToken cancellaction)
         {
-            //var query = new GetAuthorByIdQuery(id);
-            //var result = await sender.Send(query,cancellaction);
-            // return  result.IsSuccess ? Ok(result) : NotFound();
-
-            // Using without dappler
-
-            var  author = _repository.GetAsyncById(id);
-            if (author == null) {
-                return NotFound(new
-                {
-                    Message = $"Author with Id: {id}, was not found."
-                });
-            }
-
-            return Ok(author);
+            var query = new GetAuthorByIdQuery(id);
+            var result = await sender.Send(query,cancellaction);
+             return  result.IsSuccess ? Ok(result) : NotFound();
 
 
         }

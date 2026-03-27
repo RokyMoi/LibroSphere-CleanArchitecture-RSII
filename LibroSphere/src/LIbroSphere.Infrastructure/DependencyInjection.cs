@@ -1,55 +1,76 @@
 ﻿using Dapper;
-using LibroSphere.Application.Abstractions.Authentication;
 using LibroSphere.Application.Abstractions.Data;
+using LibroSphere.Application.Abstractions.Identity;
 using LibroSphere.Domain.Abstraction;
 using LibroSphere.Domain.Abstractions.Clock;
 using LibroSphere.Domain.Entities.Authors;
 using LibroSphere.Domain.Entities.Books;
 using LibroSphere.Domain.Entities.Users;
 using LibroSphere.Infrastructure.Authentication;
+using LibroSphere.Infrastructure.Clock;
 using LibroSphere.Infrastructure.Data;
-using LIbroSphere.Infrastructure;
-using LIbroSphere.Infrastructure.Authentication;
-using LIbroSphere.Infrastructure.Clock;
-using LIbroSphere.Infrastructure.Repositories;
-using Microsoft.AspNetCore.Authentication;
+using LibroSphere.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using System;
+using System.Text;
 
 namespace LibroSphere.Infrastructure
 {
     public static class DependencyInjection
     {
-
         public static IServiceCollection AddInfrastructureServices(
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            
             services.AddPersistence(configuration);
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer();
-            services.Configure<AuthenticationJwtOptions>(configuration.GetSection("Authentication"));
-            services.ConfigureOptions<JwtBearerOptionsSetup>();
 
-            services.Configure<KeycloakOptions>(configuration.GetSection("Keycloak"));
+        
+            services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
+            var jwtSettings = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()!;
 
-            services.AddTransient<AdminAuthorizationDelegatingHandler>();
-
-            services.AddHttpClient<LibroSphere.Application.Abstractions.Authentication
-                .IAuthenticationService,LibroSphere.Infrastructure.
-                Authentication.AuthenticationService>((serviceProvider, httpClient) =>
+          
+            services.AddIdentityCore<ApplicationUser>(opt =>
             {
-                KeycloakOptions keycloakOptions = serviceProvider.
-                GetRequiredService<IOptions<KeycloakOptions>>().Value;
-
-                httpClient.BaseAddress = new Uri(keycloakOptions.AdminUrl);
+                opt.Password.RequiredLength = 8;
+                opt.Password.RequireUppercase = true;
+                opt.Password.RequireDigit = true;
+                opt.User.RequireUniqueEmail = true;
+                opt.SignIn.RequireConfirmedEmail = false;
             })
-            .AddHttpMessageHandler<AdminAuthorizationDelegatingHandler>();
+            .AddRoles<IdentityRole>()
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddSignInManager()
+            .AddDefaultTokenProviders();
+
+            services.AddAuthentication(opt =>
+            {
+                opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(opt =>
+            {
+                opt.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
+                    ValidateIssuer = true,
+                    ValidIssuer = jwtSettings.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = jwtSettings.Audience,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
+
+          
+            services.AddScoped<IJwtService, JwtTokenService>();
+            services.AddScoped<IAuthService, AuthService>();
 
             services.AddHttpContextAccessor();
             return services;

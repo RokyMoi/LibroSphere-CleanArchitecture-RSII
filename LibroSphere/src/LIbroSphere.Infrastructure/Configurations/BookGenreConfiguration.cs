@@ -2,19 +2,22 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class BookGenreConfiguration : IEntityTypeConfiguration<BookGenre>
+namespace LibroSphere.Infrastructure.Configurations
 {
-    public void Configure(EntityTypeBuilder<BookGenre> builder)
+    internal sealed class BookGenreConfiguration : IEntityTypeConfiguration<BookGenre>
     {
-        builder.ToTable("BookGenres");
-        builder.HasKey(bg => bg.Id);
+        public void Configure(EntityTypeBuilder<BookGenre> builder)
+        {
+            builder.ToTable("BookGenres");
+            builder.HasKey(bg => bg.Id);
 
-        builder.HasOne(bg => bg.Book)
-               .WithMany(b => b.BookGenres)
-               .HasForeignKey(bg => bg.BookId);
+            builder.HasOne(bg => bg.Book)
+                   .WithMany(b => b.BookGenres)
+                   .HasForeignKey(bg => bg.BookId);
 
-        builder.HasOne(bg => bg.Genre)
-               .WithMany(g => g.BookGenres)
-               .HasForeignKey(bg => bg.GenreId);
+            builder.HasOne(bg => bg.Genre)
+                   .WithMany(g => g.BookGenres)
+                   .HasForeignKey(bg => bg.GenreId);
+        }
     }
 }

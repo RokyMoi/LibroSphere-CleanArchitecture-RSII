@@ -1,63 +1,65 @@
 ﻿using LibroSphere.Application.Exceptions;
 using LibroSphere.Domain.Abstraction;
 using MediatR;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using static Dapper.SqlMapper;
 
-namespace LIbroSphere.Infrastructure
+namespace LibroSphere.Infrastructure
 {
-    public sealed class ApplicationDbContext : DbContext, IUnitOfWork
+    public sealed class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IUnitOfWork
     {
         private readonly IPublisher _publisher;
 
-
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IPublisher publisher)
-    : base(options)
+            : base(options)
         {
             _publisher = publisher;
         }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Automatski primeni sve konfiguracije iz ovog assembly-ja
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+
             base.OnModelCreating(modelBuilder);
         }
+
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             try
             {
+                // Sačuvaj promene u bazu
                 var result = await base.SaveChangesAsync(cancellationToken);
 
-                await PublishDomainEventAsync();
+                // Publikuj domen događaje nakon uspešnog čuvanja
+                await PublishDomainEventsAsync();
 
                 return result;
             }
-            catch (DbUpdateConcurrencyException ex) {
-
-                throw new ConcurrencyException("Concurrency exception occured", ex);
-
+            catch (DbUpdateConcurrencyException ex)
+            {
+                throw new ConcurrencyException("Concurrency exception occurred.", ex);
             }
         }
-    //Sumarry: When publisher(mediaTr) publish domain events. - We later handle that event after method: SaveChangesAsync
-    private async Task PublishDomainEventAsync()
+
+        private async Task PublishDomainEventsAsync()
         {
-            var domainEvents = ChangeTracker //Point is.. We are watching every entity, if there there is change
-                .Entries<BaseEntity>()           //then there is event, so we can publish to handle
+           
+            var domainEvents = ChangeTracker
+                .Entries<BaseEntity>()
                 .Select(entry => entry.Entity)
                 .SelectMany(entity =>
                 {
-                    var domainEvents = entity.GetDomainEvents();      //Methods that we added in our BaseEntity.
-
+                    var events = entity.GetDomainEvents();
                     entity.ClearDomainEvents();
-
-                    return domainEvents;
+                    return events;
                 })
                 .ToList();
 
+           
             foreach (var domainEvent in domainEvents)
             {
                 await _publisher.Publish(domainEvent);

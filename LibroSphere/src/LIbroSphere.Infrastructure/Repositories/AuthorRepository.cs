@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LIbroSphere.Infrastructure.Repositories
+namespace LibroSphere.Infrastructure.Repositories
 {
     internal sealed class AuthorRepository : RepositoryBase<Author>, IAuthorRepository
     {

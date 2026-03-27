@@ -7,7 +7,7 @@ services:
       dockerfile: src/LibroSphere.WebApi/Dockerfile
     depends_on:
       - librosphere-db
-      - librosphere-idp
+      
 
   librosphere-db:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -25,18 +25,6 @@ services:
     volumes:
       - mssql-data:/var/opt/mssql
 
-  librosphere-idp:
-    image: quay.io/keycloak/keycloak:latest
-    container_name: LibroSphere.Identity
-    command: start-dev --import-realm
-    environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-    volumes:
-      - ./.containers/identity:/opt/keycloak/data
-      - ./.files/librosphere-realm-export.json:/opt/keycloak/data/import/librosphere-realm-export.json
-    ports:
-      - "18080:8080"
-
+  
 volumes:
   mssql-data:

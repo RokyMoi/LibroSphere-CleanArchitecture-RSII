@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LIbroSphere.Infrastructure.Repositories
+namespace LibroSphere.Infrastructure.Repositories
 {
     internal class BookRepository : RepositoryBase<Book>, IBookRepository
     {

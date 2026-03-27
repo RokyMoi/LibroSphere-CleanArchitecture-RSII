@@ -1,42 +1,39 @@
-﻿using Dapper;
-using LibroSphere.Application.Abstractions.Data;
-using LibroSphere.Application.Abstractions.Messaging;
-using LibroSphere.Application.Books.Query.GetBookByIdQuery;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using LibroSphere.Application.Abstractions.Messaging;
+using LibroSphere.Application.Authors.Query.GetAuthorById;
+using LibroSphere.Domain.Entities.Authors;
+using LibroSphere.Domain.Entities.Authors.Errors;
 
-namespace LibroSphere.Application.Authors.Query.GetAuthorById
+internal sealed class GetAuthorByIdQueryHandler
+    : IQueryHandler<GetAuthorByIdQuery, AuthorResponse>
 {
-    internal sealed class GetAuthorByIdQueryHandler : IQueryHandler<GetAuthorByIdQuery, AuthorResponse>
+    private readonly IAuthorRepository _authorRepository;
+
+    public GetAuthorByIdQueryHandler(IAuthorRepository authorRepository)
     {
-        public readonly ISqlConnectionFactory sqlConnectionFactory;
-        public GetAuthorByIdQueryHandler(ISqlConnectionFactory _sqlconnection)
+        _authorRepository = authorRepository;
+    }
+
+    public async Task<Result<AuthorResponse>> Handle(
+        GetAuthorByIdQuery request,
+        CancellationToken cancellationToken)
+    {
+        var author = await _authorRepository.GetAsyncById(
+            request.autorId,
+            cancellationToken
+        );
+
+        if (author is null)
         {
-            sqlConnectionFactory = _sqlconnection;
+            return Result.Failure<AuthorResponse>(AuthorErrors.NotFound);
         }
 
-        public async Task<Result<AuthorResponse>> Handle(GetAuthorByIdQuery request, CancellationToken cancellationToken)
+        var response = new AuthorResponse
         {
-          using var connection = sqlConnectionFactory.CreateConnection();
-            const string sql = """
-                 SELECT
-                  Id,
-                  Name,
-                  Biography
-                FROM Author
-                WHERE Id = @Parameter
-                """;
+            Id = author.Id,
+            Name = author.Name.Value,
+            Biography = author.Biography.Value
+        };
 
-            var author = await connection.QueryFirstOrDefaultAsync<AuthorResponse>(
-                  sql,
-                   new { Parameter = request.autorId }
-                   );
-
-            return author;
-
-        }
+        return Result.Success(response);
     }
 }

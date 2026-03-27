@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LIbroSphere.Infrastructure.Configurations
+namespace LibroSphere.Infrastructure.Configurations
 {
     internal sealed class BookConfiguration : IEntityTypeConfiguration<Book>
     {

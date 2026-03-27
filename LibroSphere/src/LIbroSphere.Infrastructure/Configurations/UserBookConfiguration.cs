@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LIbroSphere.Infrastructure.Configurations
+namespace LibroSphere.Infrastructure.Configurations
 {
     using global::LibroSphere.Domain.Entities.ManyToMany;
    
