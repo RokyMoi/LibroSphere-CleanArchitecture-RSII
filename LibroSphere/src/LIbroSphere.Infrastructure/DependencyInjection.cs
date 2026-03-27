@@ -5,17 +5,20 @@ using LibroSphere.Domain.Abstraction;
 using LibroSphere.Domain.Abstractions.Clock;
 using LibroSphere.Domain.Entities.Authors;
 using LibroSphere.Domain.Entities.Books;
+using LibroSphere.Domain.Entities.ShopCart;
 using LibroSphere.Domain.Entities.Users;
 using LibroSphere.Infrastructure.Authentication;
 using LibroSphere.Infrastructure.Clock;
 using LibroSphere.Infrastructure.Data;
 using LibroSphere.Infrastructure.Repositories;
+using LibroSphere.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 using System;
 using System.Text;
 
@@ -28,12 +31,56 @@ namespace LibroSphere.Infrastructure
             IConfiguration configuration)
         {
             services.AddPersistence(configuration);
+            services.AddCustomAuthentication(configuration);
 
         
+          
+
+            services.AddHttpContextAccessor();
+            return services;
+        }
+
+        private static IServiceCollection AddPersistence(
+            this IServiceCollection services,
+            IConfiguration configuration)
+        {
+            var connectionString = configuration.GetConnectionString("Database") ??
+                throw new InvalidOperationException("Connection string 'Database' is not configured.");
+
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(connectionString));
+
+            services.AddScoped<IUnitOfWork>(sp =>
+                sp.GetRequiredService<ApplicationDbContext>());
+
+            services.AddSingleton<ISqlConnectionFactory>(_ =>
+                new SqlConnectionFactory(connectionString));
+
+            SqlMapper.AddTypeHandler(new DateOnlyTypeHandler());
+
+            services.AddScoped<IAuthorRepository, AuthorRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IBookRepository, BookRepository>();
+            services.AddTransient<IDateTimeProvider, DateTimeProvider>();
+
+            var redisConnectionString = configuration.GetConnectionString("Redis");
+            services.AddSingleton<IConnectionMultiplexer>(config =>
+            {
+                var options = ConfigurationOptions.Parse(redisConnectionString, true);
+                options.AbortOnConnectFail = false; 
+                return ConnectionMultiplexer.Connect(options);
+            });
+            services.AddSingleton<ICartService, CartService>();
+            return services;
+        }
+        private static IServiceCollection AddCustomAuthentication(
+           this IServiceCollection services,
+           IConfiguration configuration)
+        {
             services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
             var jwtSettings = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()!;
 
-          
+
             services.AddIdentityCore<ApplicationUser>(opt =>
             {
                 opt.Password.RequiredLength = 8;
@@ -68,38 +115,14 @@ namespace LibroSphere.Infrastructure
                 };
             });
 
-          
+
             services.AddScoped<IJwtService, JwtTokenService>();
             services.AddScoped<IAuthService, AuthService>();
-
-            services.AddHttpContextAccessor();
             return services;
-        }
 
-        private static IServiceCollection AddPersistence(
-            this IServiceCollection services,
-            IConfiguration configuration)
-        {
-            var connectionString = configuration.GetConnectionString("Database") ??
-                throw new InvalidOperationException("Connection string 'Database' is not configured.");
 
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(connectionString));
 
-            services.AddScoped<IUnitOfWork>(sp =>
-                sp.GetRequiredService<ApplicationDbContext>());
-
-            services.AddSingleton<ISqlConnectionFactory>(_ =>
-                new SqlConnectionFactory(connectionString));
-
-            SqlMapper.AddTypeHandler(new DateOnlyTypeHandler());
-
-            services.AddScoped<IAuthorRepository, AuthorRepository>();
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IBookRepository, BookRepository>();
-            services.AddTransient<IDateTimeProvider, DateTimeProvider>();
-
-            return services;
         }
     }
+   
 }

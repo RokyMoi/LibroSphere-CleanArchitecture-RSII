@@ -2,11 +2,10 @@
 using LibroSphere.Application.Authors.Query.GetAuthorById;
 using LibroSphere.Domain.Entities.Authors;
 using LibroSphere.Domain.Entities.Authors.Errors;
-using LibroSphere.WebApi.Controllers.Requests;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LibroSphere.WebApi.Controllers
+namespace LibroSphere.WebApi.Controllers.Author
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -34,8 +33,8 @@ namespace LibroSphere.WebApi.Controllers
 
         public async Task<IActionResult> MakeANewAuthor(AddNewAuthorRequest request, CancellationToken cancellaction)
         {
-            var command = new MakeANewAuthorCommand(new Domain.Entities.Authors.Name(request.Name), 
-                new Domain.Entities.Authors.Biography(request.Biography));
+            var command = new MakeANewAuthorCommand(new Name(request.Name), 
+                new Biography(request.Biography));
 
             var result = await sender.Send(command,cancellaction);
 

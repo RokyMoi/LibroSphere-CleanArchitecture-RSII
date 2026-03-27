@@ -1,6 +1,6 @@
 ﻿using System.Security.Principal;
 
-namespace LibroSphere.WebApi.Controllers.Requests
+namespace LibroSphere.WebApi.Controllers.Author
 {
     public class AddNewAuthorRequest
     {

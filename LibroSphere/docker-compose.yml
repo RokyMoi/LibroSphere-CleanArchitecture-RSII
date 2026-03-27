@@ -7,7 +7,23 @@ services:
       dockerfile: src/LibroSphere.WebApi/Dockerfile
     depends_on:
       - librosphere-db
-      
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
 
   librosphere-db:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -25,6 +41,6 @@ services:
     volumes:
       - mssql-data:/var/opt/mssql
 
-  
 volumes:
   mssql-data:
+  redis-data:

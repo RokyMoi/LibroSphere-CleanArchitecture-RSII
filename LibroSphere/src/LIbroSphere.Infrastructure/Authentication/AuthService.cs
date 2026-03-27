@@ -122,7 +122,7 @@ namespace LibroSphere.Infrastructure.Authentication
             if (appUser is null)
                 return new AuthResult("", "", false, "User not found.");
 
-            // Brišemo refresh token
+           
             appUser.RefreshToken = null;
             appUser.RefreshTokenExpiry = null;
             await _userManager.UpdateAsync(appUser);

@@ -4,7 +4,7 @@ using LibroSphere.Domain.Entities.Users;
 using System;
 using System.Collections.Generic;
 
-namespace LibroSphere.Domain.Entities.ShoppingCarts
+namespace LibroSphere.Domain.Entities.ShopCart
 {
     public class ShoppingCart : BaseEntity
     {

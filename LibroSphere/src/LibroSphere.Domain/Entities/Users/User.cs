@@ -4,7 +4,7 @@ using LibroSphere.Domain.Entities.ManyToMany;
 using LibroSphere.Domain.Entities.Orders;
 using LibroSphere.Domain.Entities.Recommended;
 using LibroSphere.Domain.Entities.Reviews;
-using LibroSphere.Domain.Entities.ShoppingCarts;
+using LibroSphere.Domain.Entities.ShopCart;
 using LibroSphere.Domain.Entities.Users.Events;
 using LibroSphere.Domain.Entities.WishList;
 
