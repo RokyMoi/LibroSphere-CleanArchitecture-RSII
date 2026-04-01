@@ -1,4 +1,5 @@
-﻿using LibroSphere.Domain.Entities.ShoppingCarts;
+﻿
+using LibroSphere.Domain.Entities.ShopCart;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

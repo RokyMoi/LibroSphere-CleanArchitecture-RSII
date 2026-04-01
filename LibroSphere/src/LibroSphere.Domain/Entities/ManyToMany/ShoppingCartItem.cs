@@ -1,7 +1,7 @@
 ﻿using LibroSphere.Domain.Abstraction;
 using LibroSphere.Domain.Entities.Books;
 using LibroSphere.Domain.Entities.Shared;
-using LibroSphere.Domain.Entities.ShoppingCarts;
+using LibroSphere.Domain.Entities.ShopCart;
 using System;
 
 namespace LibroSphere.Domain.Entities.ManyToMany

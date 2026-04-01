@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using LibroSphere.Application.Abstractions.Data;
 using LibroSphere.Application.Abstractions.Identity;
+using LibroSphere.Application.Abstractions.ShoppingServices;
 using LibroSphere.Domain.Abstraction;
 using LibroSphere.Domain.Abstractions.Clock;
 using LibroSphere.Domain.Entities.Authors;
@@ -12,14 +13,17 @@ using LibroSphere.Infrastructure.Clock;
 using LibroSphere.Infrastructure.Data;
 using LibroSphere.Infrastructure.Repositories;
 using LibroSphere.Infrastructure.Services;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Quartz;
 using StackExchange.Redis;
 using System;
+using System.Reflection;
 using System.Text;
 
 namespace LibroSphere.Infrastructure
@@ -32,14 +36,36 @@ namespace LibroSphere.Infrastructure
         {
             services.AddPersistence(configuration);
             services.AddCustomAuthentication(configuration);
+            services.RabbitMQDepedencyProviders(configuration);
 
-        
-          
+
+
+
 
             services.AddHttpContextAccessor();
             return services;
         }
+        private static IServiceCollection RabbitMQDepedencyProviders(
+    this IServiceCollection services,
+    IConfiguration configuration)
+        {
+            services.AddMassTransit(cfg =>
+            {
+                // Nema Outbox, nema Quartz — čisto i jednostavno
+                cfg.UsingRabbitMq((ctx, rabbit) =>
+                {
+                    rabbit.Host(configuration["RabbitMQ:Host"], "/", h =>
+                    {
+                        h.Username(configuration["RabbitMQ:Username"]);
+                        h.Password(configuration["RabbitMQ:Password"]);
+                    });
 
+                    rabbit.ConfigureEndpoints(ctx);
+                });
+            });
+
+            return services;
+        }
         private static IServiceCollection AddPersistence(
             this IServiceCollection services,
             IConfiguration configuration)
@@ -62,6 +88,7 @@ namespace LibroSphere.Infrastructure
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IBookRepository, BookRepository>();
             services.AddTransient<IDateTimeProvider, DateTimeProvider>();
+            services.AddScoped<IPaymentService, PaymentService>();
 
             var redisConnectionString = configuration.GetConnectionString("Redis");
             services.AddSingleton<IConnectionMultiplexer>(config =>

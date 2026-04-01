@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   librosphere-api:
     image: ${DOCKER_REGISTRY-}librosphereapi
@@ -7,6 +9,20 @@ services:
       dockerfile: src/LibroSphere.WebApi/Dockerfile
     depends_on:
       - librosphere-db
+      - rabbitmq      
+
+  librosphere-worker:   
+    image: ${DOCKER_REGISTRY-}librosphereworker
+    container_name: LibroSphere.Worker
+    build:
+      context: .
+      dockerfile: src/LibroSphere.Worker/Dockerfile  
+    depends_on:
+      - rabbitmq        
+    environment:
+      - RabbitMQ__Host=librosphere-rabbitmq  
+      - RabbitMQ__Username=guest
+      - RabbitMQ__Password=guest
 
   redis:
     image: redis:latest
@@ -16,14 +32,21 @@ services:
       - redis-data:/data
 
   rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbitmq
+    image: rabbitmq:3.13-management
+    container_name: librosphere-rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   librosphere-db:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -44,3 +67,4 @@ services:
 volumes:
   mssql-data:
   redis-data:
+  rabbitmq_data:  

@@ -1,4 +1,4 @@
-﻿using LibroSphere.Domain.Entities.ShoppingCarts;
+﻿using LibroSphere.Domain.Entities.ShopCart;
 using LibroSphere.Domain.Entities.Users;
 using LibroSphere.Domain.Entities.WishList;
 using Microsoft.EntityFrameworkCore;

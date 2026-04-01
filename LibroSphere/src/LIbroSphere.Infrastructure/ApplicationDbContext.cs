@@ -3,67 +3,55 @@ using LibroSphere.Domain.Abstraction;
 using MediatR;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace LibroSphere.Infrastructure
+namespace LibroSphere.Infrastructure;
+
+public sealed class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IUnitOfWork
 {
-    public sealed class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IUnitOfWork
+    private readonly IPublisher _publisher;
+
+    public ApplicationDbContext(
+        DbContextOptions<ApplicationDbContext> options,
+        IPublisher publisher) : base(options)
     {
-        private readonly IPublisher _publisher;
+        _publisher = publisher;
+    }
 
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IPublisher publisher)
-            : base(options)
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfigurationsFromAssembly(
+            typeof(ApplicationDbContext).Assembly);
+        base.OnModelCreating(modelBuilder);
+    }
+
+    public override async Task<int> SaveChangesAsync(
+        CancellationToken cancellationToken = default)
+    {
+        try
         {
-            _publisher = publisher;
+            await PublishDomainEventsAsync();
+            return await base.SaveChangesAsync(cancellationToken);
         }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        catch (DbUpdateConcurrencyException ex)
         {
-            // Automatski primeni sve konfiguracije iz ovog assembly-ja
-            modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
-
-            base.OnModelCreating(modelBuilder);
+            throw new ConcurrencyException("Concurrency exception occurred.", ex);
         }
+    }
 
-        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-        {
-            try
+    private async Task PublishDomainEventsAsync()
+    {
+        var domainEvents = ChangeTracker
+            .Entries<BaseEntity>()
+            .Select(entry => entry.Entity)
+            .SelectMany(entity =>
             {
-                // Sačuvaj promene u bazu
-                var result = await base.SaveChangesAsync(cancellationToken);
+                var events = entity.GetDomainEvents();
+                entity.ClearDomainEvents();
+                return events;
+            })
+            .ToList();
 
-                // Publikuj domen događaje nakon uspešnog čuvanja
-                await PublishDomainEventsAsync();
-
-                return result;
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                throw new ConcurrencyException("Concurrency exception occurred.", ex);
-            }
-        }
-
-        private async Task PublishDomainEventsAsync()
-        {
-           
-            var domainEvents = ChangeTracker
-                .Entries<BaseEntity>()
-                .Select(entry => entry.Entity)
-                .SelectMany(entity =>
-                {
-                    var events = entity.GetDomainEvents();
-                    entity.ClearDomainEvents();
-                    return events;
-                })
-                .ToList();
-
-           
-            foreach (var domainEvent in domainEvents)
-            {
-                await _publisher.Publish(domainEvent);
-            }
-        }
+        foreach (var domainEvent in domainEvents)
+            await _publisher.Publish(domainEvent);
     }
 }

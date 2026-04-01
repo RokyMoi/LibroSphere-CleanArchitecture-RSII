@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibroSphere.Infrastructure"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibroSphere.WebApi", "src\LibroSphere.WebApi\LibroSphere.WebApi.csproj", "{46344DAB-BF59-7CCB-620B-1639542ABAF4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibroSphere.Worker", "src\LibroSphere.Worker\LibroSphere.Worker.csproj", "{55FA55E6-7CCB-F1FE-D442-4AE75EFA48B8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{46344DAB-BF59-7CCB-620B-1639542ABAF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46344DAB-BF59-7CCB-620B-1639542ABAF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{46344DAB-BF59-7CCB-620B-1639542ABAF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55FA55E6-7CCB-F1FE-D442-4AE75EFA48B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55FA55E6-7CCB-F1FE-D442-4AE75EFA48B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55FA55E6-7CCB-F1FE-D442-4AE75EFA48B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55FA55E6-7CCB-F1FE-D442-4AE75EFA48B8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

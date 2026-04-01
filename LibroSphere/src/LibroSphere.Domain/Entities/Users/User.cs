@@ -64,7 +64,7 @@ namespace LibroSphere.Domain.Entities.Users
                 dateTimeProvider.UtcNow
             );
 
-            user.RaiseDomainEvent(new UserCreatedIDomainEvent(user.Id));
+            user.RaiseDomainEvent(new UserCreatedDomainEvent(user.Id,user.UserEmail.Value));
             return user;
         }
 

@@ -8,7 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace LibroSphere.Application.Abstractions.Behavior
+
 {
+
     public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
         where TRequest : IBaseCommand
     {
@@ -24,7 +26,7 @@ namespace LibroSphere.Application.Abstractions.Behavior
             RequestHandlerDelegate<TResponse> next,
             CancellationToken cancellationToken)
         {
-            // Ako nema validatora, samo nastavi dalje
+         //If there is no validator keep on next step.
             if (!_validators.Any())
             {
                 return await next();

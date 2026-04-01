@@ -1,5 +1,6 @@
 ﻿
 using LibroSphere.Application.Users;
+using LibroSphere.Application.Users.AuthCommands;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

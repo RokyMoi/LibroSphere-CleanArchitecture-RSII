@@ -3,9 +3,11 @@
 # =========================
 
 # User-specific files
+appsettings.Development.json
 *.rsuser
 *.suo
 *.user
+
 *.userosscache
 *.sln.docstates
 *.userprefs

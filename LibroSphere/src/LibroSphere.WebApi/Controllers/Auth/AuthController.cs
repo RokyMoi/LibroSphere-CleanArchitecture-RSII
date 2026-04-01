@@ -1,5 +1,6 @@
 ﻿using LibroSphere.Application.Abstractions.Identity;
-using LibroSphere.Application.Users;
+
+using LibroSphere.Application.Users.AuthCommands;
 using LibroSphere.WebApi.Controllers.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

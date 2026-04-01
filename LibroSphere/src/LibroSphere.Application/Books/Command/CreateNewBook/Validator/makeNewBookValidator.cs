@@ -7,12 +7,29 @@ using System.Threading.Tasks;
 
 namespace LibroSphere.Application.Books.Command.CreateNewBook.Validator
 {
-    public class MakeaBookCommandValidator : AbstractValidator<MakeNewBookCommand>
+
+
+    public class MakeNewBookCommandValidator : AbstractValidator<MakeNewBookCommand>
     {
-        public MakeaBookCommandValidator()
+        public MakeNewBookCommandValidator()
         {
-            //Ovo je samo primjer Validacije
-           /// RuleFor(c => c.bookLinks.PdfLink).MinimumLength(300);
+            RuleFor(c => c.title.Value)
+         .NotEmpty().WithMessage("Title cannot be empty.")
+          .MaximumLength(200).WithMessage("Title cannot exceed 200 characters.");
+
+            RuleFor(c => c.description.Value)
+                .NotEmpty().WithMessage("Description cannot be empty.")
+                .MaximumLength(2000).WithMessage("Description cannot exceed 2000 characters.");
+
+            RuleFor(c => c.price.amount)
+                .GreaterThan(0).WithMessage("Price must be greater than 0.");
+
+            RuleFor(c => c.price.Currency.Code)
+                .NotEmpty().WithMessage("Currency cannot be empty.")
+                .Length(3).WithMessage("Currency must be in ISO format (e.g. USD, EUR, BAM).");
+
+            RuleFor(c => c.authorId)
+                .NotEmpty().WithMessage("AuthorId cannot be empty.");
         }
     }
 }

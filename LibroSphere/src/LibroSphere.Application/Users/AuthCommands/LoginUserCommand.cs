@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace LibroSphere.Application.Users
+namespace LibroSphere.Application.Users.AuthCommands
 {
     public record LoginUserCommand(
         string Email,

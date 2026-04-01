@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LibroSphere.Application.Abstractions.Events.DomainEvent;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
