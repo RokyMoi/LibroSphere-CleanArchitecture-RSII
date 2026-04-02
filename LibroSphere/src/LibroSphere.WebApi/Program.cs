@@ -24,6 +24,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api/payment/webhook"))
+        context.Request.EnableBuffering();
+    await next();
+});
 
 
 app.UseAuthentication();

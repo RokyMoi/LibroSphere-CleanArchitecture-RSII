@@ -1,7 +1,5 @@
 ﻿using LibroSphere.Domain.Abstraction;
-using LibroSphere.Domain.Entities.ManyToMany;
 using LibroSphere.Domain.Entities.Shared;
-using LibroSphere.Domain.Entities.Users;
 
 namespace LibroSphere.Domain.Entities.Orders
 {
@@ -9,43 +7,46 @@ namespace LibroSphere.Domain.Entities.Orders
     {
         private Order(
             Guid id,
-            Guid userId,
-            Money totalPrice,
-            PaymentStatuses paymentStatus,
-            DateTime createdAt) : base(id)
+            string buyerEmail,
+            List<OrderItem> items,
+            string paymentIntentId,
+            Money totalAmount,
+            string clientSecret   // FIX: u konstruktor
+        ) : base(id)
         {
-            UserId = userId;
-            TotalPrice = totalPrice;
-            PaymentStatus = paymentStatus;
-            CreatedAt = createdAt;
-
-           
+            BuyerEmail = buyerEmail;
+            Items = items;
+            PaymentIntentId = paymentIntentId;
+            TotalAmount = totalAmount;
+            ClientSecret = clientSecret;
+            Status = OrderStatus.Pending;
+            OrderDate = DateTime.UtcNow;
         }
+
         protected Order() { }
-        public Guid UserId { get; private set; }
-        public User User { get; private set; }
 
-        public Money TotalPrice { get; private set; }
+        public string BuyerEmail { get; private set; }
+        public DateTime OrderDate { get; private set; }
+        public List<OrderItem> Items { get; private set; } = new();
+        public Money TotalAmount { get; private set; }
+        public OrderStatus Status { get; private set; }
+        public string PaymentIntentId { get; private set; }
+        public string? ClientSecret { get; private set; }
 
-        public PaymentStatuses PaymentStatus { get; private set; }
-
-        public DateTime CreatedAt { get; private set; }
-
-        
-        public static Order CreateOrder(
-            Guid userId,
-            Money totalPrice,
-            PaymentStatuses paymentStatus)
+        public static Order Create(
+            string buyerEmail,
+            List<OrderItem> items,
+            string paymentIntentId,
+            string clientSecret)
         {
-            var newOrder = new Order(
-                Guid.NewGuid(),
-                userId,
-                totalPrice,
-                paymentStatus,
-                DateTime.UtcNow
+            var total = items.Aggregate(
+                Money.Zero(),
+                (sum, item) => sum + new Money(item.Price.amount * item.Quantity, item.Price.Currency)
             );
 
-            return newOrder;
+            return new Order(Guid.NewGuid(), buyerEmail, items, paymentIntentId, total, clientSecret);
         }
+
+        public void UpdateStatus(OrderStatus status) => Status = status;
     }
 }

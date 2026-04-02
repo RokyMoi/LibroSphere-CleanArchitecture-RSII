@@ -1,8 +1,7 @@
 ﻿using LibroSphere.Domain.Abstraction;
 using LibroSphere.Domain.Entities.ManyToMany;
+using LibroSphere.Domain.Entities.Shared;
 using LibroSphere.Domain.Entities.Users;
-using System;
-using System.Collections.Generic;
 
 namespace LibroSphere.Domain.Entities.ShopCart
 {
@@ -13,16 +12,30 @@ namespace LibroSphere.Domain.Entities.ShopCart
             UserId = userId;
             Items = new List<ShoppingCartItem>();
         }
+
         protected ShoppingCart() { }
 
         public Guid UserId { get; private set; }
         public User User { get; private set; }
 
-        public ICollection<ShoppingCartItem> Items { get; private set; }
+        // MORA biti set (ne private set) jer Redis/JSON deserializacija treba pisati
+        public string? ClientSecret { get; set; }
+        public string? PaymentIntentId { get; private set; }
+
+        public void SetPaymentIntent(string paymentIntentId)
+        {
+            PaymentIntentId = paymentIntentId;
+        }
+
+        // ICollection ne moze se deserializovati - mora biti List
+        public List<ShoppingCartItem> Items { get; private set; } = new();
 
         public static ShoppingCart CreateCart(Guid userId)
-        {
-            return new ShoppingCart(Guid.NewGuid(), userId);
-        }
+            => new ShoppingCart(Guid.NewGuid(), userId);
+
+        public Money GetTotal() => Items.Aggregate(
+            Money.Zero(),
+            (sum, item) => sum + new Money(item.Price.amount, item.Price.Currency)
+        );
     }
 }

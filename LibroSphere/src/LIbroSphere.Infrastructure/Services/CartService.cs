@@ -1,34 +1,46 @@
 ﻿using LibroSphere.Domain.Entities.ShopCart;
 using StackExchange.Redis;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace LibroSphere.Infrastructure.Services
 {
-    public class CartService(IConnectionMultiplexer redis) : ICartService
+    public class CartService : ICartService
     {
-        private readonly IDatabase _database = redis.GetDatabase();
-        public async Task<bool> DeleteCartAsync(string key)
+        private readonly IDatabase _database;
+
+        // opcije koje omogucavaju private setere
+        private static readonly JsonSerializerOptions _jsonOptions = new()
         {
-            return await _database.KeyDeleteAsync(key);
+            PropertyNameCaseInsensitive = true,
+            IncludeFields = true
+        };
+
+        public CartService(IConnectionMultiplexer redis)
+        {
+            _database = redis.GetDatabase();
         }
+
+        public async Task<bool> DeleteCartAsync(string key)
+            => await _database.KeyDeleteAsync(key);
 
         public async Task<ShoppingCart?> GetCartASync(string key)
         {
             var data = await _database.StringGetAsync(key);
-            return  data.IsNullOrEmpty ? null : JsonSerializer.Deserialize<ShoppingCart?>(data);
+            return data.IsNullOrEmpty
+                ? null
+                : JsonSerializer.Deserialize<ShoppingCart>(data!, _jsonOptions);
         }
 
         public async Task<ShoppingCart?> SetCartAsync(ShoppingCart cart)
         {
-            var created = await _database.
-                StringSetAsync(cart.Id.ToString(), JsonSerializer.Serialize(cart), TimeSpan.FromDays(30));
+            var json = JsonSerializer.Serialize(cart, _jsonOptions);
+            var created = await _database.StringSetAsync(
+                cart.Id.ToString(),
+                json,
+                TimeSpan.FromDays(30)
+            );
             if (!created) return null;
-            return await GetCartASync(cart.Id.ToString());   
+            return await GetCartASync(cart.Id.ToString());
         }
     }
 }
