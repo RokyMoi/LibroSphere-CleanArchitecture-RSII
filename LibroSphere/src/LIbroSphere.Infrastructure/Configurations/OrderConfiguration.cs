@@ -1,4 +1,4 @@
-﻿using LibroSphere.Domain.Entities.Orders;
+using LibroSphere.Domain.Entities.Orders;
 using LibroSphere.Domain.Entities.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -10,35 +10,42 @@ namespace LibroSphere.Infrastructure.Configurations
         public void Configure(EntityTypeBuilder<Order> builder)
         {
             builder.ToTable("Orders");
-
             builder.HasKey(o => o.Id);
 
-          
-            builder.OwnsOne(o => o.TotalPrice, money =>
+            builder.Property(o => o.BuyerEmail)
+                .HasMaxLength(256)
+                .IsRequired();
+
+            builder.Property(o => o.OrderDate)
+                .IsRequired();
+
+            builder.Property(o => o.Status)
+                .HasConversion<int>()
+                .IsRequired();
+
+            builder.Property(o => o.PaymentIntentId)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            builder.Property(o => o.ClientSecret)
+                .HasMaxLength(500);
+
+            builder.OwnsOne(o => o.TotalAmount, money =>
             {
-                money.Property(m => m.amount).HasColumnName("TotalPriceAmount").IsRequired();
+                money.Property(m => m.amount)
+                    .HasColumnName("TotalAmount")
+                    .IsRequired();
+
                 money.Property(m => m.Currency)
-                     .HasConversion(
-                         c => c.Code,          
-                         s => Currency.FromCode(s) 
-                     )
-                     .HasColumnName("TotalPriceCurrency")
-                     .IsRequired();
+                    .HasConversion(c => c.Code, s => Currency.FromCode(s))
+                    .HasColumnName("TotalCurrency")
+                    .IsRequired();
             });
 
-            builder.Property(o => o.PaymentStatus)
-                   .HasConversion<int>()
-                   .IsRequired();
-
-            builder.Property(o => o.CreatedAt)
-                   .IsRequired();
-
-            builder.HasOne(o => o.User)
-                   .WithMany(u => u.Orders)
-                   .HasForeignKey(o => o.UserId)
-                   .OnDelete(DeleteBehavior.Cascade);
-
-          
+            builder.HasMany(o => o.Items)
+                .WithOne()
+                .HasForeignKey("OrderId")
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

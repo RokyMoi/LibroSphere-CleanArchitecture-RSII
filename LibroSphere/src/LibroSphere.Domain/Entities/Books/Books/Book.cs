@@ -1,4 +1,4 @@
-﻿using LibroSphere.Domain.Abstraction;
+using LibroSphere.Domain.Abstraction;
 using LibroSphere.Domain.Entities.Authors;
 using LibroSphere.Domain.Entities.Books.Events;
 using LibroSphere.Domain.Entities.ManyToMany;
@@ -15,8 +15,7 @@ namespace LibroSphere.Domain.Entities.Books
             Description description,
             Money price,
             BookLinks bookLinks,
-            Guid authorId
-        ) : base(id)
+            Guid authorId) : base(id)
         {
             Title = title;
             Description = description;
@@ -26,40 +25,62 @@ namespace LibroSphere.Domain.Entities.Books
 
             BookGenres = new List<BookGenre>();
             Reviews = new List<Review>();
+            ShoppingCartItems = new List<ShoppingCartItem>();
+            WishlistItems = new List<WishlistItem>();
+            UserBooks = new List<UserBook>();
         }
-        protected Book() { }
+
+        protected Book()
+        {
+            BookGenres = new List<BookGenre>();
+            Reviews = new List<Review>();
+            ShoppingCartItems = new List<ShoppingCartItem>();
+            WishlistItems = new List<WishlistItem>();
+            UserBooks = new List<UserBook>();
+        }
+
         public Title Title { get; private set; }
         public Description Description { get; private set; }
         public Money Price { get; private set; }
         public BookLinks BookLinkovi { get; private set; }
-
         public Guid AuthorId { get; private set; }
-        public Author Author { get; private set; }
-
+        public Author Author { get; private set; } = null!;
         public ICollection<BookGenre> BookGenres { get; private set; }
         public ICollection<Review> Reviews { get; private set; }
         public ICollection<ShoppingCartItem> ShoppingCartItems { get; private set; }
         public ICollection<WishlistItem> WishlistItems { get; private set; }
-        public ICollection<UserBook> UserBooks { get; private set; } = new List<UserBook>();
+        public ICollection<UserBook> UserBooks { get; private set; }
 
         public static Book MakeABook(
-         
             Title title,
             Description description,
             Money price,
             BookLinks bookLinks,
             Guid authorId)
         {
-            var book = new Book(
-                  Guid.NewGuid(),
-                title,
-                description,
-                price,
-                bookLinks,
-                authorId
-            );
-            book.RaiseDomainEvent(new BookCreatedDomainEvent(book.Id));
+            var book = new Book(Guid.NewGuid(), title, description, price, bookLinks, authorId);
+            book.RaiseDomainEvent(new BookCreatedDomainEvent(book.Id, book.Title.Value));
             return book;
+        }
+
+        public void Update(
+            Title title,
+            Description description,
+            Money price,
+            BookLinks bookLinks,
+            Guid authorId)
+        {
+            Title = title;
+            Description = description;
+            Price = price;
+            BookLinkovi = bookLinks;
+            AuthorId = authorId;
+            RaiseDomainEvent(new BookUpdatedDomainEvent(Id, Title.Value));
+        }
+
+        public void MarkAsDeleted()
+        {
+            RaiseDomainEvent(new BookDeletedDomainEvent(Id, Title.Value));
         }
     }
 }

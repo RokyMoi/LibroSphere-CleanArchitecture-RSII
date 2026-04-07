@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace LibroSphere.Domain.Entities.Orders
 {
-    public enum PaymentStatuses
+    public enum OrderStatus
     {
-        Cancelled =1,
-        Completed = 2
+        Pending,
+        PaymentReceived,
+        PaymentFailed
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using LibroSphere.Application.Abstractions;
 using LibroSphere.Application.Abstractions.Data;
 using LibroSphere.Application.Abstractions.Identity;
 using LibroSphere.Application.Abstractions.ShoppingServices;
@@ -6,6 +7,7 @@ using LibroSphere.Domain.Abstraction;
 using LibroSphere.Domain.Abstractions.Clock;
 using LibroSphere.Domain.Entities.Authors;
 using LibroSphere.Domain.Entities.Books;
+using LibroSphere.Domain.Entities.ManyToMany.IRepositories;
 using LibroSphere.Domain.Entities.ShopCart;
 using LibroSphere.Domain.Entities.Users;
 using LibroSphere.Infrastructure.Authentication;
@@ -51,12 +53,12 @@ namespace LibroSphere.Infrastructure
         {
             services.AddMassTransit(cfg =>
             {
-                // Nema Outbox, nema Quartz — čisto i jednostavno
+                
                 cfg.UsingRabbitMq((ctx, rabbit) =>
                 {
                     rabbit.Host(configuration["RabbitMQ:Host"], "/", h =>
                     {
-                        h.Username(configuration["RabbitMQ:Username"]);
+                        h.Username(configuration["RabbitMQ:Arname"]);
                         h.Password(configuration["RabbitMQ:Password"]);
                     });
 
@@ -88,7 +90,7 @@ namespace LibroSphere.Infrastructure
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IBookRepository, BookRepository>();
             services.AddTransient<IDateTimeProvider, DateTimeProvider>();
-            services.AddScoped<IPaymentService, PaymentService>();
+          
 
             var redisConnectionString = configuration.GetConnectionString("Redis");
             services.AddSingleton<IConnectionMultiplexer>(config =>
@@ -97,7 +99,14 @@ namespace LibroSphere.Infrastructure
                 options.AbortOnConnectFail = false; 
                 return ConnectionMultiplexer.Connect(options);
             });
-            services.AddSingleton<ICartService, CartService>();
+            services.AddScoped<ICartService, CartService>();
+             services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IOrderService, OrderService>();
+
+          
+            services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<IUserBookRepository, UserBookRepository>();
+
             return services;
         }
         private static IServiceCollection AddCustomAuthentication(

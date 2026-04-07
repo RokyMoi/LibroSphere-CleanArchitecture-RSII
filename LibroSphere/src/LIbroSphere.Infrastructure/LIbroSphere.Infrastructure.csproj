@@ -20,6 +20,7 @@
     <PackageReference Include="Quartz.Extensions.Hosting" Version="3.16.1" />
     <PackageReference Include="RabbitMQ.Client" Version="7.2.1" />
     <PackageReference Include="StackExchange.Redis" Version="2.12.8" />
+    <PackageReference Include="Stripe.net" Version="51.0.0" />
   </ItemGroup>
 
   <ItemGroup>

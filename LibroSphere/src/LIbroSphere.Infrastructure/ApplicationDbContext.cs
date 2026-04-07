@@ -1,4 +1,5 @@
-﻿using LibroSphere.Application.Exceptions;
+using LibroSphere.Application.Abstractions.Events.DomainEvent;
+using LibroSphere.Application.Exceptions;
 using LibroSphere.Domain.Abstraction;
 using MediatR;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -19,18 +20,18 @@ public sealed class ApplicationDbContext : IdentityDbContext<ApplicationUser>, I
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfigurationsFromAssembly(
-            typeof(ApplicationDbContext).Assembly);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
     }
 
-    public override async Task<int> SaveChangesAsync(
-        CancellationToken cancellationToken = default)
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            await PublishDomainEventsAsync();
-            return await base.SaveChangesAsync(cancellationToken);
+            var domainEvents = GetDomainEvents();
+            var result = await base.SaveChangesAsync(cancellationToken);
+            await PublishDomainEventsAsync(domainEvents, cancellationToken);
+            return result;
         }
         catch (DbUpdateConcurrencyException ex)
         {
@@ -38,9 +39,9 @@ public sealed class ApplicationDbContext : IdentityDbContext<ApplicationUser>, I
         }
     }
 
-    private async Task PublishDomainEventsAsync()
+    private List<IDomainEvent> GetDomainEvents()
     {
-        var domainEvents = ChangeTracker
+        return ChangeTracker
             .Entries<BaseEntity>()
             .Select(entry => entry.Entity)
             .SelectMany(entity =>
@@ -50,8 +51,15 @@ public sealed class ApplicationDbContext : IdentityDbContext<ApplicationUser>, I
                 return events;
             })
             .ToList();
+    }
 
+    private async Task PublishDomainEventsAsync(
+        IEnumerable<IDomainEvent> domainEvents,
+        CancellationToken cancellationToken)
+    {
         foreach (var domainEvent in domainEvents)
-            await _publisher.Publish(domainEvent);
+        {
+            await _publisher.Publish(domainEvent, cancellationToken);
+        }
     }
 }

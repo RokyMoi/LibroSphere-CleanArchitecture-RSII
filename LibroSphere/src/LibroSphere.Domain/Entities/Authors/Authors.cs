@@ -1,31 +1,44 @@
-﻿using LibroSphere.Domain.Abstraction;
+using LibroSphere.Domain.Abstraction;
+using LibroSphere.Domain.Entities.Authors.Events;
 using LibroSphere.Domain.Entities.Books;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LibroSphere.Domain.Entities.Authors
 {
-    public class Author:BaseEntity
+    public class Author : BaseEntity
     {
-      private Author(Guid id,Name name, Biography Biography) :base(id)
-        { 
-            this.Name = name;
-            this.Biography = Biography;
+        private Author(Guid id, Name name, Biography biography) : base(id)
+        {
+            Name = name;
+            Biography = biography;
+            Books = new List<Book>();
         }
-        protected Author() { }
+
+        protected Author()
+        {
+            Books = new List<Book>();
+        }
 
         public Name Name { get; private set; }
-
         public Biography Biography { get; private set; }
-
         public ICollection<Book> Books { get; private set; }
 
-        public static Author Create(Name Name, Biography Biography) {
-            var author = new Author(Guid.NewGuid(),Name,Biography);
+        public static Author Create(Name name, Biography biography)
+        {
+            var author = new Author(Guid.NewGuid(), name, biography);
+            author.RaiseDomainEvent(new AuthorCreatedDomainEvent(author.Id, author.Name.Value));
             return author;
+        }
+
+        public void Update(Name name, Biography biography)
+        {
+            Name = name;
+            Biography = biography;
+            RaiseDomainEvent(new AuthorUpdatedDomainEvent(Id, Name.Value));
+        }
+
+        public void MarkAsDeleted()
+        {
+            RaiseDomainEvent(new AuthorDeletedDomainEvent(Id, Name.Value));
         }
     }
 }

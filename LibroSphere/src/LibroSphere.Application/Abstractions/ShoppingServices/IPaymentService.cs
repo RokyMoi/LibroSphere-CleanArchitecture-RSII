@@ -9,6 +9,6 @@ namespace LibroSphere.Application.Abstractions.ShoppingServices
 {
     public interface IPaymentService
     {
-        Task<ShoppingCart> CreateOrUpdatePaymentIntent(string cartId);
+        Task<ShoppingCart?> CreateOrUpdatePaymentIntent(string cartId);
     }
 }
