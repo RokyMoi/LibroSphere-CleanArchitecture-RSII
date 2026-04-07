@@ -1,12 +1,5 @@
-﻿
 using LibroSphere.Domain.Entities.Authors;
-using LibroSphere.Domain.Entities.Users;
-using LibroSphere.Infrastructure.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace LibroSphere.Infrastructure.Repositories
 {
@@ -16,6 +9,17 @@ namespace LibroSphere.Infrastructure.Repositories
         {
         }
 
- 
+        public async Task<List<Author>> GetAllAsync(CancellationToken cancellationToken = default)
+        {
+            return await DbContext
+                .Set<Author>()
+                .OrderBy(a => a.Name.Value)
+                .ToListAsync(cancellationToken);
+        }
+
+        public void Delete(Author author)
+        {
+            DbContext.Set<Author>().Remove(author);
+        }
     }
 }

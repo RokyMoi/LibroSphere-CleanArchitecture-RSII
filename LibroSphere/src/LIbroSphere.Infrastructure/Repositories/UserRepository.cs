@@ -1,11 +1,5 @@
-﻿
 using LibroSphere.Domain.Entities.Users;
-using LibroSphere.Infrastructure.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace LibroSphere.Infrastructure.Repositories
 {
@@ -15,6 +9,20 @@ namespace LibroSphere.Infrastructure.Repositories
         {
         }
 
-    
+        public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
+        {
+            return await DbContext
+                .Set<User>()
+                .FirstOrDefaultAsync(u => u.UserEmail.Value == email, cancellationToken);
+        }
+
+        public async Task<List<User>> GetAllAsync(CancellationToken cancellationToken = default)
+        {
+            return await DbContext
+                .Set<User>()
+                .OrderBy(u => u.FirstName.Value)
+                .ThenBy(u => u.LastName.Value)
+                .ToListAsync(cancellationToken);
+        }
     }
 }
