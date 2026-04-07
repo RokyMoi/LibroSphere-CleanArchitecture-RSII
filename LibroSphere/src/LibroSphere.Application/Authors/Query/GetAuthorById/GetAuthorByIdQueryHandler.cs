@@ -1,39 +1,32 @@
-﻿using LibroSphere.Application.Abstractions.Messaging;
-using LibroSphere.Application.Authors.Query.GetAuthorById;
+using LibroSphere.Application.Abstractions.Messaging;
 using LibroSphere.Domain.Entities.Authors;
 using LibroSphere.Domain.Entities.Authors.Errors;
 
-internal sealed class GetAuthorByIdQueryHandler
-    : IQueryHandler<GetAuthorByIdQuery, AuthorResponse>
+namespace LibroSphere.Application.Authors.Query.GetAuthorById
 {
-    private readonly IAuthorRepository _authorRepository;
-
-    public GetAuthorByIdQueryHandler(IAuthorRepository authorRepository)
+    internal sealed class GetAuthorByIdQueryHandler : IQueryHandler<GetAuthorByIdQuery, AuthorResponse>
     {
-        _authorRepository = authorRepository;
-    }
+        private readonly IAuthorRepository _authorRepository;
 
-    public async Task<Result<AuthorResponse>> Handle(
-        GetAuthorByIdQuery request,
-        CancellationToken cancellationToken)
-    {
-        var author = await _authorRepository.GetAsyncById(
-            request.autorId,
-            cancellationToken
-        );
-
-        if (author is null)
+        public GetAuthorByIdQueryHandler(IAuthorRepository authorRepository)
         {
-            return Result.Failure<AuthorResponse>(AuthorErrors.NotFound);
+            _authorRepository = authorRepository;
         }
 
-        var response = new AuthorResponse
+        public async Task<Result<AuthorResponse>> Handle(GetAuthorByIdQuery request, CancellationToken cancellationToken)
         {
-            Id = author.Id,
-            Name = author.Name.Value,
-            Biography = author.Biography.Value
-        };
+            var author = await _authorRepository.GetAsyncById(request.autorId, cancellationToken);
+            if (author is null)
+            {
+                return Result.Failure<AuthorResponse>(AuthorErrors.NotFound);
+            }
 
-        return Result.Success(response);
+            return Result.Success(new AuthorResponse
+            {
+                Id = author.Id,
+                Name = author.Name.Value,
+                Biography = author.Biography.Value
+            });
+        }
     }
 }

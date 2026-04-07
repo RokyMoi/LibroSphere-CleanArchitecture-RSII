@@ -1,60 +1,37 @@
-﻿using Dapper;
-using LibroSphere.Application.Abstractions.Data;
 using LibroSphere.Application.Abstractions.Messaging;
-
+using LibroSphere.Domain.Entities.Books;
 using LibroSphere.Domain.Entities.Books.Errors;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LibroSphere.Application.Books.Query.GetBookByIdQuery
 {
     internal sealed class GetBookQueryHandler : IQueryHandler<GetBookQuery, BookResponse>
     {
-        private readonly ISqlConnectionFactory _sqlConnectionFactory;
+        private readonly IBookRepository _bookRepository;
 
-        public GetBookQueryHandler(ISqlConnectionFactory sqlConnectionFactory)
+        public GetBookQueryHandler(IBookRepository bookRepository)
         {
-            _sqlConnectionFactory = sqlConnectionFactory;
+            _bookRepository = bookRepository;
         }
 
         public async Task<Result<BookResponse>> Handle(GetBookQuery request, CancellationToken cancellationToken)
         {
-            //We specified in using method, so our connection  will call Dipose() when handle method is finished 
-            //if we can calll like that...
-            using var connection = _sqlConnectionFactory.CreateConnection();
-
-            //Dapper using, creating SQL instead of ORM - We get perfomance - and fully control on SQL Queries,
-            //when days come hard
-            const string sql = """
-                 SELECT
-                    Id,
-                    Title,
-                    Description,
-                    PriceAmount,
-                    PriceCurrency,
-                    PdfLink,
-                    ImageLink,
-                    AuthorId
-                FROM Books
-                WHERE Id = @Book
-                """;
-
-                  var book = await connection.QueryFirstOrDefaultAsync<BookResponse>(
-                    sql,
-                     new { Book = request.bookId }
-                     );
-
-
-            if(book is null)
+            var book = await _bookRepository.GetByIdWithDetailsAsync(request.bookId, cancellationToken);
+            if (book is null)
             {
                 return Result.Failure<BookResponse>(BookErrors.NotFound);
             }
-                   return book;
+
+            return Result.Success(new BookResponse
+            {
+                bookId = book.Id,
+                Title = book.Title.Value,
+                Description = book.Description.Value,
+                amount = book.Price.amount,
+                currency = book.Price.Currency.Code,
+                pdfLink = book.BookLinkovi.PdfLink,
+                imageLink = book.BookLinkovi.imageLink,
+                AuthorId = book.AuthorId
+            });
         }
-        
     }
 }
