@@ -8,13 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MassTransit" Version="9.0.1" />
-    <PackageReference Include="MassTransit.RabbitMQ" Version="9.0.1" />
+    <PackageReference Include="MassTransit" Version="8.3.2" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="8.3.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.25" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
   </ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\LibroSphere.Application\LibroSphere.Application.csproj" />
 		<ProjectReference Include="..\LibroSphere.Domain\LibroSphere.Domain.csproj" />
+		<ProjectReference Include="..\LIbroSphere.Infrastructure\LibroSphere.Infrastructure.csproj" />
 	</ItemGroup>
 </Project>

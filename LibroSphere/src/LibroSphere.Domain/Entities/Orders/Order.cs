@@ -39,10 +39,11 @@ namespace LibroSphere.Domain.Entities.Orders
             string paymentIntentId,
             string clientSecret)
         {
-            var total = items.Aggregate(
-                Money.Zero(),
-                (sum, item) => sum + new Money(item.Price.amount * item.Quantity, item.Price.Currency)
-            );
+            var total = items.Count == 0
+                ? Money.Zero()
+                : items
+                    .Select(item => new Money(item.Price.amount * item.Quantity, item.Price.Currency))
+                    .Aggregate((sum, item) => sum + item);
 
             return new Order(Guid.NewGuid(), buyerEmail, items, paymentIntentId, total, clientSecret);
         }

@@ -1,24 +1,23 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/runtime:8.0 AS base
 WORKDIR /app
-EXPOSE 8080
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["src/LibroSphere.WebApi/LibroSphere.WebApi.csproj", "src/LibroSphere.WebApi/"]
+COPY ["src/LibroSphere.Worker/LibroSphere.Worker.csproj", "src/LibroSphere.Worker/"]
 COPY ["src/LIbroSphere.Infrastructure/LIbroSphere.Infrastructure.csproj", "src/LIbroSphere.Infrastructure/"]
 COPY ["src/LibroSphere.Application/LibroSphere.Application.csproj", "src/LibroSphere.Application/"]
 COPY ["src/LibroSphere.Domain/LibroSphere.Domain.csproj", "src/LibroSphere.Domain/"]
-RUN dotnet restore "src/LibroSphere.WebApi/LibroSphere.WebApi.csproj"
+RUN dotnet restore "src/LibroSphere.Worker/LibroSphere.Worker.csproj"
 COPY . .
-WORKDIR "/src/src/LibroSphere.WebApi"
-RUN dotnet build "LibroSphere.WebApi.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/src/LibroSphere.Worker"
+RUN dotnet build "LibroSphere.Worker.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "LibroSphere.WebApi.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "LibroSphere.Worker.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "LibroSphere.WebApi.dll"]
+ENTRYPOINT ["dotnet", "LibroSphere.Worker.dll"]

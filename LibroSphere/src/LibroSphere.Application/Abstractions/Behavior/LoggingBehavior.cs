@@ -27,15 +27,15 @@ namespace LibroSphere.Application.Abstractions.Behavior
            var name= request.GetType().Name;
             try
             {
-                _logger.LogError("Executing command {Command}", name);
+                _logger.LogInformation("Executing command {Command}", name);
                 var result = await next();
-                _logger.LogError("Command {Command} processed sucessfully", name);
+                _logger.LogInformation("Command {Command} processed sucessfully", name);
                 return result;
 
             }
             catch (Exception ex)
             {
-                _logger.LogError("Command {Command} proccessing failed", name);
+                _logger.LogError(ex, "Command {Command} proccessing failed", name);
                 throw;
             }
         }

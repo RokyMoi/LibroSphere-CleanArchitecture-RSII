@@ -33,9 +33,13 @@ namespace LibroSphere.Domain.Entities.ShopCart
         public static ShoppingCart CreateCart(Guid userId)
             => new ShoppingCart(Guid.NewGuid(), userId);
 
-        public Money GetTotal() => Items.Aggregate(
-            Money.Zero(),
-            (sum, item) => sum + new Money(item.Price.amount, item.Price.Currency)
-        );
+        public static ShoppingCart CreateCart(Guid id, Guid userId)
+            => new ShoppingCart(id, userId);
+
+        public Money GetTotal() => Items.Count == 0
+            ? Money.Zero()
+            : Items
+                .Select(item => new Money(item.Price.amount, item.Price.Currency))
+                .Aggregate((sum, item) => sum + item);
     }
 }

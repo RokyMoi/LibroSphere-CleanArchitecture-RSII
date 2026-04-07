@@ -11,10 +11,13 @@ namespace LibroSphere.Infrastructure.Repositories
 
         public async Task<List<Author>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            return await DbContext
+            var authors = await DbContext
                 .Set<Author>()
-                .OrderBy(a => a.Name.Value)
                 .ToListAsync(cancellationToken);
+
+            return authors
+                .OrderBy(a => a.Name.Value)
+                .ToList();
         }
 
         public void Delete(Author author)

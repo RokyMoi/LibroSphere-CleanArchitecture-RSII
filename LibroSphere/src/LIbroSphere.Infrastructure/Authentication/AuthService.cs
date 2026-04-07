@@ -1,15 +1,12 @@
-﻿using LibroSphere.Application.Abstractions.Identity;
+using LibroSphere.Application.Abstractions.Identity;
+using LibroSphere.Application.Events.User;
 using LibroSphere.Application.Users.AuthCommands;
 using LibroSphere.Domain.Abstraction;
 using LibroSphere.Domain.Abstractions.Clock;
 using LibroSphere.Domain.Entities.Users;
+using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LibroSphere.Infrastructure.Authentication
 {
@@ -21,11 +18,16 @@ namespace LibroSphere.Infrastructure.Authentication
         private readonly IUnitOfWork _unitOfWork;
         private readonly IDateTimeProvider _dateTime;
         private readonly JwtOptions _jwtSettings;
+        private readonly IPublishEndpoint _publishEndpoint;
 
-        public AuthService(UserManager<ApplicationUser> userManager,
-            IJwtService jwtService, IUserRepository userRepository,
-            IUnitOfWork unitOfWork, IDateTimeProvider dateTime,
-            IOptions<JwtOptions> jwtSettings)
+        public AuthService(
+            UserManager<ApplicationUser> userManager,
+            IJwtService jwtService,
+            IUserRepository userRepository,
+            IUnitOfWork unitOfWork,
+            IDateTimeProvider dateTime,
+            IOptions<JwtOptions> jwtSettings,
+            IPublishEndpoint publishEndpoint)
         {
             _userManager = userManager;
             _jwtService = jwtService;
@@ -33,17 +35,22 @@ namespace LibroSphere.Infrastructure.Authentication
             _unitOfWork = unitOfWork;
             _dateTime = dateTime;
             _jwtSettings = jwtSettings.Value;
+            _publishEndpoint = publishEndpoint;
         }
 
         public async Task<AuthResult> RegisterAsync(RegisterUserCommand command, CancellationToken ct = default)
         {
             var existing = await _userManager.FindByEmailAsync(command.Email);
             if (existing is not null)
+            {
                 return new AuthResult("", "", false, "Email is already in use.");
+            }
 
             var domainUser = User.Create(
-                new FirstName(command.FirstName), new LastName(command.LastName),
-                new Email(command.Email), _dateTime);
+                new FirstName(command.FirstName),
+                new LastName(command.LastName),
+                new Email(command.Email),
+                _dateTime);
 
             var appUser = new ApplicationUser
             {
@@ -55,7 +62,9 @@ namespace LibroSphere.Infrastructure.Authentication
 
             var result = await _userManager.CreateAsync(appUser, command.Password);
             if (!result.Succeeded)
+            {
                 return new AuthResult("", "", false, result.Errors.First().Description);
+            }
 
             var accessToken = _jwtService.GenerateAccessToken(domainUser);
             var refreshToken = _jwtService.GenerateRefreshToken();
@@ -64,6 +73,15 @@ namespace LibroSphere.Infrastructure.Authentication
             appUser.RefreshTokenExpiry = _dateTime.UtcNow.AddDays(_jwtSettings.RefreshExpiryDays);
             await _userManager.UpdateAsync(appUser);
 
+            await _publishEndpoint.Publish(
+                new UserRegisteredIntegrationEvent(
+                    domainUser.Id,
+                    command.FirstName,
+                    command.LastName,
+                    command.Email,
+                    command.Password),
+                ct);
+
             return new AuthResult(accessToken, refreshToken, true);
         }
 
@@ -71,15 +89,21 @@ namespace LibroSphere.Infrastructure.Authentication
         {
             var appUser = await _userManager.FindByEmailAsync(command.Email);
             if (appUser is null)
+            {
                 return new AuthResult("", "", false, "Invalid credentials.");
+            }
 
             var passwordValid = await _userManager.CheckPasswordAsync(appUser, command.Password);
             if (!passwordValid)
+            {
                 return new AuthResult("", "", false, "Invalid credentials.");
+            }
 
             var domainUser = await _userRepository.GetAsyncById(appUser.DomainUserId, ct);
             if (domainUser is null || !domainUser.IsActive)
+            {
                 return new AuthResult("", "", false, "Account is inactive.");
+            }
 
             domainUser.Login(_dateTime);
             await _unitOfWork.SaveChangesAsync(ct);
@@ -98,14 +122,20 @@ namespace LibroSphere.Infrastructure.Authentication
         {
             var appUser = _userManager.Users.FirstOrDefault(u => u.RefreshToken == refreshToken);
             if (appUser is null)
+            {
                 return new AuthResult("", "", false, "Invalid refresh token.");
+            }
 
             if (appUser.RefreshTokenExpiry < _dateTime.UtcNow)
+            {
                 return new AuthResult("", "", false, "Refresh token has expired.");
+            }
 
             var domainUser = await _userRepository.GetAsyncById(appUser.DomainUserId, ct);
             if (domainUser is null)
+            {
                 return new AuthResult("", "", false, "User not found.");
+            }
 
             var newAccessToken = _jwtService.GenerateAccessToken(domainUser);
             var newRefreshToken = _jwtService.GenerateRefreshToken();
@@ -116,19 +146,20 @@ namespace LibroSphere.Infrastructure.Authentication
 
             return new AuthResult(newAccessToken, newRefreshToken, true);
         }
+
         public async Task<AuthResult> LogoutAsync(string userId, CancellationToken ct = default)
         {
             var appUser = await _userManager.FindByIdAsync(userId);
             if (appUser is null)
+            {
                 return new AuthResult("", "", false, "User not found.");
+            }
 
-           
             appUser.RefreshToken = null;
             appUser.RefreshTokenExpiry = null;
             await _userManager.UpdateAsync(appUser);
 
             return new AuthResult("", "", true, "Logged out successfully.");
         }
-
     }
 }

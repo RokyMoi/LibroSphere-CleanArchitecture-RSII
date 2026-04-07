@@ -21,9 +21,10 @@ namespace LibroSphere.WebApi.Controllers.Users
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterUserRequest request, CancellationToken cancellationToken)
         {
-            var command = new RegisterUserCommand(request.Email,
+            var command = new RegisterUserCommand(
                 request.FirstName,
                 request.LastName,
+                request.Email,
                 request.password);
 
             var result = await sender.Send(command, cancellationToken);

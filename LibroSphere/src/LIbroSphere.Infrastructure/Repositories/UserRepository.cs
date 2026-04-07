@@ -11,18 +11,23 @@ namespace LibroSphere.Infrastructure.Repositories
 
         public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
         {
-            return await DbContext
+            var users = await DbContext
                 .Set<User>()
-                .FirstOrDefaultAsync(u => u.UserEmail.Value == email, cancellationToken);
+                .ToListAsync(cancellationToken);
+
+            return users.FirstOrDefault(u => u.UserEmail.Value.Equals(email, StringComparison.OrdinalIgnoreCase));
         }
 
         public async Task<List<User>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            return await DbContext
+            var users = await DbContext
                 .Set<User>()
+                .ToListAsync(cancellationToken);
+
+            return users
                 .OrderBy(u => u.FirstName.Value)
                 .ThenBy(u => u.LastName.Value)
-                .ToListAsync(cancellationToken);
+                .ToList();
         }
     }
 }

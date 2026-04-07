@@ -2,7 +2,6 @@ using LibroSphere.Domain.Abstraction;
 using LibroSphere.Domain.Abstractions.Clock;
 using LibroSphere.Domain.Entities.Reviews;
 using LibroSphere.Domain.Entities.ShopCart;
-using LibroSphere.Domain.Entities.Users.Events;
 using LibroSphere.Domain.Entities.WishList;
 
 namespace LibroSphere.Domain.Entities.Users
@@ -45,15 +44,12 @@ namespace LibroSphere.Domain.Entities.Users
             Email email,
             IDateTimeProvider dateTimeProvider)
         {
-            var user = new User(
+            return new User(
                 Guid.NewGuid(),
                 firstName,
                 lastName,
                 email,
                 dateTimeProvider.UtcNow);
-
-            user.RaiseDomainEvent(new UserCreatedDomainEvent(user.Id, user.UserEmail.Value));
-            return user;
         }
 
         public void Login(IDateTimeProvider dateTimeProvider)

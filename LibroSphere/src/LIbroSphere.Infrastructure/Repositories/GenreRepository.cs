@@ -11,17 +11,22 @@ namespace LibroSphere.Infrastructure.Repositories
 
         public async Task<Genre?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
         {
-            return await DbContext
+            var genres = await DbContext
                 .Set<Genre>()
-                .FirstOrDefaultAsync(g => g.Name.Value == name, cancellationToken);
+                .ToListAsync(cancellationToken);
+
+            return genres.FirstOrDefault(g => g.Name.Value.Equals(name, StringComparison.OrdinalIgnoreCase));
         }
 
         public async Task<List<Genre>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            return await DbContext
+            var genres = await DbContext
                 .Set<Genre>()
-                .OrderBy(g => g.Name.Value)
                 .ToListAsync(cancellationToken);
+
+            return genres
+                .OrderBy(g => g.Name.Value)
+                .ToList();
         }
 
         public async Task<List<Genre>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)

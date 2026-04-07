@@ -9,6 +9,9 @@ using LibroSphere.Domain.Entities.Authors;
 using LibroSphere.Domain.Entities.Books;
 using LibroSphere.Domain.Entities.ManyToMany.IRepositories;
 using LibroSphere.Domain.Entities.ShopCart;
+using LibroSphere.Domain.Entities.Books.Genre;
+using LibroSphere.Domain.Entities.Reviews;
+using LibroSphere.Domain.Entities.WishList;
 using LibroSphere.Domain.Entities.Users;
 using LibroSphere.Infrastructure.Authentication;
 using LibroSphere.Infrastructure.Clock;
@@ -58,7 +61,7 @@ namespace LibroSphere.Infrastructure
                 {
                     rabbit.Host(configuration["RabbitMQ:Host"], "/", h =>
                     {
-                        h.Username(configuration["RabbitMQ:Arname"]);
+                        h.Username(configuration["RabbitMQ:Username"]);
                         h.Password(configuration["RabbitMQ:Password"]);
                     });
 
@@ -89,6 +92,9 @@ namespace LibroSphere.Infrastructure
             services.AddScoped<IAuthorRepository, AuthorRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IBookRepository, BookRepository>();
+            services.AddScoped<IGenreRepository, GenreRepository>();
+            services.AddScoped<IReviewRepository, ReviewRepository>();
+            services.AddScoped<IWishlistRepository, WishlistRepository>();
             services.AddTransient<IDateTimeProvider, DateTimeProvider>();
           
 
@@ -100,8 +106,9 @@ namespace LibroSphere.Infrastructure
                 return ConnectionMultiplexer.Connect(options);
             });
             services.AddScoped<ICartService, CartService>();
-             services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<LibroSphere.Application.Abstractions.Recommendations.IBookRecommendationService, BookRecommendationService>();
 
           
             services.AddScoped<IOrderRepository, OrderRepository>();

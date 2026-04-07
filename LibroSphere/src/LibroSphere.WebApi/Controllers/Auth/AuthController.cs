@@ -1,8 +1,6 @@
-﻿using LibroSphere.Application.Abstractions.Identity;
-
 using LibroSphere.Application.Users.AuthCommands;
 using LibroSphere.WebApi.Controllers.Auth;
-using Microsoft.AspNetCore.Identity;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LibroSphere.Api.Controllers;
@@ -11,11 +9,11 @@ namespace LibroSphere.Api.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly IAuthService _authService;
+    private readonly ISender _sender;
 
-    public AuthController(IAuthService authService)
+    public AuthController(ISender sender)
     {
-        _authService = authService;
+        _sender = sender;
     }
 
     [HttpPost("register")]
@@ -23,37 +21,43 @@ public class AuthController : ControllerBase
         [FromBody] RegisterUserCommand command,
         CancellationToken ct)
     {
-        var result = await _authService.RegisterAsync(command, ct);
+        var result = await _sender.Send(command, ct);
 
-        if (!result.Success)
+        if (result.IsFailure)
             return BadRequest(new { Error = result.Error });
 
         return Ok(new
         {
-            AccessToken = result.AccessToken,
-            RefreshToken = result.RefreshToken
+            AccessToken = result.Value.AccessToken,
+            RefreshToken = result.Value.RefreshToken
         });
     }
+
     [HttpPost("logout")]
     public async Task<ActionResult> LogoutAsync([FromBody] string userId, CancellationToken ct)
     {
-        await _authService.LogoutAsync(userId, ct);
-        return Ok(new { Message = "Logged out successfully." });
+        var result = await _sender.Send(new LogoutUserCommand(userId), ct);
+
+        if (result.IsFailure)
+            return BadRequest(new { Error = result.Error });
+
+        return Ok(new { Message = result.Value.Error ?? "Logged out successfully." });
     }
+
     [HttpPost("login")]
     public async Task<IActionResult> Login(
         [FromBody] LoginUserCommand command,
         CancellationToken ct)
     {
-        var result = await _authService.LoginAsync(command, ct);
+        var result = await _sender.Send(command, ct);
 
-        if (!result.Success)
+        if (result.IsFailure)
             return Unauthorized(new { Error = result.Error });
 
         return Ok(new
         {
-            AccessToken = result.AccessToken,
-            RefreshToken = result.RefreshToken
+            AccessToken = result.Value.AccessToken,
+            RefreshToken = result.Value.RefreshToken
         });
     }
 
@@ -62,16 +66,15 @@ public class AuthController : ControllerBase
         [FromBody] RefreshTokenRequest request,
         CancellationToken ct)
     {
-        var result = await _authService.RefreshTokenAsync(request.RefreshToken, ct);
+        var result = await _sender.Send(new RefreshTokenCommand(request.RefreshToken), ct);
 
-        if (!result.Success)
+        if (result.IsFailure)
             return Unauthorized(new { Error = result.Error });
 
         return Ok(new
         {
-            AccessToken = result.AccessToken,
-            RefreshToken = result.RefreshToken
+            AccessToken = result.Value.AccessToken,
+            RefreshToken = result.Value.RefreshToken
         });
     }
 }
-

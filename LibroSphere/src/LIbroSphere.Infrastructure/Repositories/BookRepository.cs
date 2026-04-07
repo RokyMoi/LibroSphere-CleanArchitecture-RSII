@@ -22,29 +22,35 @@ namespace LibroSphere.Infrastructure.Repositories
 
         public async Task<List<Book>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            return await DbContext
+            var books = await DbContext
                 .Set<Book>()
                 .Include(b => b.Author)
                 .Include(b => b.BookGenres)
                     .ThenInclude(bg => bg.Genre)
-                .OrderBy(b => b.Title.Value)
                 .ToListAsync(cancellationToken);
+
+            return books
+                .OrderBy(b => b.Title.Value)
+                .ToList();
         }
 
         public async Task<List<Book>> SearchAsync(string? searchTerm, Guid? authorId, Guid? genreId, CancellationToken cancellationToken = default)
         {
-            IQueryable<Book> query = DbContext
+            var books = await DbContext
                 .Set<Book>()
                 .Include(b => b.Author)
                 .Include(b => b.BookGenres)
-                    .ThenInclude(bg => bg.Genre);
+                    .ThenInclude(bg => bg.Genre)
+                .ToListAsync(cancellationToken);
+
+            IEnumerable<Book> query = books;
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 query = query.Where(b =>
-                    b.Title.Value.Contains(searchTerm) ||
-                    b.Description.Value.Contains(searchTerm) ||
-                    b.Author.Name.Value.Contains(searchTerm));
+                    b.Title.Value.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    b.Description.Value.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    b.Author.Name.Value.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
             }
 
             if (authorId.HasValue)
@@ -57,9 +63,9 @@ namespace LibroSphere.Infrastructure.Repositories
                 query = query.Where(b => b.BookGenres.Any(bg => bg.GenreId == genreId.Value));
             }
 
-            return await query
+            return query
                 .OrderBy(b => b.Title.Value)
-                .ToListAsync(cancellationToken);
+                .ToList();
         }
 
         public void Delete(Book book)

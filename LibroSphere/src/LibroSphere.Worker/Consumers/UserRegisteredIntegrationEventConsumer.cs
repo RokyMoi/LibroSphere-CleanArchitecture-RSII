@@ -1,5 +1,5 @@
 using LibroSphere.Application.Events.User;
-using LibroSphere.Domain.Entities.ShoppingCarts;
+using LibroSphere.Domain.Entities.ShopCart;
 using LibroSphere.Domain.Entities.WishList;
 using LibroSphere.Infrastructure;
 using LibroSphere.Worker.Services;
