@@ -1,4 +1,5 @@
-﻿using LibroSphere.Domain.Abstraction;
+using System.Text.Json.Serialization;
+using LibroSphere.Domain.Abstraction;
 using LibroSphere.Domain.Entities.Books;
 using LibroSphere.Domain.Entities.Shared;
 using LibroSphere.Domain.Entities.ShopCart;
@@ -7,7 +8,12 @@ namespace LibroSphere.Domain.Entities.ManyToMany
 {
     public class ShoppingCartItem : BaseEntity
     {
-        private ShoppingCartItem(Guid id, Guid cartId, Guid bookId, Money price) : base(id)
+        [JsonConstructor]
+        public ShoppingCartItem(
+            Guid id,
+            Guid cartId,
+            Guid bookId,
+            Money price) : base(id)
         {
             CartId = cartId;
             BookId = bookId;

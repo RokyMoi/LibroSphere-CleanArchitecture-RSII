@@ -1,4 +1,5 @@
-﻿using LibroSphere.Domain.Abstraction;
+using LibroSphere.Domain.Abstraction;
+using LibroSphere.Domain.Entities.Orders.Events;
 using LibroSphere.Domain.Entities.Shared;
 
 namespace LibroSphere.Domain.Entities.Orders
@@ -11,8 +12,8 @@ namespace LibroSphere.Domain.Entities.Orders
             List<OrderItem> items,
             string paymentIntentId,
             Money totalAmount,
-            string clientSecret   
-        ) : base(id)
+            string clientSecret)
+            : base(id)
         {
             BuyerEmail = buyerEmail;
             Items = items;
@@ -23,7 +24,9 @@ namespace LibroSphere.Domain.Entities.Orders
             OrderDate = DateTime.UtcNow;
         }
 
-        protected Order() { }
+        protected Order()
+        {
+        }
 
         public string BuyerEmail { get; private set; }
         public DateTime OrderDate { get; private set; }
@@ -45,9 +48,27 @@ namespace LibroSphere.Domain.Entities.Orders
                     .Select(item => new Money(item.Price.amount * item.Quantity, item.Price.Currency))
                     .Aggregate((sum, item) => sum + item);
 
-            return new Order(Guid.NewGuid(), buyerEmail, items, paymentIntentId, total, clientSecret);
+            var order = new Order(Guid.NewGuid(), buyerEmail, items, paymentIntentId, total, clientSecret);
+            order.RaiseDomainEvent(
+                new OrderCreatedDomainEvent(
+                    order.Id,
+                    order.BuyerEmail,
+                    order.TotalAmount.amount,
+                    order.TotalAmount.Currency.Code,
+                    order.Items.Count));
+
+            return order;
         }
 
-        public void UpdateStatus(OrderStatus status) => Status = status;
+        public void UpdateStatus(OrderStatus status)
+        {
+            if (Status == status)
+            {
+                return;
+            }
+
+            Status = status;
+            RaiseDomainEvent(new OrderStatusChangedDomainEvent(Id, BuyerEmail, Status.ToString()));
+        }
     }
 }

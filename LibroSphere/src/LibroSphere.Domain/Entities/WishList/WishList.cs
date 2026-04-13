@@ -23,7 +23,9 @@ namespace LibroSphere.Domain.Entities.WishList
 
         public static Wishlist CreateWishlist(Guid userId)
         {
-            return new Wishlist(Guid.NewGuid(), userId);
+            var wishlist = new Wishlist(Guid.NewGuid(), userId);
+            wishlist.RaiseDomainEvent(new WishlistCreatedDomainEvent(wishlist.Id, wishlist.UserId));
+            return wishlist;
         }
 
         public WishlistItem AddItem(Guid bookId)

@@ -1,8 +1,11 @@
 ﻿using Dapper;
 using LibroSphere.Application.Abstractions;
+using LibroSphere.Application.Abstractions.Analytics;
 using LibroSphere.Application.Abstractions.Data;
 using LibroSphere.Application.Abstractions.Identity;
+using LibroSphere.Application.Abstractions.Storage;
 using LibroSphere.Application.Abstractions.ShoppingServices;
+using LibroSphere.Application.Abstractions.Seeding;
 using LibroSphere.Domain.Abstraction;
 using LibroSphere.Domain.Abstractions.Clock;
 using LibroSphere.Domain.Entities.Authors;
@@ -18,6 +21,8 @@ using LibroSphere.Infrastructure.Clock;
 using LibroSphere.Infrastructure.Data;
 using LibroSphere.Infrastructure.Repositories;
 using LibroSphere.Infrastructure.Services;
+using LibroSphere.Infrastructure.Services.Analytics;
+using LibroSphere.Infrastructure.Storage;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -42,10 +47,7 @@ namespace LibroSphere.Infrastructure
             services.AddPersistence(configuration);
             services.AddCustomAuthentication(configuration);
             services.RabbitMQDepedencyProviders(configuration);
-
-
-
-
+            services.Configure<CloudflareR2Options>(configuration.GetSection(CloudflareR2Options.SectionName));
 
             services.AddHttpContextAccessor();
             return services;
@@ -54,15 +56,19 @@ namespace LibroSphere.Infrastructure
     this IServiceCollection services,
     IConfiguration configuration)
         {
+            var rabbitHost = configuration["RabbitMQ:Host"] ?? throw new InvalidOperationException("RabbitMQ host is not configured.");
+            var rabbitUsername = configuration["RabbitMQ:Username"] ?? throw new InvalidOperationException("RabbitMQ username is not configured.");
+            var rabbitPassword = configuration["RabbitMQ:Password"] ?? throw new InvalidOperationException("RabbitMQ password is not configured.");
+
             services.AddMassTransit(cfg =>
             {
                 
                 cfg.UsingRabbitMq((ctx, rabbit) =>
                 {
-                    rabbit.Host(configuration["RabbitMQ:Host"], "/", h =>
+                    rabbit.Host(rabbitHost, "/", h =>
                     {
-                        h.Username(configuration["RabbitMQ:Username"]);
-                        h.Password(configuration["RabbitMQ:Password"]);
+                        h.Username(rabbitUsername);
+                        h.Password(rabbitPassword);
                     });
 
                     rabbit.ConfigureEndpoints(ctx);
@@ -98,7 +104,8 @@ namespace LibroSphere.Infrastructure
             services.AddTransient<IDateTimeProvider, DateTimeProvider>();
           
 
-            var redisConnectionString = configuration.GetConnectionString("Redis");
+            var redisConnectionString = configuration.GetConnectionString("Redis") ??
+                throw new InvalidOperationException("Connection string 'Redis' is not configured.");
             services.AddSingleton<IConnectionMultiplexer>(config =>
             {
                 var options = ConfigurationOptions.Parse(redisConnectionString, true);
@@ -107,8 +114,13 @@ namespace LibroSphere.Infrastructure
             });
             services.AddScoped<ICartService, CartService>();
             services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IPaymentWebhookProcessor, PaymentWebhookProcessor>();
             services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<ISeedService, SeedService>();
+            services.AddScoped<IBookAssetStorageService, CloudflareR2BookAssetStorageService>();
             services.AddScoped<LibroSphere.Application.Abstractions.Recommendations.IBookRecommendationService, BookRecommendationService>();
+            services.AddScoped<IAnalyticsService, AnalyticsService>();
+            services.AddSingleton<IAnalyticsActivityStore, RedisAnalyticsActivityStore>();
 
           
             services.AddScoped<IOrderRepository, OrderRepository>();
@@ -121,6 +133,7 @@ namespace LibroSphere.Infrastructure
            IConfiguration configuration)
         {
             services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
+            services.Configure<AccessControlOptions>(configuration.GetSection(AccessControlOptions.SectionName));
             var jwtSettings = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()!;
 
 
@@ -154,10 +167,13 @@ namespace LibroSphere.Infrastructure
                     ValidateAudience = true,
                     ValidAudience = jwtSettings.Audience,
                     ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero
+                    ClockSkew = TimeSpan.Zero,
+                    NameClaimType = System.Security.Claims.ClaimTypes.NameIdentifier,
+                    RoleClaimType = System.Security.Claims.ClaimTypes.Role
                 };
             });
 
+            services.AddAuthorization();
 
             services.AddScoped<IJwtService, JwtTokenService>();
             services.AddScoped<IAuthService, AuthService>();

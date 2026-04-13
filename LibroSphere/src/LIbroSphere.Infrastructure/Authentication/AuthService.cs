@@ -6,6 +6,7 @@ using LibroSphere.Domain.Abstractions.Clock;
 using LibroSphere.Domain.Entities.Users;
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace LibroSphere.Infrastructure.Authentication
@@ -19,6 +20,8 @@ namespace LibroSphere.Infrastructure.Authentication
         private readonly IDateTimeProvider _dateTime;
         private readonly JwtOptions _jwtSettings;
         private readonly IPublishEndpoint _publishEndpoint;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly AccessControlOptions _accessControlOptions;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
@@ -27,7 +30,9 @@ namespace LibroSphere.Infrastructure.Authentication
             IUnitOfWork unitOfWork,
             IDateTimeProvider dateTime,
             IOptions<JwtOptions> jwtSettings,
-            IPublishEndpoint publishEndpoint)
+            IPublishEndpoint publishEndpoint,
+            RoleManager<IdentityRole> roleManager,
+            IOptions<AccessControlOptions> accessControlOptions)
         {
             _userManager = userManager;
             _jwtService = jwtService;
@@ -36,6 +41,8 @@ namespace LibroSphere.Infrastructure.Authentication
             _dateTime = dateTime;
             _jwtSettings = jwtSettings.Value;
             _publishEndpoint = publishEndpoint;
+            _roleManager = roleManager;
+            _accessControlOptions = accessControlOptions.Value;
         }
 
         public async Task<AuthResult> RegisterAsync(RegisterUserCommand command, CancellationToken ct = default)
@@ -57,7 +64,8 @@ namespace LibroSphere.Infrastructure.Authentication
                 UserName = command.Email,
                 Email = command.Email,
                 DomainUserId = domainUser.Id,
-                DomainUser = domainUser
+                DomainUser = domainUser,
+                DateRegistered = _dateTime.UtcNow
             };
 
             var result = await _userManager.CreateAsync(appUser, command.Password);
@@ -66,7 +74,16 @@ namespace LibroSphere.Infrastructure.Authentication
                 return new AuthResult("", "", false, result.Errors.First().Description);
             }
 
-            var accessToken = _jwtService.GenerateAccessToken(domainUser);
+            await EnsureRolesExistAsync();
+
+            var roles = await DetermineRolesForUserAsync(appUser);
+            var roleResult = await _userManager.AddToRolesAsync(appUser, roles);
+            if (!roleResult.Succeeded)
+            {
+                return new AuthResult("", "", false, roleResult.Errors.First().Description);
+            }
+
+            var accessToken = _jwtService.GenerateAccessToken(domainUser, appUser.Id, roles);
             var refreshToken = _jwtService.GenerateRefreshToken();
 
             appUser.RefreshToken = refreshToken;
@@ -108,7 +125,8 @@ namespace LibroSphere.Infrastructure.Authentication
             domainUser.Login(_dateTime);
             await _unitOfWork.SaveChangesAsync(ct);
 
-            var accessToken = _jwtService.GenerateAccessToken(domainUser);
+            var roles = await _userManager.GetRolesAsync(appUser);
+            var accessToken = _jwtService.GenerateAccessToken(domainUser, appUser.Id, roles);
             var refreshToken = _jwtService.GenerateRefreshToken();
 
             appUser.RefreshToken = refreshToken;
@@ -137,7 +155,8 @@ namespace LibroSphere.Infrastructure.Authentication
                 return new AuthResult("", "", false, "User not found.");
             }
 
-            var newAccessToken = _jwtService.GenerateAccessToken(domainUser);
+            var roles = await _userManager.GetRolesAsync(appUser);
+            var newAccessToken = _jwtService.GenerateAccessToken(domainUser, appUser.Id, roles);
             var newRefreshToken = _jwtService.GenerateRefreshToken();
 
             appUser.RefreshToken = newRefreshToken;
@@ -150,6 +169,11 @@ namespace LibroSphere.Infrastructure.Authentication
         public async Task<AuthResult> LogoutAsync(string userId, CancellationToken ct = default)
         {
             var appUser = await _userManager.FindByIdAsync(userId);
+            if (appUser is null && Guid.TryParse(userId, out var domainUserId))
+            {
+                appUser = await _userManager.Users.FirstOrDefaultAsync(x => x.DomainUserId == domainUserId, ct);
+            }
+
             if (appUser is null)
             {
                 return new AuthResult("", "", false, "User not found.");
@@ -160,6 +184,40 @@ namespace LibroSphere.Infrastructure.Authentication
             await _userManager.UpdateAsync(appUser);
 
             return new AuthResult("", "", true, "Logged out successfully.");
+        }
+
+        private async Task EnsureRolesExistAsync()
+        {
+            if (!await _roleManager.RoleExistsAsync(ApplicationRoles.User))
+            {
+                await _roleManager.CreateAsync(new IdentityRole(ApplicationRoles.User));
+            }
+
+            if (!await _roleManager.RoleExistsAsync(ApplicationRoles.Admin))
+            {
+                await _roleManager.CreateAsync(new IdentityRole(ApplicationRoles.Admin));
+            }
+        }
+
+        private async Task<IReadOnlyCollection<string>> DetermineRolesForUserAsync(ApplicationUser appUser)
+        {
+            var roles = new List<string> { ApplicationRoles.User };
+            var isConfiguredAdmin = _accessControlOptions.AdminEmails.Any(email =>
+                email.Equals(appUser.Email, StringComparison.OrdinalIgnoreCase));
+
+            if (isConfiguredAdmin)
+            {
+                roles.Add(ApplicationRoles.Admin);
+                return roles;
+            }
+
+            var admins = await _userManager.GetUsersInRoleAsync(ApplicationRoles.Admin);
+            if (admins.Count == 0)
+            {
+                roles.Add(ApplicationRoles.Admin);
+            }
+
+            return roles;
         }
     }
 }

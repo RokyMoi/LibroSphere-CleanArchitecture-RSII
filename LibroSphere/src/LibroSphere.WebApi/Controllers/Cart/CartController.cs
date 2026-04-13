@@ -1,73 +1,73 @@
-using LibroSphere.Application.Abstractions.ShoppingServices;
-using LibroSphere.Domain.Entities.ManyToMany;
-using LibroSphere.Domain.Entities.Shared;
-using LibroSphere.Domain.Entities.ShopCart;
+using LibroSphere.Application.Cart.Command.DeleteCart;
+using LibroSphere.Application.Cart.Command.UpdateCart;
+using LibroSphere.Application.Cart.Query.GetCartById;
+using LibroSphere.WebApi.Extensions;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LibroSphere.WebApi.Controllers.Cart
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class CartController : ControllerBase
     {
-        private readonly ICartService _cartService;
+        private readonly ISender _sender;
 
-        public CartController(ICartService cartService)
+        public CartController(ISender sender)
         {
-            _cartService = cartService;
+            _sender = sender;
         }
 
         [HttpGet("{cartId:guid}")]
-        public async Task<ActionResult<ShoppingCart>> GetCartById(Guid cartId)
+        public async Task<IActionResult> GetCartById(Guid cartId, CancellationToken cancellationToken)
         {
-            var cart = await _cartService.GetCartASync(cartId.ToString());
-            if (cart == null)
+            var result = await _sender.Send(new GetCartByIdQuery(cartId), cancellationToken);
+            if (result.IsFailure)
             {
-                return NotFound($"Cart with ID {cartId} not found.");
+                return NotFound(result.Error);
             }
 
-            return Ok(cart);
+            if (!User.IsAdmin() && result.Value.UserId != User.GetRequiredUserId())
+            {
+                return Forbid();
+            }
+
+            return Ok(result.Value);
         }
 
         [HttpPost]
-        public async Task<ActionResult<ShoppingCart>> UpdateCart(UpdateCartRequest request)
+        public async Task<IActionResult> UpdateCart([FromBody] UpdateCartRequest request, CancellationToken cancellationToken)
         {
-            var cart = ShoppingCart.CreateCart(request.Id, request.UserId);
+            var currentUserId = User.GetRequiredUserId();
+            var command = new UpdateCartCommand(
+                request.Id,
+                currentUserId,
+                request.ClientSecret,
+                request.PaymentIntentId,
+                request.Items.Select(item => new UpdateCartItemModel(item.BookId, item.Price.Amount, item.Price.CurrencyCode)).ToList());
 
-            foreach (var item in request.Items)
-            {
-                cart.Items.Add(ShoppingCartItem.AddItem(
-                    request.Id,
-                    item.BookId,
-                    new Money(item.Price.Amount, Currency.FromCode(item.Price.CurrencyCode))));
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.PaymentIntentId))
-            {
-                cart.SetPaymentIntent(request.PaymentIntentId);
-            }
-
-            cart.ClientSecret = request.ClientSecret;
-
-            var updated = await _cartService.SetCartAsync(cart);
-            if (updated == null)
-            {
-                return BadRequest("Problem updating cart.");
-            }
-
-            return Ok(updated);
+            var result = await _sender.Send(command, cancellationToken);
+            return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
         }
 
         [HttpDelete("{cartId:guid}")]
-        public async Task<IActionResult> DeleteCart(Guid cartId)
+        public async Task<IActionResult> DeleteCart(Guid cartId, CancellationToken cancellationToken)
         {
-            var result = await _cartService.DeleteCartAsync(cartId.ToString());
-            if (!result)
+            var cartResult = await _sender.Send(new GetCartByIdQuery(cartId), cancellationToken);
+            if (cartResult.IsFailure)
             {
-                return NotFound("Cart not found or already deleted.");
+                return NotFound(cartResult.Error);
             }
 
-            return NoContent();
+            if (!User.IsAdmin() && cartResult.Value.UserId != User.GetRequiredUserId())
+            {
+                return Forbid();
+            }
+
+            var result = await _sender.Send(new DeleteCartCommand(cartId), cancellationToken);
+            return result.IsSuccess ? NoContent() : NotFound(result.Error);
         }
     }
 }

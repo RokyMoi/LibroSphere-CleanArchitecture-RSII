@@ -7,5 +7,6 @@ namespace LibroSphere.Domain.Entities.Books.Genre
         Task<List<Genre>> GetAllAsync(CancellationToken cancellationToken = default);
         Task<List<Genre>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
         void Add(Genre genre);
+        void Delete(Genre genre);
     }
 }

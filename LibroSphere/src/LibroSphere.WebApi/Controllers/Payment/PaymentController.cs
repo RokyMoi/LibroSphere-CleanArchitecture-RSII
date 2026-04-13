@@ -1,14 +1,10 @@
-using LibroSphere.Application.Abstractions;
-using LibroSphere.Application.Abstractions.ShoppingServices;
-using LibroSphere.Application.Events.Order;
-using LibroSphere.Domain.Entities.ManyToMany;
-using LibroSphere.Domain.Entities.ManyToMany.IRepositories;
-using LibroSphere.Domain.Entities.Orders;
-using LibroSphere.Domain.Entities.ShopCart;
-using MassTransit;
+using LibroSphere.Application.Payment.Command.CreateOrUpdatePaymentIntent;
+using LibroSphere.Application.Payment.Command.ProcessStripeWebhook;
+using LibroSphere.Application.Cart.Query.GetCartById;
+using LibroSphere.WebApi.Extensions;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Stripe;
 
 namespace LibroSphere.WebApi.Controllers.Payment
 {
@@ -16,125 +12,48 @@ namespace LibroSphere.WebApi.Controllers.Payment
     [ApiController]
     public class PaymentController : ControllerBase
     {
-        private readonly IPaymentService _paymentService;
-        private readonly IOrderRepository _orderRepo;
-        private readonly IUserBookRepository _userBookRepo;
-        private readonly IConfiguration _config;
-        private readonly IPublishEndpoint _publishEndpoint;
+        private readonly ISender _sender;
+        private readonly IConfiguration _configuration;
 
-        public PaymentController(
-            IPaymentService paymentService,
-            IOrderRepository orderRepo,
-            IUserBookRepository userBookRepo,
-            IConfiguration config,
-            IPublishEndpoint publishEndpoint)
+        public PaymentController(ISender sender, IConfiguration configuration)
         {
-            _paymentService = paymentService;
-            _orderRepo = orderRepo;
-            _userBookRepo = userBookRepo;
-            _config = config;
-            _publishEndpoint = publishEndpoint;
+            _sender = sender;
+            _configuration = configuration;
         }
 
         [HttpPost("{cartId}")]
         [Authorize]
-        public async Task<ActionResult<ShoppingCart>> CreateOrUpdatePaymentIntent(string cartId)
+        public async Task<IActionResult> CreateOrUpdatePaymentIntent(string cartId, CancellationToken cancellationToken)
         {
-            var cart = await _paymentService.CreateOrUpdatePaymentIntent(cartId);
-            if (cart == null)
+            if (Guid.TryParse(cartId, out var parsedCartId))
             {
-                return BadRequest("Problem with your cart");
-            }
-
-            return Ok(cart);
-        }
-
-        [HttpPost("webhook")]
-        public async Task<IActionResult> StripeWebhook()
-        {
-            var json = await new StreamReader(Request.Body).ReadToEndAsync();
-            var signature = Request.Headers["Stripe-Signature"];
-            var secret = _config["StripeSettings:WhSecret"];
-
-            Stripe.Event stripeEvent;
-            try
-            {
-                stripeEvent = EventUtility.ConstructEvent(json, signature, secret);
-            }
-            catch (StripeException ex)
-            {
-                return BadRequest($"Webhook error: {ex.Message}");
-            }
-
-            switch (stripeEvent.Type)
-            {
-                case "payment_intent.succeeded":
-                    await HandleSucceeded(stripeEvent.Data.Object as PaymentIntent);
-                    break;
-                case "payment_intent.payment_failed":
-                    await HandleFailed(stripeEvent.Data.Object as PaymentIntent);
-                    break;
-            }
-
-            return Ok();
-        }
-
-        private async Task HandleSucceeded(PaymentIntent? intent)
-        {
-            if (intent == null)
-            {
-                return;
-            }
-
-            var order = await _orderRepo.GetByPaymentIntentIdAsync(intent.Id);
-            if (order == null)
-            {
-                return;
-            }
-
-            order.UpdateStatus(OrderStatus.PaymentReceived);
-
-            foreach (var item in order.Items)
-            {
-                var alreadyHas = await _userBookRepo.HasAccessAsync(order.BuyerEmail, item.BookId);
-                if (!alreadyHas)
+                var cartResult = await _sender.Send(new GetCartByIdQuery(parsedCartId), cancellationToken);
+                if (cartResult.IsFailure)
                 {
-                    await _userBookRepo.AddAsync(UserBook.Create(order.BuyerEmail, item.BookId));
+                    return NotFound(cartResult.Error);
+                }
+
+                if (!User.IsAdmin() && cartResult.Value.UserId != User.GetRequiredUserId())
+                {
+                    return Forbid();
                 }
             }
 
-            await _orderRepo.SaveChangesAsync();
-            await _userBookRepo.SaveChangesAsync();
+            var result = await _sender.Send(new CreateOrUpdatePaymentIntentCommand(cartId), cancellationToken);
 
-            await _publishEndpoint.Publish(new OrderPaidIntegrationEvent(
-                order.Id,
-                order.BuyerEmail,
-                order.TotalAmount.amount,
-                order.TotalAmount.Currency.Code,
-                order.Items
-                    .Select(item => new OrderPaidItem(
-                        item.Title,
-                        item.Price.amount,
-                        item.Price.Currency.Code,
-                        item.Quantity))
-                    .ToList()));
+            return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
         }
 
-        private async Task HandleFailed(PaymentIntent? intent)
+        [HttpPost("webhook")]
+        public async Task<IActionResult> StripeWebhook(CancellationToken cancellationToken)
         {
-            if (intent == null)
-            {
-                return;
-            }
+            var json = await new StreamReader(Request.Body).ReadToEndAsync(cancellationToken);
+            var signature = Request.Headers["Stripe-Signature"].ToString();
+            var secret = _configuration["StripeSettings:WhSecret"] ?? string.Empty;
 
-            var order = await _orderRepo.GetByPaymentIntentIdAsync(intent.Id);
-            if (order == null)
-            {
-                return;
-            }
+            var result = await _sender.Send(new ProcessStripeWebhookCommand(json, signature, secret), cancellationToken);
 
-            order.UpdateStatus(OrderStatus.PaymentFailed);
-            await _orderRepo.SaveChangesAsync();
+            return result.IsSuccess ? Ok() : BadRequest($"Webhook error: {result.Error.Message}");
         }
     }
 }

@@ -1,3 +1,4 @@
+using LibroSphere.Application.Abstractions.Analytics;
 using LibroSphere.Application.Events.User;
 using LibroSphere.Domain.Entities.ShopCart;
 using LibroSphere.Domain.Entities.WishList;
@@ -12,15 +13,18 @@ public sealed class UserRegisteredIntegrationEventConsumer : IConsumer<UserRegis
 {
     private readonly ApplicationDbContext? _dbContext;
     private readonly IEmailService _emailService;
+    private readonly IAnalyticsActivityStore _activityStore;
     private readonly ILogger<UserRegisteredIntegrationEventConsumer> _logger;
 
     public UserRegisteredIntegrationEventConsumer(
         ApplicationDbContext? dbContext,
         IEmailService emailService,
+        IAnalyticsActivityStore activityStore,
         ILogger<UserRegisteredIntegrationEventConsumer> logger)
     {
         _dbContext = dbContext;
         _emailService = emailService;
+        _activityStore = activityStore;
         _logger = logger;
     }
 
@@ -32,6 +36,14 @@ public sealed class UserRegisteredIntegrationEventConsumer : IConsumer<UserRegis
             "Processing user registration event. UserId={UserId}, Email={Email}",
             message.UserId,
             message.Email);
+
+        await _activityStore.AddAsync(
+            new AnalyticsActivityEntry(
+                "User",
+                "Registered",
+                $"Korisnik {message.Email} se registrovao i pokrenut je onboarding.",
+                DateTime.UtcNow),
+            context.CancellationToken);
 
         if (_dbContext is not null)
         {

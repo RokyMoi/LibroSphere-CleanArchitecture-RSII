@@ -65,25 +65,26 @@ namespace LibroSphere.Infrastructure.Services
                 query = query.Where(b => b.BookGenres.Any(bg => favouriteGenreIds.Contains(bg.GenreId)));
             }
 
-            var recommended = await query
+            var recommended = (await query.ToListAsync(cancellationToken))
                 .OrderByDescending(b => b.Reviews.Any() ? b.Reviews.Average(r => r.Rating) : 0)
                 .ThenBy(b => b.Title.Value)
                 .Take(take)
-                .ToListAsync(cancellationToken);
+                .ToList();
 
             if (recommended.Count == 0)
             {
-                recommended = await _dbContext.Set<Book>()
+                recommended = (await _dbContext.Set<Book>()
                     .AsNoTracking()
                     .Include(b => b.Author)
                     .Include(b => b.BookGenres)
                         .ThenInclude(bg => bg.Genre)
                     .Include(b => b.Reviews)
                     .Where(b => !purchasedBookIds.Contains(b.Id))
+                    .ToListAsync(cancellationToken))
                     .OrderByDescending(b => b.Reviews.Any() ? b.Reviews.Average(r => r.Rating) : 0)
                     .ThenBy(b => b.Title.Value)
                     .Take(take)
-                    .ToListAsync(cancellationToken);
+                    .ToList();
             }
 
             return recommended;

@@ -1,4 +1,6 @@
 using LibroSphere.Domain.Entities.Books;
+using LibroSphere.Domain.Entities.Books.Genre;
+using LibroSphere.Domain.Entities.ManyToMany;
 using Microsoft.EntityFrameworkCore;
 
 namespace LibroSphere.Infrastructure.Repositories
@@ -66,6 +68,28 @@ namespace LibroSphere.Infrastructure.Repositories
             return query
                 .OrderBy(b => b.Title.Value)
                 .ToList();
+        }
+
+        public void ReplaceGenres(Book book, IReadOnlyCollection<Genre> genres)
+        {
+            var existingGenres = DbContext
+                .Set<BookGenre>()
+                .Where(bg => bg.BookId == book.Id)
+                .ToList();
+
+            if (existingGenres.Count > 0)
+            {
+                DbContext.Set<BookGenre>().RemoveRange(existingGenres);
+            }
+
+            book.BookGenres.Clear();
+
+            foreach (var genre in genres)
+            {
+                var bookGenre = BookGenre.Create(book, genre);
+                DbContext.Set<BookGenre>().Add(bookGenre);
+                book.BookGenres.Add(bookGenre);
+            }
         }
 
         public void Delete(Book book)

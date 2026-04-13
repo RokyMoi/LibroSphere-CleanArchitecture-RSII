@@ -12,6 +12,8 @@ namespace LibroSphere.Application.Books.Command.UpdateBook
             RuleFor(c => c.Price.amount).GreaterThan(0);
             RuleFor(c => c.Price.Currency.Code).NotEmpty().Length(3);
             RuleFor(c => c.AuthorId).NotEmpty();
+            RuleFor(c => c.BookLinks.PdfLink).NotEmpty();
+            RuleFor(c => c.BookLinks.imageLink).NotEmpty();
         }
     }
 }

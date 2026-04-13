@@ -1,9 +1,10 @@
 using LibroSphere.Application.Users.AuthCommands;
-using LibroSphere.WebApi.Controllers.Auth;
+using LibroSphere.WebApi.Extensions;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LibroSphere.Api.Controllers;
+namespace LibroSphere.WebApi.Controllers.Auth;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -33,10 +34,11 @@ public class AuthController : ControllerBase
         });
     }
 
+    [Authorize]
     [HttpPost("logout")]
-    public async Task<ActionResult> LogoutAsync([FromBody] string userId, CancellationToken ct)
+    public async Task<ActionResult> LogoutAsync(CancellationToken ct)
     {
-        var result = await _sender.Send(new LogoutUserCommand(userId), ct);
+        var result = await _sender.Send(new LogoutUserCommand(User.GetRequiredIdentityUserId()), ct);
 
         if (result.IsFailure)
             return BadRequest(new { Error = result.Error });

@@ -9,7 +9,7 @@ namespace LibroSphere.Application.Abstractions.Identity
 {
     public interface IJwtService
     {
-        string GenerateAccessToken(User domainUser);
+        string GenerateAccessToken(User domainUser, string identityUserId, IEnumerable<string> roles);
         string GenerateRefreshToken();
         Guid? GetUserIdFromToken(string token);
     }

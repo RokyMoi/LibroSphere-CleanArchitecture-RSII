@@ -37,7 +37,7 @@ namespace LibroSphere.Domain.Entities.Reviews
         public static Review Create(Guid userId, Guid bookId, int rating, string comment)
         {
             var review = new Review(Guid.NewGuid(), userId, bookId, rating, comment, DateTime.UtcNow);
-            review.RaiseDomainEvent(new ReviewCreatedDomainEvent(review.Id, review.BookId, review.UserId));
+            review.RaiseDomainEvent(new ReviewCreatedDomainEvent(review.Id, review.UserId, review.BookId, review.Rating));
             return review;
         }
 
@@ -45,12 +45,12 @@ namespace LibroSphere.Domain.Entities.Reviews
         {
             Rating = rating;
             Comment = comment;
-            RaiseDomainEvent(new ReviewUpdatedDomainEvent(Id, BookId, UserId));
+            RaiseDomainEvent(new ReviewUpdatedDomainEvent(Id, UserId, BookId, Rating));
         }
 
         public void MarkAsDeleted()
         {
-            RaiseDomainEvent(new ReviewDeletedDomainEvent(Id, BookId, UserId));
+            RaiseDomainEvent(new ReviewDeletedDomainEvent(Id, UserId, BookId));
         }
     }
 }

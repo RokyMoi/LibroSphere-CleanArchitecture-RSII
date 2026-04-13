@@ -1,4 +1,5 @@
 using LibroSphere.Domain.Abstraction;
+using LibroSphere.Domain.Entities.Books.Genre.Events;
 using LibroSphere.Domain.Entities.ManyToMany;
 
 namespace LibroSphere.Domain.Entities.Books.Genre
@@ -21,7 +22,20 @@ namespace LibroSphere.Domain.Entities.Books.Genre
 
         public static Genre Create(Name name)
         {
-            return new Genre(Guid.NewGuid(), name);
+            var genre = new Genre(Guid.NewGuid(), name);
+            genre.RaiseDomainEvent(new GenreCreatedDomainEvent(genre.Id, genre.Name.Value));
+            return genre;
+        }
+
+        public void Update(Name name)
+        {
+            Name = name;
+            RaiseDomainEvent(new GenreUpdatedDomainEvent(Id, Name.Value));
+        }
+
+        public void MarkAsDeleted()
+        {
+            RaiseDomainEvent(new GenreDeletedDomainEvent(Id, Name.Value));
         }
     }
 }

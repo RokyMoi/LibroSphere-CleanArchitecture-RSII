@@ -2,6 +2,7 @@ using LibroSphere.Domain.Abstraction;
 using LibroSphere.Domain.Abstractions.Clock;
 using LibroSphere.Domain.Entities.Reviews;
 using LibroSphere.Domain.Entities.ShopCart;
+using LibroSphere.Domain.Entities.Users.Events;
 using LibroSphere.Domain.Entities.WishList;
 
 namespace LibroSphere.Domain.Entities.Users
@@ -55,11 +56,13 @@ namespace LibroSphere.Domain.Entities.Users
         public void Login(IDateTimeProvider dateTimeProvider)
         {
             LastLogin = dateTimeProvider.UtcNow;
+            RaiseDomainEvent(new UserLoggedInDomainEvent(Id, UserEmail.Value));
         }
 
         public void Deactivate()
         {
             IsActive = false;
+            RaiseDomainEvent(new UserDeactivatedDomainEvent(Id, UserEmail.Value));
         }
     }
 }

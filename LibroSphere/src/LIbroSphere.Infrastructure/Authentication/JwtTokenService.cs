@@ -20,19 +20,26 @@ namespace LibroSphere.Infrastructure.Authentication
         public JwtTokenService(IOptions<JwtOptions> settings)
             => _settings = settings.Value;
 
-        public string GenerateAccessToken(User domainUser)
+        public string GenerateAccessToken(User domainUser, string identityUserId, IEnumerable<string> roles)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.SecretKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[]
+            var claims = new List<Claim>
             {
-            new Claim(JwtRegisteredClaimNames.Sub, domainUser.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, domainUser.UserEmail.Value),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim("firstName", domainUser.FirstName.Value),
-            new Claim("lastName", domainUser.LastName.Value),
-        };
+                new Claim(JwtRegisteredClaimNames.Sub, domainUser.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, domainUser.Id.ToString()),
+                new Claim("identityUserId", identityUserId),
+                new Claim(JwtRegisteredClaimNames.Email, domainUser.UserEmail.Value),
+                new Claim(ClaimTypes.Email, domainUser.UserEmail.Value),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim("firstName", domainUser.FirstName.Value),
+                new Claim(ClaimTypes.GivenName, domainUser.FirstName.Value),
+                new Claim("lastName", domainUser.LastName.Value),
+                new Claim(ClaimTypes.Surname, domainUser.LastName.Value)
+            };
+
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
             var token = new JwtSecurityToken(
                 issuer: _settings.Issuer,

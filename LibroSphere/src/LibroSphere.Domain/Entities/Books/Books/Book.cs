@@ -59,7 +59,7 @@ namespace LibroSphere.Domain.Entities.Books
             Guid authorId)
         {
             var book = new Book(Guid.NewGuid(), title, description, price, bookLinks, authorId);
-            book.RaiseDomainEvent(new BookCreatedDomainEvent(book.Id, book.Title.Value));
+            book.RaiseDomainEvent(new BookCreatedDomainEvent(book.Id, book.Title.Value, book.AuthorId, book.Price.amount, book.Price.Currency.Code));
             return book;
         }
 
@@ -75,12 +75,12 @@ namespace LibroSphere.Domain.Entities.Books
             Price = price;
             BookLinkovi = bookLinks;
             AuthorId = authorId;
-            RaiseDomainEvent(new BookUpdatedDomainEvent(Id, Title.Value));
+            RaiseDomainEvent(new BookUpdatedDomainEvent(Id, Title.Value, AuthorId, Price.amount, Price.Currency.Code));
         }
 
         public void MarkAsDeleted()
         {
-            RaiseDomainEvent(new BookDeletedDomainEvent(Id, Title.Value));
+            RaiseDomainEvent(new BookDeletedDomainEvent(Id, Title.Value, AuthorId));
         }
     }
 }

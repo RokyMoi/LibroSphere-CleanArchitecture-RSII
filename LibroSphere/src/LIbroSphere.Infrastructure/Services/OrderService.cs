@@ -1,5 +1,6 @@
-﻿using LibroSphere.Application.Abstractions;
+using LibroSphere.Application.Abstractions;
 using LibroSphere.Application.Abstractions.ShoppingServices;
+using LibroSphere.Domain.Abstraction;
 using LibroSphere.Domain.Entities.Books;
 using LibroSphere.Domain.Entities.ManyToMany;
 using LibroSphere.Domain.Entities.Orders;
@@ -23,14 +24,18 @@ namespace LibroSphere.Infrastructure.Services
             _bookRepo = bookRepo;
         }
 
-        public async Task<Order> CreateOrderAsync(string buyerEmail, string cartId)
+        public async Task<Result<Order>> CreateOrderAsync(string buyerEmail, string cartId)
         {
             var cart = await _cartService.GetCartASync(cartId);
             if (cart == null)
-                throw new Exception("Cart not found");
+            {
+                return Result.Failure<Order>(new Error("Order.Cart.NotFound", "Cart not found."));
+            }
 
             if (string.IsNullOrEmpty(cart.PaymentIntentId))
-                throw new Exception("No payment intent. Call /api/payment/{cartId} first.");
+            {
+                return Result.Failure<Order>(new Error("Order.PaymentIntent.Missing", "No payment intent. Call /api/payment/{cartId} first."));
+            }
 
             var orderItems = new List<OrderItem>();
 
@@ -38,31 +43,29 @@ namespace LibroSphere.Infrastructure.Services
             {
                 var book = await _bookRepo.GetAsyncById(item.BookId);
                 if (book == null)
-                    throw new Exception($"Book {item.BookId} not found");
+                {
+                    return Result.Failure<Order>(new Error("Order.Book.NotFound", $"Book {item.BookId} not found."));
+                }
 
                 orderItems.Add(OrderItem.Create(
                     book.Id,
                     book.Title.Value,
                     book.BookLinkovi.imageLink,
                     book.Price,
-                    quantity: 1  
-                ));
+                    quantity: 1));
             }
 
             var order = Order.Create(
                 buyerEmail,
                 orderItems,
                 cart.PaymentIntentId,
-                cart.ClientSecret!
-            );
+                cart.ClientSecret!);
 
             await _orderRepo.AddAsync(order);
             await _orderRepo.SaveChangesAsync();
-
-         
             await _cartService.DeleteCartAsync(cartId);
 
-            return order;
+            return Result.Success(order);
         }
 
         public async Task<List<Order>> GetOrdersForUserAsync(string email)

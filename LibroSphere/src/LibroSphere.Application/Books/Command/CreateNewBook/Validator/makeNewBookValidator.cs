@@ -30,6 +30,12 @@ namespace LibroSphere.Application.Books.Command.CreateNewBook.Validator
 
             RuleFor(c => c.authorId)
                 .NotEmpty().WithMessage("AuthorId cannot be empty.");
+
+            RuleFor(c => c.bookLinks.PdfLink)
+                .NotEmpty().WithMessage("Pdf link cannot be empty.");
+
+            RuleFor(c => c.bookLinks.imageLink)
+                .NotEmpty().WithMessage("Image link cannot be empty.");
         }
     }
 }

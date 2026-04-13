@@ -1,4 +1,5 @@
 using System.Text;
+using LibroSphere.Application.Abstractions.Analytics;
 using LibroSphere.Application.Events.Order;
 using LibroSphere.Worker.Services;
 using MassTransit;
@@ -8,19 +9,30 @@ namespace LibroSphere.Worker.Consumers;
 public sealed class OrderPaidIntegrationEventConsumer : IConsumer<OrderPaidIntegrationEvent>
 {
     private readonly IEmailService _emailService;
+    private readonly IAnalyticsActivityStore _activityStore;
     private readonly ILogger<OrderPaidIntegrationEventConsumer> _logger;
 
     public OrderPaidIntegrationEventConsumer(
         IEmailService emailService,
+        IAnalyticsActivityStore activityStore,
         ILogger<OrderPaidIntegrationEventConsumer> logger)
     {
         _emailService = emailService;
+        _activityStore = activityStore;
         _logger = logger;
     }
 
     public async Task Consume(ConsumeContext<OrderPaidIntegrationEvent> context)
     {
         var message = context.Message;
+
+        await _activityStore.AddAsync(
+            new AnalyticsActivityEntry(
+                "Order",
+                "Paid",
+                $"Narudzba {message.OrderId} je placena u iznosu {message.TotalAmount:0.00} {message.Currency}.",
+                DateTime.UtcNow),
+            context.CancellationToken);
 
         var itemRows = new StringBuilder();
         foreach (var item in message.Items)

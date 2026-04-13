@@ -1,6 +1,9 @@
 using LibroSphere.Application.Abstractions.Events.DomainEvent;
 
-namespace LibroSphere.Domain.Entities.Authors.Events
+namespace LibroSphere.Domain.Entities.Authors.Events;
+
+public sealed class AuthorCreatedDomainEvent(Guid authorId, string name) : IDomainEvent
 {
-    public sealed record AuthorCreatedDomainEvent(Guid AuthorId, string Name) : IDomainEvent;
+    public Guid AuthorId { get; } = authorId;
+    public string Name { get; } = name;
 }

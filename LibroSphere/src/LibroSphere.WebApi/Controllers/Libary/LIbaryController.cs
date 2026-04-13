@@ -1,66 +1,42 @@
-﻿namespace LibroSphere.WebApi.Controllers.Libary
+using LibroSphere.Application.Library.Query.GetBookReadLink;
+using LibroSphere.Application.Library.Query.GetMyLibrary;
+using LibroSphere.WebApi.Extensions;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace LibroSphere.WebApi.Controllers.Library
 {
-    using global::LibroSphere.Domain.Entities.Books;
-    using global::LibroSphere.Domain.Entities.ManyToMany.IRepositories;
-
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Mvc;
-    using System.Security.Claims;
-
-    namespace LibroSphere.WebApi.Controllers.Library
+    [Route("api/[controller]")]
+    [ApiController]
+    [Authorize]
+    public class LibraryController : ControllerBase
     {
-        [Route("api/[controller]")]
-        [ApiController]
-        [Authorize]
-        public class LibraryController : ControllerBase
+        private readonly ISender _sender;
+
+        public LibraryController(ISender sender)
         {
-            private readonly IUserBookRepository _userBookRepo;
-            private readonly IBookRepository _bookRepo;
-
-            public LibraryController(IUserBookRepository userBookRepo, IBookRepository bookRepo)
-            {
-                _userBookRepo = userBookRepo;
-                _bookRepo = bookRepo;
-            }
-
-          
-            [HttpGet]
-            public async Task<ActionResult<List<UserBookDto>>> GetMyLibrary()
-            {
-                var email = User.FindFirstValue(ClaimTypes.Email)!;
-                var userBooks = await _userBookRepo.GetByEmailAsync(email);
-
-                var result = userBooks.Select(ub => new UserBookDto(
-                    ub.BookId,
-                    ub.Book.Title.Value,
-                    ub.Book.BookLinkovi.imageLink,
-                    ub.PurchasedAt
-                )).ToList();
-
-                return Ok(result);
-            }
-
-          
-            [HttpGet("{bookId:guid}/read")]
-            public async Task<IActionResult> GetPdfLink(Guid bookId)
-            {
-                var email = User.FindFirstValue(ClaimTypes.Email)!;
-
-                var hasAccess = await _userBookRepo.HasAccessAsync(email, bookId);
-                if (!hasAccess) return Forbid();
-
-                var book = await _bookRepo.GetAsyncById(bookId);
-                if (book == null) return NotFound();
-
-                return Ok(new { pdfUrl = book.BookLinkovi.PdfLink });
-            }
+            _sender = sender;
         }
 
-        public record UserBookDto(
-            Guid BookId,
-            string Title,
-            string? ImageLink,
-            DateTime PurchasedAt
-        );
+        [HttpGet]
+        public async Task<IActionResult> GetMyLibrary(
+            [FromQuery] string? searchTerm,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 12,
+            CancellationToken cancellationToken = default)
+        {
+            var email = User.GetRequiredEmail();
+            var result = await _sender.Send(new GetMyLibraryQuery(email, searchTerm, page, pageSize), cancellationToken);
+            return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+        }
+
+        [HttpGet("{bookId:guid}/read")]
+        public async Task<IActionResult> GetPdfLink(Guid bookId, CancellationToken cancellationToken)
+        {
+            var email = User.GetRequiredEmail();
+            var result = await _sender.Send(new GetBookReadLinkQuery(email, bookId), cancellationToken);
+            return result.IsSuccess ? Ok(new { pdfUrl = result.Value }) : Forbid();
+        }
     }
 }

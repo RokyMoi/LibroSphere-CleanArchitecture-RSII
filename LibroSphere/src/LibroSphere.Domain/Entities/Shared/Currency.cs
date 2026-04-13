@@ -1,8 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace LibroSphere.Domain.Entities.Shared
 {
@@ -12,13 +11,18 @@ namespace LibroSphere.Domain.Entities.Shared
         public static readonly Currency Bam = new("BAM");
         public static readonly Currency Usd = new("USD");
         public static readonly Currency Eur = new("EUR");
-        private Currency(string code) => Code = code;
+
+        [JsonConstructor]
+        public Currency(string code) => Code = code;
+
         public static Currency FromCode(string code)
         {
-            return Currencys.FirstOrDefault(x => x.Code == code) ??
-                throw new ApplicationException("There is no currency with that code");
+            return Currencys.FirstOrDefault(x => x.Code == code)
+                ?? throw new ApplicationException("There is no currency with that code");
         }
+
         public string Code { get; init; }
+
         public static readonly IReadOnlyCollection<Currency> Currencys = new[]
         {
             Bam,

@@ -47,12 +47,7 @@ namespace LibroSphere.Application.Books.Command.UpdateBook
                 : await _genreRepository.GetByIdsAsync(request.GenreIds, cancellationToken);
 
             book.Update(request.Title, request.Description, request.Price, request.BookLinks, request.AuthorId);
-            book.BookGenres.Clear();
-
-            foreach (var genre in genres)
-            {
-                book.BookGenres.Add(BookGenre.Create(book, genre));
-            }
+            _bookRepository.ReplaceGenres(book, genres);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             return Result.Success();

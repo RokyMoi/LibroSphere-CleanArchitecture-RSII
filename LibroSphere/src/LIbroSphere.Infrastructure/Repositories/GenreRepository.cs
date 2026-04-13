@@ -37,5 +37,10 @@ namespace LibroSphere.Infrastructure.Repositories
                 .Where(g => idList.Contains(g.Id))
                 .ToListAsync(cancellationToken);
         }
+
+        public void Delete(Genre genre)
+        {
+            DbContext.Set<Genre>().Remove(genre);
+        }
     }
 }

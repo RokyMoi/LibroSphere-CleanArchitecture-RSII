@@ -23,6 +23,8 @@ if (app.Environment.IsDevelopment())
     app.ApplyMigrations();
 }
 
+await app.SeedIdentityAsync();
+
 app.UseHttpsRedirection();
 app.Use(async (context, next) =>
 {

@@ -1,5 +1,6 @@
-﻿using LibroSphere.Domain.Abstraction;
+using LibroSphere.Domain.Abstraction;
 using LibroSphere.Domain.Entities.Books;
+using LibroSphere.Domain.Entities.ManyToMany.Events;
 
 namespace LibroSphere.Domain.Entities.ManyToMany
 {
@@ -13,7 +14,9 @@ namespace LibroSphere.Domain.Entities.ManyToMany
             PurchasedAt = purchasedAt;
         }
 
-        protected UserBook() { }
+        protected UserBook()
+        {
+        }
 
         public string UserEmail { get; private set; }
         public Guid BookId { get; private set; }
@@ -21,6 +24,10 @@ namespace LibroSphere.Domain.Entities.ManyToMany
         public DateTime PurchasedAt { get; private set; }
 
         public static UserBook Create(string userEmail, Guid bookId)
-            => new(Guid.NewGuid(), userEmail, bookId, DateTime.UtcNow);
+        {
+            var userBook = new UserBook(Guid.NewGuid(), userEmail, bookId, DateTime.UtcNow);
+            userBook.RaiseDomainEvent(new UserBookGrantedDomainEvent(userBook.Id, userBook.UserEmail, userBook.BookId));
+            return userBook;
+        }
     }
 }
