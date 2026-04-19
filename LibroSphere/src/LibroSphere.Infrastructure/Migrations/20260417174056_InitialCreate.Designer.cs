@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LibroSphere.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260327145028_UserRegistration")]
-    partial class UserRegistration
+    [Migration("20260417174056_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -165,7 +165,10 @@ namespace LibroSphere.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Genre");
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Genres", (string)null);
                 });
 
             modelBuilder.Entity("LibroSphere.Domain.Entities.ManyToMany.BookGenre", b =>
@@ -216,23 +219,23 @@ namespace LibroSphere.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("AddedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<Guid>("BookId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<DateTime>("PurchasedAt")
+                        .HasColumnType("datetime2");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("UserEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("BookId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserEmail", "BookId")
+                        .IsUnique();
 
                     b.ToTable("UserBooks", (string)null);
                 });
@@ -264,23 +267,32 @@ namespace LibroSphere.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<string>("BuyerEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ClientSecret")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("PaymentStatus")
+                    b.Property<string>("PaymentIntentId")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Orders", (string)null);
                 });
 
-            modelBuilder.Entity("LibroSphere.Domain.Entities.Recommended.RecommendedBook", b =>
+            modelBuilder.Entity("LibroSphere.Domain.Entities.Orders.OrderItem", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -289,26 +301,26 @@ namespace LibroSphere.Infrastructure.Migrations
                     b.Property<Guid>("BookId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("ImageLink")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<double>("Score")
-                        .HasColumnType("float");
-
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("OrderId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BookId");
+                    b.HasIndex("OrderId");
 
-                    b.HasIndex("UserId");
-
-                    b.ToTable("RecommendedBook");
+                    b.ToTable("OrderItems", (string)null);
                 });
 
             modelBuilder.Entity("LibroSphere.Domain.Entities.Reviews.Review", b =>
@@ -322,7 +334,8 @@ namespace LibroSphere.Infrastructure.Migrations
 
                     b.Property<string>("Comment")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -337,16 +350,23 @@ namespace LibroSphere.Infrastructure.Migrations
 
                     b.HasIndex("BookId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "BookId")
+                        .IsUnique();
 
-                    b.ToTable("Review", (string)null);
+                    b.ToTable("Reviews", (string)null);
                 });
 
-            modelBuilder.Entity("LibroSphere.Domain.Entities.ShoppingCarts.ShoppingCart", b =>
+            modelBuilder.Entity("LibroSphere.Domain.Entities.ShopCart.ShoppingCart", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ClientSecret")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PaymentIntentId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
@@ -390,6 +410,9 @@ namespace LibroSphere.Infrastructure.Migrations
                         .HasColumnType("nvarchar(150)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserEmail")
+                        .IsUnique();
 
                     b.ToTable("Users", (string)null);
                 });
@@ -643,7 +666,7 @@ namespace LibroSphere.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("LibroSphere.Domain.Entities.ShoppingCarts.ShoppingCart", "Cart")
+                    b.HasOne("LibroSphere.Domain.Entities.ShopCart.ShoppingCart", "Cart")
                         .WithMany("Items")
                         .HasForeignKey("CartId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -687,15 +710,7 @@ namespace LibroSphere.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("LibroSphere.Domain.Entities.Users.User", "User")
-                        .WithMany("UserBooks")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Book");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("LibroSphere.Domain.Entities.ManyToMany.WishlistItem", b =>
@@ -719,13 +734,7 @@ namespace LibroSphere.Infrastructure.Migrations
 
             modelBuilder.Entity("LibroSphere.Domain.Entities.Orders.Order", b =>
                 {
-                    b.HasOne("LibroSphere.Domain.Entities.Users.User", "User")
-                        .WithMany("Orders")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.OwnsOne("LibroSphere.Domain.Entities.Shared.Money", "TotalPrice", b1 =>
+                    b.OwnsOne("LibroSphere.Domain.Entities.Shared.Money", "TotalAmount", b1 =>
                         {
                             b1.Property<Guid>("OrderId")
                                 .HasColumnType("uniqueidentifier");
@@ -733,11 +742,11 @@ namespace LibroSphere.Infrastructure.Migrations
                             b1.Property<string>("Currency")
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)")
-                                .HasColumnName("TotalPriceCurrency");
+                                .HasColumnName("TotalCurrency");
 
                             b1.Property<decimal>("amount")
                                 .HasColumnType("decimal(18,2)")
-                                .HasColumnName("TotalPriceAmount");
+                                .HasColumnName("TotalAmount");
 
                             b1.HasKey("OrderId");
 
@@ -747,29 +756,41 @@ namespace LibroSphere.Infrastructure.Migrations
                                 .HasForeignKey("OrderId");
                         });
 
-                    b.Navigation("TotalPrice")
+                    b.Navigation("TotalAmount")
                         .IsRequired();
-
-                    b.Navigation("User");
                 });
 
-            modelBuilder.Entity("LibroSphere.Domain.Entities.Recommended.RecommendedBook", b =>
+            modelBuilder.Entity("LibroSphere.Domain.Entities.Orders.OrderItem", b =>
                 {
-                    b.HasOne("LibroSphere.Domain.Entities.Books.Book", "Book")
-                        .WithMany()
-                        .HasForeignKey("BookId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                    b.HasOne("LibroSphere.Domain.Entities.Orders.Order", null)
+                        .WithMany("Items")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.OwnsOne("LibroSphere.Domain.Entities.Shared.Money", "Price", b1 =>
+                        {
+                            b1.Property<Guid>("OrderItemId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("PriceCurrency");
+
+                            b1.Property<decimal>("amount")
+                                .HasColumnType("decimal(18,2)")
+                                .HasColumnName("PriceAmount");
+
+                            b1.HasKey("OrderItemId");
+
+                            b1.ToTable("OrderItems");
+
+                            b1.WithOwner()
+                                .HasForeignKey("OrderItemId");
+                        });
+
+                    b.Navigation("Price")
                         .IsRequired();
-
-                    b.HasOne("LibroSphere.Domain.Entities.Users.User", "User")
-                        .WithMany("RecommendedBooks")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Book");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("LibroSphere.Domain.Entities.Reviews.Review", b =>
@@ -783,7 +804,7 @@ namespace LibroSphere.Infrastructure.Migrations
                     b.HasOne("LibroSphere.Domain.Entities.Users.User", "User")
                         .WithMany("Reviews")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Book");
@@ -791,11 +812,11 @@ namespace LibroSphere.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("LibroSphere.Domain.Entities.ShoppingCarts.ShoppingCart", b =>
+            modelBuilder.Entity("LibroSphere.Domain.Entities.ShopCart.ShoppingCart", b =>
                 {
                     b.HasOne("LibroSphere.Domain.Entities.Users.User", "User")
                         .WithOne("ShoppingCart")
-                        .HasForeignKey("LibroSphere.Domain.Entities.ShoppingCarts.ShoppingCart", "UserId")
+                        .HasForeignKey("LibroSphere.Domain.Entities.ShopCart.ShoppingCart", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -887,26 +908,23 @@ namespace LibroSphere.Infrastructure.Migrations
                     b.Navigation("BookGenres");
                 });
 
-            modelBuilder.Entity("LibroSphere.Domain.Entities.ShoppingCarts.ShoppingCart", b =>
+            modelBuilder.Entity("LibroSphere.Domain.Entities.Orders.Order", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("LibroSphere.Domain.Entities.ShopCart.ShoppingCart", b =>
                 {
                     b.Navigation("Items");
                 });
 
             modelBuilder.Entity("LibroSphere.Domain.Entities.Users.User", b =>
                 {
-                    b.Navigation("Orders");
-
-                    b.Navigation("RecommendedBooks");
-
                     b.Navigation("Reviews");
 
-                    b.Navigation("ShoppingCart")
-                        .IsRequired();
+                    b.Navigation("ShoppingCart");
 
-                    b.Navigation("UserBooks");
-
-                    b.Navigation("Wishlist")
-                        .IsRequired();
+                    b.Navigation("Wishlist");
                 });
 
             modelBuilder.Entity("LibroSphere.Domain.Entities.WishList.Wishlist", b =>
