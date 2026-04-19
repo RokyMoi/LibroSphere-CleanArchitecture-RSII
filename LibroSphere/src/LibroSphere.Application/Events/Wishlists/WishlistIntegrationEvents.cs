@@ -9,7 +9,7 @@ public sealed class WishlistCreatedIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected WishlistCreatedIntegrationEvent()
+    public WishlistCreatedIntegrationEvent()
     {
     }
 
@@ -28,7 +28,7 @@ public sealed class WishlistItemAddedIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected WishlistItemAddedIntegrationEvent()
+    public WishlistItemAddedIntegrationEvent()
     {
     }
 
@@ -48,7 +48,7 @@ public sealed class WishlistItemRemovedIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected WishlistItemRemovedIntegrationEvent()
+    public WishlistItemRemovedIntegrationEvent()
     {
     }
 

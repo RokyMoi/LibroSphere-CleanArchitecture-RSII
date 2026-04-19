@@ -1,4 +1,4 @@
-namespace LibroSphere.Infrastructure.Authentication;
+﻿namespace LibroSphere.Infrastructure.Authentication;
 
 public sealed class AccessControlOptions
 {

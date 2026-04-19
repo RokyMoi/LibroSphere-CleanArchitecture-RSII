@@ -11,5 +11,6 @@ namespace LibroSphere.WebApi.Controllers.Book
         public IFormFile? PdfFile { get; set; }
         public IFormFile? ImageFile { get; set; }
         public Guid AuthorId { get; set; }
+        public List<Guid>? GenreIds { get; set; }
     }
 }

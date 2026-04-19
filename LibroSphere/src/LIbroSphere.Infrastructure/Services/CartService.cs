@@ -1,4 +1,4 @@
-using LibroSphere.Application.Events.Cart;
+﻿using LibroSphere.Application.Events.Cart;
 using LibroSphere.Domain.Entities.ShopCart;
 using MassTransit;
 using StackExchange.Redis;

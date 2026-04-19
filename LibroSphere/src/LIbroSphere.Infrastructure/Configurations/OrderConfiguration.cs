@@ -1,4 +1,4 @@
-using LibroSphere.Domain.Entities.Orders;
+﻿using LibroSphere.Domain.Entities.Orders;
 using LibroSphere.Domain.Entities.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -34,6 +34,7 @@ namespace LibroSphere.Infrastructure.Configurations
             {
                 money.Property(m => m.amount)
                     .HasColumnName("TotalAmount")
+                    .HasPrecision(18, 2)
                     .IsRequired();
 
                 money.Property(m => m.Currency)

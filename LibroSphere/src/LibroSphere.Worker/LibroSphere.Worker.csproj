@@ -18,6 +18,6 @@
 	<ItemGroup>
 		<ProjectReference Include="..\LibroSphere.Application\LibroSphere.Application.csproj" />
 		<ProjectReference Include="..\LibroSphere.Domain\LibroSphere.Domain.csproj" />
-		<ProjectReference Include="..\LIbroSphere.Infrastructure\LibroSphere.Infrastructure.csproj" />
+		<ProjectReference Include="..\LibroSphere.Infrastructure\LibroSphere.Infrastructure.csproj" />
 	</ItemGroup>
 </Project>

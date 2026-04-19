@@ -1,4 +1,7 @@
+using LibroSphere.Infrastructure.Configuration;
 using LibroSphere.Worker;
+
+DotEnvLoader.LoadFromCurrentDirectory();
 
 var builder = Host.CreateApplicationBuilder(args);
 

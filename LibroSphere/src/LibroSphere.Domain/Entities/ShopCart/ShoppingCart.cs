@@ -31,7 +31,7 @@ namespace LibroSphere.Domain.Entities.ShopCart
         protected ShoppingCart() { }
 
         public Guid UserId { get; private set; }
-        public User User { get; private set; }
+        public User User { get; private set; } = null!;
         public string? ClientSecret { get; set; }
         public string? PaymentIntentId { get; private set; }
         public List<ShoppingCartItem> Items { get; private set; } = new();

@@ -20,6 +20,7 @@ namespace LibroSphere.WebApi.Controllers.Book
     {
         private readonly ISender _sender;
         private readonly IBookAssetStorageService _bookAssetStorageService;
+        private const long MinPdfBytes = 1 * 1024 * 1024;
         private const long MaxPdfBytes = 100 * 1024 * 1024;
         private const long MaxImageBytes = 10 * 1024 * 1024;
         private static readonly HashSet<string> AllowedImageContentTypes = new(StringComparer.OrdinalIgnoreCase)
@@ -68,26 +69,14 @@ namespace LibroSphere.WebApi.Controllers.Book
 
         [HttpPost]
         [Authorize(Roles = ApplicationRoles.Admin)]
-        [Consumes("application/json")]
-        public Task<IActionResult> AddBook([FromBody] AddNewBookRequest request, CancellationToken cancellationToken) =>
-            CreateBookAsync(request, cancellationToken);
-
-        [HttpPost]
-        [Authorize(Roles = ApplicationRoles.Admin)]
         [Consumes("multipart/form-data")]
-        public Task<IActionResult> AddBookWithFiles([FromForm] AddNewBookRequest request, CancellationToken cancellationToken) =>
+        public Task<IActionResult> AddBook([FromForm] AddNewBookRequest request, CancellationToken cancellationToken) =>
             CreateBookAsync(request, cancellationToken);
 
         [HttpPut("{id:guid}")]
         [Authorize(Roles = ApplicationRoles.Admin)]
-        [Consumes("application/json")]
-        public Task<IActionResult> UpdateBook(Guid id, [FromBody] UpdateBookRequest request, CancellationToken cancellationToken) =>
-            UpdateBookAsync(id, request, cancellationToken);
-
-        [HttpPut("{id:guid}")]
-        [Authorize(Roles = ApplicationRoles.Admin)]
         [Consumes("multipart/form-data")]
-        public Task<IActionResult> UpdateBookWithFiles(Guid id, [FromForm] UpdateBookRequest request, CancellationToken cancellationToken) =>
+        public Task<IActionResult> UpdateBook(Guid id, [FromForm] UpdateBookRequest request, CancellationToken cancellationToken) =>
             UpdateBookAsync(id, request, cancellationToken);
 
         [HttpDelete("{id:guid}")]
@@ -117,7 +106,8 @@ namespace LibroSphere.WebApi.Controllers.Book
                 new LibroSphere.Domain.Entities.Books.Description(request.Description),
                 new Money(request.PriceAmount, Currency.FromCode(request.CurrencyCode)),
                 bookLinksResult.Value,
-                request.AuthorId);
+                request.AuthorId,
+                request.GenreIds ?? new List<Guid>());
 
             var result = await _sender.Send(command, cancellationToken);
             if (!result.IsSuccess)
@@ -173,9 +163,9 @@ namespace LibroSphere.WebApi.Controllers.Book
         {
             if (pdfFile is not null)
             {
-                if (pdfFile.Length == 0 || pdfFile.Length > MaxPdfBytes || !string.Equals(pdfFile.ContentType, "application/pdf", StringComparison.OrdinalIgnoreCase))
+                if (pdfFile.Length < MinPdfBytes || pdfFile.Length > MaxPdfBytes || !HasValidPdfContentType(pdfFile))
                 {
-                    return Result.Failure<LibroSphere.Domain.Entities.Books.BookLinks>(new Error("Book.InvalidPdfFile", "PDF file must be a non-empty PDF smaller than 100MB."));
+                    return Result.Failure<LibroSphere.Domain.Entities.Books.BookLinks>(new Error("Book.InvalidPdfFile", "PDF file must be a valid PDF between 1MB and 100MB."));
                 }
 
                 await using var pdfStream = pdfFile.OpenReadStream();
@@ -212,6 +202,17 @@ namespace LibroSphere.WebApi.Controllers.Book
             }
 
             return Result.Success(new LibroSphere.Domain.Entities.Books.BookLinks(pdfLink.Trim(), imageLink.Trim()));
+        }
+
+        private static bool HasValidPdfContentType(IFormFile pdfFile)
+        {
+            if (string.Equals(pdfFile.ContentType, "application/pdf", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return string.Equals(pdfFile.ContentType, "application/octet-stream", StringComparison.OrdinalIgnoreCase)
+                && string.Equals(Path.GetExtension(pdfFile.FileName), ".pdf", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

@@ -39,7 +39,8 @@ namespace LibroSphere.Infrastructure.Configurations
             builder.OwnsOne(book => book.Price, price =>
             {
                 price.Property(p => p.amount)
-                    .HasColumnName("Price");
+                    .HasColumnName("Price")
+                    .HasPrecision(18, 2);
 
                 price.Property(p => p.Currency)
                     .HasConversion(

@@ -29,6 +29,8 @@ namespace LibroSphere.Application.Books.Query.GetAllBooks
             foreach (var book in filteredBooks)
             {
                 var imageLink = await _bookAssetStorageService.GetImageUrlAsync(book.BookLinkovi.imageLink, cancellationToken);
+                var pdfLink = await _bookAssetStorageService.GetPdfReadUrlAsync(book.BookLinkovi.PdfLink, cancellationToken);
+
                 response.Add(new BookResponse
                 {
                     bookId = book.Id,
@@ -36,11 +38,15 @@ namespace LibroSphere.Application.Books.Query.GetAllBooks
                     Description = book.Description.Value,
                     amount = book.Price.amount,
                     currency = book.Price.Currency.Code,
-                    pdfLink = _bookAssetStorageService.IsManagedStorageKey(book.BookLinkovi.PdfLink)
-                        ? null
-                        : book.BookLinkovi.PdfLink,
+                    pdfLink = pdfLink,
                     imageLink = imageLink,
-                    AuthorId = book.AuthorId
+                    AuthorId = book.AuthorId,
+                    GenreIds = book.BookGenres.Select(bg => bg.GenreId).ToList(),
+                    GenreNames = book.BookGenres
+                        .Where(bg => bg.Genre is not null)
+                        .Select(bg => bg.Genre!.Name.Value)
+                        .OrderBy(name => name)
+                        .ToList()
                 });
             }
 

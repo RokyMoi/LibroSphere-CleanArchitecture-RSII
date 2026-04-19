@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using LibroSphere.Application.Abstractions.Analytics;
 using StackExchange.Redis;
 

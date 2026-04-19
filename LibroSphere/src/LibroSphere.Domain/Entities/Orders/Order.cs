@@ -28,12 +28,12 @@ namespace LibroSphere.Domain.Entities.Orders
         {
         }
 
-        public string BuyerEmail { get; private set; }
+        public string BuyerEmail { get; private set; } = string.Empty;
         public DateTime OrderDate { get; private set; }
         public List<OrderItem> Items { get; private set; } = new();
-        public Money TotalAmount { get; private set; }
+        public Money TotalAmount { get; private set; } = null!;
         public OrderStatus Status { get; private set; }
-        public string PaymentIntentId { get; private set; }
+        public string PaymentIntentId { get; private set; } = string.Empty;
         public string? ClientSecret { get; private set; }
 
         public static Order Create(

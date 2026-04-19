@@ -25,9 +25,7 @@ namespace LibroSphere.Application.Books.Query.GetBookByIdQuery
             }
 
             var imageLink = await _bookAssetStorageService.GetImageUrlAsync(book.BookLinkovi.imageLink, cancellationToken);
-            var pdfLink = _bookAssetStorageService.IsManagedStorageKey(book.BookLinkovi.PdfLink)
-                ? null
-                : book.BookLinkovi.PdfLink;
+            var pdfLink = await _bookAssetStorageService.GetPdfReadUrlAsync(book.BookLinkovi.PdfLink, cancellationToken);
 
             return Result.Success(new BookResponse
             {
@@ -38,7 +36,13 @@ namespace LibroSphere.Application.Books.Query.GetBookByIdQuery
                 currency = book.Price.Currency.Code,
                 pdfLink = pdfLink,
                 imageLink = imageLink,
-                AuthorId = book.AuthorId
+                AuthorId = book.AuthorId,
+                GenreIds = book.BookGenres.Select(bg => bg.GenreId).ToList(),
+                GenreNames = book.BookGenres
+                    .Where(bg => bg.Genre is not null)
+                    .Select(bg => bg.Genre!.Name.Value)
+                    .OrderBy(name => name)
+                    .ToList()
             });
         }
     }

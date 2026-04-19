@@ -12,7 +12,7 @@ public sealed class OrderCreatedIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected OrderCreatedIntegrationEvent()
+    public OrderCreatedIntegrationEvent()
     {
         BuyerEmail = string.Empty;
         Currency = string.Empty;
@@ -36,7 +36,7 @@ public sealed class OrderStatusChangedIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected OrderStatusChangedIntegrationEvent()
+    public OrderStatusChangedIntegrationEvent()
     {
         BuyerEmail = string.Empty;
         Status = string.Empty;

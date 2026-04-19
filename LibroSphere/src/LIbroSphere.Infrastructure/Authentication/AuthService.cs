@@ -1,4 +1,4 @@
-using LibroSphere.Application.Abstractions.Identity;
+﻿using LibroSphere.Application.Abstractions.Identity;
 using LibroSphere.Application.Events.User;
 using LibroSphere.Application.Users.AuthCommands;
 using LibroSphere.Domain.Abstraction;
@@ -22,7 +22,6 @@ namespace LibroSphere.Infrastructure.Authentication
         private readonly IPublishEndpoint _publishEndpoint;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly AccessControlOptions _accessControlOptions;
-        private readonly ApplicationDbContext _dbContext;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
@@ -33,8 +32,7 @@ namespace LibroSphere.Infrastructure.Authentication
             IOptions<JwtOptions> jwtSettings,
             IPublishEndpoint publishEndpoint,
             RoleManager<IdentityRole> roleManager,
-            IOptions<AccessControlOptions> accessControlOptions,
-            ApplicationDbContext dbContext)
+            IOptions<AccessControlOptions> accessControlOptions)
         {
             _userManager = userManager;
             _jwtService = jwtService;
@@ -45,7 +43,6 @@ namespace LibroSphere.Infrastructure.Authentication
             _publishEndpoint = publishEndpoint;
             _roleManager = roleManager;
             _accessControlOptions = accessControlOptions.Value;
-            _dbContext = dbContext;
         }
 
         public async Task<AuthResult> RegisterAsync(RegisterUserCommand command, CancellationToken ct = default)
@@ -90,7 +87,11 @@ namespace LibroSphere.Infrastructure.Authentication
             var refreshToken = _jwtService.GenerateRefreshToken();
 
             var refreshTokenExpiry = _dateTime.UtcNow.AddDays(_jwtSettings.RefreshExpiryDays);
-            await PersistRefreshTokenAsync(appUser.Id, refreshToken, refreshTokenExpiry, ct);
+            var persistResult = await PersistRefreshTokenAsync(appUser, refreshToken, refreshTokenExpiry);
+            if (!persistResult.Succeeded)
+            {
+                return new AuthResult("", "", false, persistResult.Errors.First().Description);
+            }
 
             await _publishEndpoint.Publish(
                 new UserRegisteredIntegrationEvent(
@@ -132,14 +133,18 @@ namespace LibroSphere.Infrastructure.Authentication
             var refreshToken = _jwtService.GenerateRefreshToken();
 
             var refreshTokenExpiry = _dateTime.UtcNow.AddDays(_jwtSettings.RefreshExpiryDays);
-            await PersistRefreshTokenAsync(appUser.Id, refreshToken, refreshTokenExpiry, ct);
+            var persistResult = await PersistRefreshTokenAsync(appUser, refreshToken, refreshTokenExpiry);
+            if (!persistResult.Succeeded)
+            {
+                return new AuthResult("", "", false, persistResult.Errors.First().Description);
+            }
 
             return new AuthResult(accessToken, refreshToken, true);
         }
 
         public async Task<AuthResult> RefreshTokenAsync(string refreshToken, CancellationToken ct = default)
         {
-            var appUser = _userManager.Users.FirstOrDefault(u => u.RefreshToken == refreshToken);
+            var appUser = await _userManager.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken, ct);
             if (appUser is null)
             {
                 return new AuthResult("", "", false, "Invalid refresh token.");
@@ -161,7 +166,11 @@ namespace LibroSphere.Infrastructure.Authentication
             var newRefreshToken = _jwtService.GenerateRefreshToken();
 
             var refreshTokenExpiry = _dateTime.UtcNow.AddDays(_jwtSettings.RefreshExpiryDays);
-            await PersistRefreshTokenAsync(appUser.Id, newRefreshToken, refreshTokenExpiry, ct);
+            var persistResult = await PersistRefreshTokenAsync(appUser, newRefreshToken, refreshTokenExpiry);
+            if (!persistResult.Succeeded)
+            {
+                return new AuthResult("", "", false, persistResult.Errors.First().Description);
+            }
 
             return new AuthResult(newAccessToken, newRefreshToken, true);
         }
@@ -179,23 +188,23 @@ namespace LibroSphere.Infrastructure.Authentication
                 return new AuthResult("", "", false, "User not found.");
             }
 
-            await PersistRefreshTokenAsync(appUser.Id, null, null, ct);
+            var persistResult = await PersistRefreshTokenAsync(appUser, null, null);
+            if (!persistResult.Succeeded)
+            {
+                return new AuthResult("", "", false, persistResult.Errors.First().Description);
+            }
 
             return new AuthResult("", "", true, "Logged out successfully.");
         }
 
-        private Task PersistRefreshTokenAsync(
-            string appUserId,
+        private Task<IdentityResult> PersistRefreshTokenAsync(
+            ApplicationUser appUser,
             string? refreshToken,
-            DateTime? refreshTokenExpiry,
-            CancellationToken cancellationToken)
+            DateTime? refreshTokenExpiry)
         {
-            return _dbContext.Users
-                .Where(user => user.Id == appUserId)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(user => user.RefreshToken, refreshToken)
-                    .SetProperty(user => user.RefreshTokenExpiry, refreshTokenExpiry),
-                    cancellationToken);
+            appUser.RefreshToken = refreshToken;
+            appUser.RefreshTokenExpiry = refreshTokenExpiry;
+            return _userManager.UpdateAsync(appUser);
         }
 
         private async Task EnsureRolesExistAsync()

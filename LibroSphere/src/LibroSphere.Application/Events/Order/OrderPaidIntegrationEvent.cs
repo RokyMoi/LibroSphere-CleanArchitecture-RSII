@@ -2,7 +2,7 @@ namespace LibroSphere.Application.Events.Order
 {
     public sealed class OrderPaidIntegrationEvent
     {
-        protected OrderPaidIntegrationEvent()
+        public OrderPaidIntegrationEvent()
         {
             BuyerEmail = string.Empty;
             Currency = string.Empty;
@@ -32,7 +32,7 @@ namespace LibroSphere.Application.Events.Order
 
     public sealed class OrderPaidItem
     {
-        protected OrderPaidItem()
+        public OrderPaidItem()
         {
             Title = string.Empty;
             Currency = string.Empty;

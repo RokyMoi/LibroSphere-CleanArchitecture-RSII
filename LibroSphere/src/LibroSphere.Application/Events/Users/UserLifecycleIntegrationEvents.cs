@@ -9,7 +9,7 @@ public sealed class UserLoggedInIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected UserLoggedInIntegrationEvent()
+    public UserLoggedInIntegrationEvent()
     {
         Email = string.Empty;
     }
@@ -28,7 +28,7 @@ public sealed class UserDeactivatedIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected UserDeactivatedIntegrationEvent()
+    public UserDeactivatedIntegrationEvent()
     {
         Email = string.Empty;
     }

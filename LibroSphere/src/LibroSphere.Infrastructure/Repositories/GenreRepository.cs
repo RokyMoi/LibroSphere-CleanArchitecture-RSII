@@ -1,4 +1,4 @@
-using LibroSphere.Domain.Entities.Books.Genre;
+﻿using LibroSphere.Domain.Entities.Books.Genre;
 using Microsoft.EntityFrameworkCore;
 
 namespace LibroSphere.Infrastructure.Repositories

@@ -11,7 +11,7 @@ public sealed class ReviewCreatedIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected ReviewCreatedIntegrationEvent()
+    public ReviewCreatedIntegrationEvent()
     {
     }
 
@@ -33,7 +33,7 @@ public sealed class ReviewUpdatedIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected ReviewUpdatedIntegrationEvent()
+    public ReviewUpdatedIntegrationEvent()
     {
     }
 
@@ -54,7 +54,7 @@ public sealed class ReviewDeletedIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected ReviewDeletedIntegrationEvent()
+    public ReviewDeletedIntegrationEvent()
     {
     }
 

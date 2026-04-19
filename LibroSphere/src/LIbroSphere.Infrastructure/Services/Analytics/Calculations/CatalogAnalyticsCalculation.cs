@@ -1,4 +1,4 @@
-using LibroSphere.Application.Analytics.Query.GetAnalyticsOverview;
+﻿using LibroSphere.Application.Analytics.Query.GetAnalyticsOverview;
 
 namespace LibroSphere.Infrastructure.Services.Analytics.Calculations;
 

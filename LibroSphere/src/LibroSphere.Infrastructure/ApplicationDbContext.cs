@@ -1,4 +1,4 @@
-using LibroSphere.Application.Abstractions.Events.DomainEvent;
+﻿using LibroSphere.Application.Abstractions.Events.DomainEvent;
 using LibroSphere.Application.Exceptions;
 using LibroSphere.Domain.Abstraction;
 using MediatR;

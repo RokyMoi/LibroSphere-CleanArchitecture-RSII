@@ -14,5 +14,6 @@ namespace LibroSphere.Application.Books.Command.CreateNewBook
             Description description,
             Money price,
             BookLinks bookLinks,
-            Guid authorId) :ICommand<Guid>;
+            Guid authorId,
+            List<Guid> GenreIds) :ICommand<Guid>;
 }

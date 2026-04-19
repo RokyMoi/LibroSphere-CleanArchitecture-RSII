@@ -10,7 +10,7 @@ public sealed class UserBookGrantedIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected UserBookGrantedIntegrationEvent()
+    public UserBookGrantedIntegrationEvent()
     {
         UserEmail = string.Empty;
     }

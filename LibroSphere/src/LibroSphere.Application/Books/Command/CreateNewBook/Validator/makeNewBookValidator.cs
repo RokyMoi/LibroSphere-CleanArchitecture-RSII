@@ -36,6 +36,9 @@ namespace LibroSphere.Application.Books.Command.CreateNewBook.Validator
 
             RuleFor(c => c.bookLinks.imageLink)
                 .NotEmpty().WithMessage("Image link cannot be empty.");
+
+            RuleFor(c => c.GenreIds)
+                .NotEmpty().WithMessage("At least one genre is required.");
         }
     }
 }

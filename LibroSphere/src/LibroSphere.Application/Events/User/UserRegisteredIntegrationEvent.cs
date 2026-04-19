@@ -2,7 +2,7 @@ namespace LibroSphere.Application.Events.User;
 
 public sealed class UserRegisteredIntegrationEvent
 {
-    protected UserRegisteredIntegrationEvent()
+    public UserRegisteredIntegrationEvent()
     {
         FirstName = string.Empty;
         LastName = string.Empty;

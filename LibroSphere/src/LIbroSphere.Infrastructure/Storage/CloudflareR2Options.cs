@@ -1,4 +1,4 @@
-namespace LibroSphere.Infrastructure.Storage;
+﻿namespace LibroSphere.Infrastructure.Storage;
 
 internal sealed class CloudflareR2Options
 {

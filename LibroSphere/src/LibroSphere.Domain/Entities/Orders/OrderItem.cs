@@ -23,9 +23,9 @@ namespace LibroSphere.Domain.Entities.Orders
         protected OrderItem() { }
 
         public Guid BookId { get; private set; }
-        public string Title { get; private set; }
+        public string Title { get; private set; } = string.Empty;
         public string? ImageLink { get; private set; }
-        public Money Price { get; private set; }
+        public Money Price { get; private set; } = null!;
         public int Quantity { get; private set; }
 
         public static OrderItem Create(

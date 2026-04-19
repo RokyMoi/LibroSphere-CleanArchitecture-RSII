@@ -9,7 +9,7 @@ public sealed class GenreCreatedIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected GenreCreatedIntegrationEvent()
+    public GenreCreatedIntegrationEvent()
     {
         Name = string.Empty;
     }
@@ -28,7 +28,7 @@ public sealed class GenreUpdatedIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected GenreUpdatedIntegrationEvent()
+    public GenreUpdatedIntegrationEvent()
     {
         Name = string.Empty;
     }
@@ -47,7 +47,7 @@ public sealed class GenreDeletedIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected GenreDeletedIntegrationEvent()
+    public GenreDeletedIntegrationEvent()
     {
         Name = string.Empty;
     }

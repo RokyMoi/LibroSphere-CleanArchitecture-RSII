@@ -18,9 +18,9 @@ namespace LibroSphere.Domain.Entities.ManyToMany
         {
         }
 
-        public string UserEmail { get; private set; }
+        public string UserEmail { get; private set; } = string.Empty;
         public Guid BookId { get; private set; }
-        public Book Book { get; private set; }
+        public Book Book { get; private set; } = null!;
         public DateTime PurchasedAt { get; private set; }
 
         public static UserBook Create(string userEmail, Guid bookId)

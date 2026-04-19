@@ -6,7 +6,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["src/LibroSphere.WebApi/LibroSphere.WebApi.csproj", "src/LibroSphere.WebApi/"]
-COPY ["src/LIbroSphere.Infrastructure/LIbroSphere.Infrastructure.csproj", "src/LIbroSphere.Infrastructure/"]
+COPY ["src/LibroSphere.Infrastructure/LibroSphere.Infrastructure.csproj", "src/LibroSphere.Infrastructure/"]
 COPY ["src/LibroSphere.Application/LibroSphere.Application.csproj", "src/LibroSphere.Application/"]
 COPY ["src/LibroSphere.Domain/LibroSphere.Domain.csproj", "src/LibroSphere.Domain/"]
 RUN dotnet restore "src/LibroSphere.WebApi/LibroSphere.WebApi.csproj"

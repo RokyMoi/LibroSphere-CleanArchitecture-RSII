@@ -19,10 +19,10 @@ namespace LibroSphere.Domain.Entities.ManyToMany
 
         protected WishlistItem() { }
         public Guid WishlistId { get; private set; }
-        public Wishlist Wishlist { get; private set; }
+        public Wishlist Wishlist { get; private set; } = null!;
 
         public Guid BookId { get; private set; }
-        public Book Book { get; private set; }
+        public Book Book { get; private set; } = null!;
 
         public static WishlistItem AddItem(Guid wishlistId, Guid bookId)
         {

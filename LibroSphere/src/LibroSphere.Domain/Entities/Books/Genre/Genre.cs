@@ -17,7 +17,7 @@ namespace LibroSphere.Domain.Entities.Books.Genre
             BookGenres = new List<BookGenre>();
         }
 
-        public Name Name { get; private set; }
+        public Name Name { get; private set; } = null!;
         public ICollection<BookGenre> BookGenres { get; private set; }
 
         public static Genre Create(Name name)

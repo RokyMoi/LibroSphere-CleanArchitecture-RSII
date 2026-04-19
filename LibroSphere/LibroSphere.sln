@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibroSphere.Application", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibroSphere.Domain", "src\LibroSphere.Domain\LibroSphere.Domain.csproj", "{9FE03ADF-10AE-D323-29B8-DD2367746022}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibroSphere.Infrastructure", "src\LIbroSphere.Infrastructure\LibroSphere.Infrastructure.csproj", "{97EF54E3-7E65-CDAD-6688-6E0C1ADEDE47}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibroSphere.Infrastructure", "src\LibroSphere.Infrastructure\LibroSphere.Infrastructure.csproj", "{97EF54E3-7E65-CDAD-6688-6E0C1ADEDE47}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibroSphere.WebApi", "src\LibroSphere.WebApi\LibroSphere.WebApi.csproj", "{46344DAB-BF59-7CCB-620B-1639542ABAF4}"
 EndProject

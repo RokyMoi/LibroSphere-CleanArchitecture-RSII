@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
+using Microsoft.Data.SqlClient;
 
 namespace LibroSphere.Worker;
 
@@ -18,14 +19,21 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("Database")
+        var connectionString = ResolveDatabaseConnectionString(configuration)
             ?? throw new InvalidOperationException("Connection string 'Database' is not configured for Worker.");
+        var redisConnectionString = configuration.GetConnectionString("Redis")
+            ?? throw new InvalidOperationException("Connection string 'Redis' is not configured for Worker.");
+        var rabbitHost = configuration["RabbitMQ:Host"]
+            ?? throw new InvalidOperationException("RabbitMQ host is not configured for Worker.");
+        var rabbitUsername = configuration["RabbitMQ:Username"]
+            ?? throw new InvalidOperationException("RabbitMQ username is not configured for Worker.");
+        var rabbitPassword = configuration["RabbitMQ:Password"]
+            ?? throw new InvalidOperationException("RabbitMQ password is not configured for Worker.");
 
         services.AddSingleton<IPublisher, NoOpPublisher>();
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));
 
-        var redisConnectionString = configuration.GetConnectionString("Redis") ?? "localhost";
         services.AddSingleton<IConnectionMultiplexer>(_ =>
         {
             var options = ConfigurationOptions.Parse(redisConnectionString, true);
@@ -43,19 +51,44 @@ public static class DependencyInjection
 
             cfg.UsingRabbitMq((ctx, rabbit) =>
             {
-                rabbit.Host(
-                    configuration["RabbitMQ:Host"] ?? "localhost",
-                    "/",
-                    h =>
-                    {
-                        h.Username(configuration["RabbitMQ:Username"] ?? "guest");
-                        h.Password(configuration["RabbitMQ:Password"] ?? "guest");
-                    });
+                rabbit.Host(rabbitHost, "/", h =>
+                {
+                    h.Username(rabbitUsername);
+                    h.Password(rabbitPassword);
+                });
 
                 rabbit.ConfigureEndpoints(ctx);
             });
         });
 
         return services;
+    }
+
+    private static string? ResolveDatabaseConnectionString(IConfiguration configuration)
+    {
+        var host = configuration["DB_HOST"];
+        var port = configuration["DB_PORT"];
+        var database = configuration["DB_NAME"];
+        var user = configuration["DB_USER"];
+        var password = configuration["DB_PASSWORD"] ?? configuration["DB_SA_PASSWORD"];
+
+        if (!string.IsNullOrWhiteSpace(host) &&
+            !string.IsNullOrWhiteSpace(database) &&
+            !string.IsNullOrWhiteSpace(user) &&
+            !string.IsNullOrWhiteSpace(password))
+        {
+            var builder = new SqlConnectionStringBuilder
+            {
+                DataSource = string.IsNullOrWhiteSpace(port) ? host : $"{host},{port}",
+                InitialCatalog = database,
+                UserID = user,
+                Password = password,
+                TrustServerCertificate = true
+            };
+
+            return builder.ConnectionString;
+        }
+
+        return configuration.GetConnectionString("Database");
     }
 }

@@ -1,35 +1,62 @@
-version: '3.8'
-
 services:
   librosphere-api:
-    image: ${DOCKER_REGISTRY-}librosphereapi
     container_name: LibroSphere.Api
     build:
       context: .
       dockerfile: src/LibroSphere.WebApi/Dockerfile
+    env_file:
+      - .env
     depends_on:
       - librosphere-db
-      - rabbitmq      
+      - redis
+      - rabbitmq
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      DB_HOST: librosphere-db
+      ConnectionStrings__Redis: redis:6379,abortConnect=false
+      RabbitMQ__Host: librosphere-rabbitmq
+      Swagger__Enabled: "true"
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
 
-  librosphere-worker:   
-    image: ${DOCKER_REGISTRY-}librosphereworker
+  librosphere-worker:
     container_name: LibroSphere.Worker
     build:
       context: .
-      dockerfile: src/LibroSphere.Worker/Dockerfile  
+      dockerfile: src/LibroSphere.Worker/Dockerfile
+    env_file:
+      - .env
     depends_on:
-      - rabbitmq        
+      - librosphere-db
+      - redis
+      - rabbitmq
     environment:
-      - RabbitMQ__Host=librosphere-rabbitmq  
-      - RabbitMQ__Username=guest
-      - RabbitMQ__Password=guest
+      DB_HOST: librosphere-db
+      ConnectionStrings__Redis: redis:6379,abortConnect=false
+      RabbitMQ__Host: librosphere-rabbitmq
+    restart: unless-stopped
+
+  librosphere-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: LibroSphere.Db
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "YourStrong!Pass123"
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    restart: unless-stopped
 
   redis:
     image: redis:latest
+    container_name: librosphere-redis
     ports:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    restart: unless-stopped
 
   rabbitmq:
     image: rabbitmq:3.13-management
@@ -42,29 +69,9 @@ services:
       RABBITMQ_DEFAULT_PASS: guest
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  librosphere-db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: LibroSphere.Db
-    environment:
-      ACCEPT_EULA: "Y"
-      SA_PASSWORD: "YourStrong!Pass123"
-      MSSQL_SA_PASSWORD: "YourStrong!Pass123"
-    ports:
-      - "1433:1433"
-    cap_add:
-      - SYS_PTRACE
-    security_opt:
-      - seccomp:unconfined
-    volumes:
-      - mssql-data:/var/opt/mssql
+    restart: unless-stopped
 
 volumes:
   mssql-data:
   redis-data:
-  rabbitmq_data:  
+  rabbitmq_data:

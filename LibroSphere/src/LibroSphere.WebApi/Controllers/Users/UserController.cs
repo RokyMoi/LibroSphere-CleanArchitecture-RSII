@@ -1,6 +1,8 @@
 using LibroSphere.Application.Users.Query.GetAllUsers;
 using LibroSphere.Application.Users.Query.GetUserById;
+using LibroSphere.Application.Users.Command.DeleteUser;
 using LibroSphere.Application.Abstractions.Identity;
+using LibroSphere.Domain.Abstraction;
 using LibroSphere.WebApi.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -54,6 +56,19 @@ namespace LibroSphere.WebApi.Controllers.Users
             var result = await sender.Send(new GetAllUsersQuery(searchTerm, isActive, page, pageSize), cancellationToken);
 
             return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+        }
+
+        [Authorize(Roles = ApplicationRoles.Admin)]
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> DeleteUser(Guid id, CancellationToken cancellationToken)
+        {
+            if (id == User.GetRequiredUserId())
+            {
+                return BadRequest(new Error("Users.DeleteSelfForbidden", "You cannot delete the currently signed-in admin user."));
+            }
+
+            var result = await sender.Send(new DeleteUserCommand(id), cancellationToken);
+            return result.IsSuccess ? NoContent() : BadRequest(result.Error);
         }
     }
 }

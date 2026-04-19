@@ -23,10 +23,10 @@ namespace LibroSphere.Domain.Entities.ManyToMany
         protected ShoppingCartItem() { }
 
         public Guid CartId { get; private set; }
-        public ShoppingCart Cart { get; private set; }
+        public ShoppingCart Cart { get; private set; } = null!;
         public Guid BookId { get; private set; }
-        public Book Book { get; private set; }
-        public Money Price { get; private set; }
+        public Book Book { get; private set; } = null!;
+        public Money Price { get; private set; } = null!;
 
         public void SetPrice(Money price) => Price = price;
 

@@ -18,8 +18,8 @@ namespace LibroSphere.Domain.Entities.Authors
             Books = new List<Book>();
         }
 
-        public Name Name { get; private set; }
-        public Biography Biography { get; private set; }
+        public Name Name { get; private set; } = null!;
+        public Biography Biography { get; private set; } = null!;
         public ICollection<Book> Books { get; private set; }
 
         public static Author Create(Name name, Biography biography)

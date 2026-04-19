@@ -9,7 +9,7 @@ public sealed class AuthorCreatedIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected AuthorCreatedIntegrationEvent()
+    public AuthorCreatedIntegrationEvent()
     {
         Name = string.Empty;
     }
@@ -28,7 +28,7 @@ public sealed class AuthorUpdatedIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected AuthorUpdatedIntegrationEvent()
+    public AuthorUpdatedIntegrationEvent()
     {
         Name = string.Empty;
     }
@@ -47,7 +47,7 @@ public sealed class AuthorDeletedIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected AuthorDeletedIntegrationEvent()
+    public AuthorDeletedIntegrationEvent()
     {
         Name = string.Empty;
     }

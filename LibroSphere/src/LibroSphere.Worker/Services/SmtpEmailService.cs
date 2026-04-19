@@ -57,8 +57,8 @@ internal sealed class SmtpEmailService : IEmailService
                !string.IsNullOrWhiteSpace(_options.Username) &&
                !string.IsNullOrWhiteSpace(_options.Password) &&
                !string.IsNullOrWhiteSpace(_options.FromEmail) &&
-               !_options.Username.Contains("your-brevo", StringComparison.OrdinalIgnoreCase) &&
-               !_options.Password.Contains("your-brevo", StringComparison.OrdinalIgnoreCase) &&
+               !_options.Username.Contains("your-gmail-address", StringComparison.OrdinalIgnoreCase) &&
+               !_options.Password.Contains("your-16-char-gmail-app-password", StringComparison.OrdinalIgnoreCase) &&
                !_options.FromEmail.EndsWith(".local", StringComparison.OrdinalIgnoreCase);
     }
 }

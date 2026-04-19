@@ -1,4 +1,4 @@
-using LibroSphere.Application.Abstractions.Analytics;
+﻿using LibroSphere.Application.Abstractions.Analytics;
 using LibroSphere.Application.Analytics.Query.GetAnalyticsOverview;
 using LibroSphere.Domain.Entities.Authors;
 using LibroSphere.Domain.Entities.Books;

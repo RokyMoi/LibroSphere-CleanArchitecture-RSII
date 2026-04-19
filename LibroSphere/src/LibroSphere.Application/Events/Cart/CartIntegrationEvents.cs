@@ -12,7 +12,7 @@ public sealed class CartUpdatedIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected CartUpdatedIntegrationEvent()
+    public CartUpdatedIntegrationEvent()
     {
         Currency = string.Empty;
     }
@@ -33,7 +33,7 @@ public sealed class CartDeletedIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected CartDeletedIntegrationEvent()
+    public CartDeletedIntegrationEvent()
     {
     }
 

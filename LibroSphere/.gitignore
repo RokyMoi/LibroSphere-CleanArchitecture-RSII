@@ -6,3 +6,5 @@ obj/
 *.out.log
 event-state.json
 quick-test.ps1
+.env
+.env.local

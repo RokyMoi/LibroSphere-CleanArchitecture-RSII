@@ -39,10 +39,10 @@ namespace LibroSphere.Domain.Entities.Books
             UserBooks = new List<UserBook>();
         }
 
-        public Title Title { get; private set; }
-        public Description Description { get; private set; }
-        public Money Price { get; private set; }
-        public BookLinks BookLinkovi { get; private set; }
+        public Title Title { get; private set; } = null!;
+        public Description Description { get; private set; } = null!;
+        public Money Price { get; private set; } = null!;
+        public BookLinks BookLinkovi { get; private set; } = null!;
         public Guid AuthorId { get; private set; }
         public Author Author { get; private set; } = null!;
         public ICollection<BookGenre> BookGenres { get; private set; }

@@ -12,7 +12,7 @@ public sealed class BookCreatedIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected BookCreatedIntegrationEvent()
+    public BookCreatedIntegrationEvent()
     {
         Title = string.Empty;
         Currency = string.Empty;
@@ -38,7 +38,7 @@ public sealed class BookUpdatedIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected BookUpdatedIntegrationEvent()
+    public BookUpdatedIntegrationEvent()
     {
         Title = string.Empty;
         Currency = string.Empty;
@@ -62,7 +62,7 @@ public sealed class BookDeletedIntegrationEvent
         OccurredOnUtc = DateTime.UtcNow;
     }
 
-    protected BookDeletedIntegrationEvent()
+    public BookDeletedIntegrationEvent()
     {
         Title = string.Empty;
     }

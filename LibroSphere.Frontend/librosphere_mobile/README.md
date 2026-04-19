@@ -1,17 +1,18 @@
-# librosphere_mobile
+# LibroSphere Mobile
 
-A new Flutter project.
+## Run
 
-## Getting Started
+Use `dart-define` values so the app does not depend on hardcoded environment-specific settings:
 
-This project is a starting point for a Flutter application.
+```bash
+flutter run ^
+  --dart-define=LIBROSPHERE_API_URL=http://10.0.2.2:8080 ^
+  --dart-define=LIBROSPHERE_STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key ^
+  --dart-define=LIBROSPHERE_STRIPE_COUNTRY_CODE=US
+```
 
-A few resources to get you started if this is your first Flutter project:
+Notes:
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- `LIBROSPHERE_API_URL` should point to the API reachable from the current device or emulator.
+- `LIBROSPHERE_STRIPE_PUBLISHABLE_KEY` is required for checkout.
+- `LIBROSPHERE_STRIPE_COUNTRY_CODE` is optional. If omitted, the app uses the device locale country code when available.

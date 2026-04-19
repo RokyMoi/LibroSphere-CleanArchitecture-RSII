@@ -1,4 +1,4 @@
-using LibroSphere.Domain.Entities.Users;
+﻿using LibroSphere.Domain.Entities.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace LibroSphere.Infrastructure.Repositories
@@ -28,6 +28,11 @@ namespace LibroSphere.Infrastructure.Repositories
                 .OrderBy(u => u.FirstName.Value)
                 .ThenBy(u => u.LastName.Value)
                 .ToList();
+        }
+
+        public void Delete(User user)
+        {
+            DbContext.Set<User>().Remove(user);
         }
     }
 }

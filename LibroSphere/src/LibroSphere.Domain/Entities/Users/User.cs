@@ -29,9 +29,9 @@ namespace LibroSphere.Domain.Entities.Users
             Reviews = new List<Review>();
         }
 
-        public FirstName FirstName { get; private set; }
-        public LastName LastName { get; private set; }
-        public Email UserEmail { get; private set; }
+        public FirstName FirstName { get; private set; } = null!;
+        public LastName LastName { get; private set; } = null!;
+        public Email UserEmail { get; private set; } = null!;
         public DateTime DateRegistered { get; private set; }
         public DateTime? LastLogin { get; private set; }
         public bool IsActive { get; private set; }

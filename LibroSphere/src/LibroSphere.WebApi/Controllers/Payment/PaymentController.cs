@@ -21,6 +21,16 @@ namespace LibroSphere.WebApi.Controllers.Payment
             _configuration = configuration;
         }
 
+        [HttpGet("config")]
+        [AllowAnonymous]
+        public IActionResult GetClientConfig()
+        {
+            return Ok(new
+            {
+                publishableKey = _configuration["StripeSettings:PublishableKey"] ?? string.Empty
+            });
+        }
+
         [HttpPost("{cartId}")]
         [Authorize]
         public async Task<IActionResult> CreateOrUpdatePaymentIntent(string cartId, CancellationToken cancellationToken)

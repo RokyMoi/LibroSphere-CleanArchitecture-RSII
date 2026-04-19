@@ -19,6 +19,8 @@ namespace LibroSphere.Application.Books.Query.GetBookByIdQuery
         public string? imageLink { get; init; }
 
         public Guid AuthorId { get; init; }
+        public List<Guid> GenreIds { get; init; } = new();
+        public List<string> GenreNames { get; init; } = new();
       
     }
 }

@@ -15,7 +15,10 @@ namespace LibroSphere.Infrastructure.Configurations
 
             builder.OwnsOne(i => i.Price, money =>
             {
-                money.Property(m => m.amount).HasColumnName("PriceAmount").IsRequired();
+                money.Property(m => m.amount)
+                    .HasColumnName("PriceAmount")
+                    .HasPrecision(18, 2)
+                    .IsRequired();
                 money.Property(m => m.Currency)
                      .HasConversion(
                          c => c.Code,

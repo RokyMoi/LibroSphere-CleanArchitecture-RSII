@@ -14,6 +14,7 @@ namespace LibroSphere.Application.Books.Command.UpdateBook
             RuleFor(c => c.AuthorId).NotEmpty();
             RuleFor(c => c.BookLinks.PdfLink).NotEmpty();
             RuleFor(c => c.BookLinks.imageLink).NotEmpty();
+            RuleFor(c => c.GenreIds).NotEmpty();
         }
     }
 }
