@@ -41,7 +41,7 @@ public sealed class UserRegisteredIntegrationEventConsumer : IConsumer<UserRegis
             new AnalyticsActivityEntry(
                 "User",
                 "Registered",
-                $"Korisnik {message.Email} se registrovao i pokrenut je onboarding.",
+                $"Korisnik {message.Email} je registrovan. User ID: {ShortId(message.UserId)}. Onboarding, korpa i wishlist su pokrenuti.",
                 DateTime.UtcNow),
             context.CancellationToken);
 
@@ -103,5 +103,11 @@ public sealed class UserRegisteredIntegrationEventConsumer : IConsumer<UserRegis
                 message.UserId,
                 message.Email);
         }
+    }
+
+    private static string ShortId(Guid value)
+    {
+        var text = value.ToString("N");
+        return text.Length <= 8 ? text : text[..8].ToUpperInvariant();
     }
 }

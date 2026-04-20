@@ -16,6 +16,14 @@ namespace LibroSphere.Infrastructure.Repositories
                 .Set<Wishlist>()
                 .Include(w => w.Items)
                     .ThenInclude(i => i.Book)
+                        .ThenInclude(book => book.Author)
+                .Include(w => w.Items)
+                    .ThenInclude(i => i.Book)
+                        .ThenInclude(book => book.Reviews)
+                .Include(w => w.Items)
+                    .ThenInclude(i => i.Book)
+                        .ThenInclude(book => book.BookGenres)
+                            .ThenInclude(bookGenre => bookGenre.Genre)
                 .FirstOrDefaultAsync(w => w.UserId == userId, cancellationToken);
         }
 

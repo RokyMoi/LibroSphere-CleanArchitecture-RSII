@@ -1,4 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 import '../core/app_constants.dart';
@@ -25,10 +29,12 @@ class ReaderScreen extends StatefulWidget {
 
 class _ReaderScreenState extends State<ReaderScreen> {
   final PdfViewerController _controller = PdfViewerController();
-  late Future<String> _pdfFuture = _resolvePdfUrl();
+  late Future<File> _documentFuture = _prepareDocument();
   String? _viewerError;
   int _page = 1;
   int _pageCount = 1;
+  double? _downloadProgress;
+  String _loadingMessage = 'Preparing your book...';
 
   Future<String> _resolvePdfUrl() async {
     try {
@@ -43,6 +49,95 @@ class _ReaderScreenState extends State<ReaderScreen> {
     }
   }
 
+  Future<File> _prepareDocument({bool forceDownload = false}) async {
+    final cachedFile = await _resolveCachedFile();
+    if (!forceDownload && await cachedFile.exists()) {
+      final length = await cachedFile.length();
+      if (length > 0) {
+        return cachedFile;
+      }
+    }
+
+    _updateLoadingState('Preparing your book...', null);
+    final pdfUrl = await _resolvePdfUrl();
+    _updateLoadingState('Downloading book to your device...', 0);
+    return _downloadPdf(pdfUrl, cachedFile);
+  }
+
+  Future<File> _resolveCachedFile() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final cacheDirectory = Directory(
+      '${directory.path}${Platform.pathSeparator}reader_cache',
+    );
+    if (!await cacheDirectory.exists()) {
+      await cacheDirectory.create(recursive: true);
+    }
+
+    return File(
+      '${cacheDirectory.path}${Platform.pathSeparator}${widget.book.id}.pdf',
+    );
+  }
+
+  Future<File> _downloadPdf(String pdfUrl, File destinationFile) async {
+    final tempFile = File('${destinationFile.path}.part');
+    if (await tempFile.exists()) {
+      await tempFile.delete();
+    }
+
+    final client = http.Client();
+    IOSink? sink;
+
+    try {
+      final request = http.Request('GET', Uri.parse(pdfUrl));
+      final response = await client.send(request);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception('Unable to download this book right now.');
+      }
+
+      sink = tempFile.openWrite();
+      final totalBytes = response.contentLength;
+      var receivedBytes = 0;
+
+      await for (final chunk in response.stream) {
+        sink.add(chunk);
+        receivedBytes += chunk.length;
+        if (totalBytes != null && totalBytes > 0) {
+          _updateLoadingState(
+            'Downloading book to your device...',
+            receivedBytes / totalBytes,
+          );
+        }
+      }
+    } finally {
+      await sink?.flush();
+      await sink?.close();
+      client.close();
+    }
+
+    if (!await tempFile.exists() || await tempFile.length() == 0) {
+      throw Exception('Downloaded file is empty.');
+    }
+
+    if (await destinationFile.exists()) {
+      await destinationFile.delete();
+    }
+
+    return tempFile.rename(destinationFile.path);
+  }
+
+  void _updateLoadingState(String message, double? progress) {
+    if (!mounted) {
+      _loadingMessage = message;
+      _downloadProgress = progress;
+      return;
+    }
+
+    setState(() {
+      _loadingMessage = message;
+      _downloadProgress = progress;
+    });
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -54,7 +149,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
       _viewerError = null;
       _page = 1;
       _pageCount = 1;
-      _pdfFuture = _resolvePdfUrl();
+      _downloadProgress = null;
+      _loadingMessage = 'Preparing your book...';
+      _documentFuture = _prepareDocument(forceDownload: true);
     });
   }
 
@@ -85,8 +182,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
             Expanded(
               child: Container(
                 color: const Color(0xFFF3F3F3),
-                child: FutureBuilder<String>(
-                  future: _pdfFuture,
+                child: FutureBuilder<File>(
+                  future: _documentFuture,
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
                       return _ReaderErrorState(
@@ -96,7 +193,10 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     }
 
                     if (!snapshot.hasData) {
-                      return const CenteredLoadingIndicator();
+                      return _ReaderLoadingState(
+                        message: _loadingMessage,
+                        progress: _downloadProgress,
+                      );
                     }
 
                     if (_viewerError != null) {
@@ -106,11 +206,14 @@ class _ReaderScreenState extends State<ReaderScreen> {
                       );
                     }
 
-                    return SfPdfViewer.network(
+                    return SfPdfViewer.file(
                       snapshot.data!,
                       controller: _controller,
                       onPageChanged: (details) => setState(() => _page = details.newPageNumber),
-                      onDocumentLoaded: (details) => setState(() => _pageCount = details.document.pages.count),
+                      onDocumentLoaded: (details) => setState(() {
+                        _pageCount = details.document.pages.count;
+                        _downloadProgress = null;
+                      }),
                       onDocumentLoadFailed: (details) => setState(() => _viewerError = details.description),
                     );
                   },
@@ -149,6 +252,67 @@ class _ReaderScreenState extends State<ReaderScreen> {
                 ],
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReaderLoadingState extends StatelessWidget {
+  const _ReaderLoadingState({
+    required this.message,
+    required this.progress,
+  });
+
+  final String message;
+  final double? progress;
+
+  @override
+  Widget build(BuildContext context) {
+    final percent = progress == null ? null : (progress! * 100).clamp(0, 100);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.download_rounded, size: 52, color: brandBlueDark),
+            const SizedBox(height: 14),
+            const Text(
+              'Downloading book',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey.shade700, height: 1.5),
+            ),
+            const SizedBox(height: 18),
+            SizedBox(
+              width: 240,
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 8,
+                borderRadius: BorderRadius.circular(999),
+                color: brandBlueDark,
+                backgroundColor: Colors.white,
+              ),
+            ),
+            if (percent != null) ...[
+              const SizedBox(height: 10),
+              Text(
+                '${percent.toStringAsFixed(0)}%',
+                style: const TextStyle(
+                  color: brandBlueDark,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ],
         ),
       ),

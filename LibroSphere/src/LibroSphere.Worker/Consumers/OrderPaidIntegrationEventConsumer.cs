@@ -30,7 +30,7 @@ public sealed class OrderPaidIntegrationEventConsumer : IConsumer<OrderPaidInteg
             new AnalyticsActivityEntry(
                 "Order",
                 "Paid",
-                $"Narudzba {message.OrderId} je placena u iznosu {message.TotalAmount:0.00} {message.Currency}.",
+                $"Narudzba za {message.BuyerEmail} je placena. Ukupno: {message.TotalAmount:0.00} {message.Currency}. Stavki: {message.Items.Count}. Order ID: {ShortId(message.OrderId)}.",
                 DateTime.UtcNow),
             context.CancellationToken);
 
@@ -72,5 +72,11 @@ public sealed class OrderPaidIntegrationEventConsumer : IConsumer<OrderPaidInteg
                 message.OrderId,
                 message.BuyerEmail);
         }
+    }
+
+    private static string ShortId(Guid value)
+    {
+        var text = value.ToString("N");
+        return text.Length <= 8 ? text : text[..8].ToUpperInvariant();
     }
 }

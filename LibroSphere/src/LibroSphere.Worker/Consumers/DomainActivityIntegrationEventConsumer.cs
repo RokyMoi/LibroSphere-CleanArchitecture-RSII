@@ -47,32 +47,174 @@ public sealed class DomainActivityIntegrationEventConsumer :
         _logger = logger;
     }
 
-    public Task Consume(ConsumeContext<AuthorCreatedIntegrationEvent> context) => RecordAsync("Author", "Created", $"Author '{context.Message.Name}' je dodan u katalog.", context.Message.OccurredOnUtc);
-    public Task Consume(ConsumeContext<AuthorUpdatedIntegrationEvent> context) => RecordAsync("Author", "Updated", $"Author '{context.Message.Name}' je azuriran.", context.Message.OccurredOnUtc);
-    public Task Consume(ConsumeContext<AuthorDeletedIntegrationEvent> context) => RecordAsync("Author", "Deleted", $"Author '{context.Message.Name}' je obrisan.", context.Message.OccurredOnUtc);
-    public Task Consume(ConsumeContext<BookCreatedIntegrationEvent> context) => RecordAsync("Book", "Created", $"Book '{context.Message.Title}' je dodana sa cijenom {context.Message.Amount:0.00} {context.Message.Currency}.", context.Message.OccurredOnUtc);
-    public Task Consume(ConsumeContext<BookUpdatedIntegrationEvent> context) => RecordAsync("Book", "Updated", $"Book '{context.Message.Title}' je azurirana.", context.Message.OccurredOnUtc);
-    public Task Consume(ConsumeContext<BookDeletedIntegrationEvent> context) => RecordAsync("Book", "Deleted", $"Book '{context.Message.Title}' je obrisana iz kataloga.", context.Message.OccurredOnUtc);
-    public Task Consume(ConsumeContext<GenreCreatedIntegrationEvent> context) => RecordAsync("Genre", "Created", $"Genre '{context.Message.Name}' je kreiran.", context.Message.OccurredOnUtc);
-    public Task Consume(ConsumeContext<GenreUpdatedIntegrationEvent> context) => RecordAsync("Genre", "Updated", $"Genre '{context.Message.Name}' je azuriran.", context.Message.OccurredOnUtc);
-    public Task Consume(ConsumeContext<GenreDeletedIntegrationEvent> context) => RecordAsync("Genre", "Deleted", $"Genre '{context.Message.Name}' je obrisan.", context.Message.OccurredOnUtc);
-    public Task Consume(ConsumeContext<ReviewCreatedIntegrationEvent> context) => RecordAsync("Review", "Created", $"Nova recenzija sa ocjenom {context.Message.Rating} za knjigu {context.Message.BookId}.", context.Message.OccurredOnUtc);
-    public Task Consume(ConsumeContext<ReviewUpdatedIntegrationEvent> context) => RecordAsync("Review", "Updated", $"Recenzija {context.Message.ReviewId} je azurirana na ocjenu {context.Message.Rating}.", context.Message.OccurredOnUtc);
-    public Task Consume(ConsumeContext<ReviewDeletedIntegrationEvent> context) => RecordAsync("Review", "Deleted", $"Recenzija {context.Message.ReviewId} je obrisana.", context.Message.OccurredOnUtc);
-    public Task Consume(ConsumeContext<WishlistCreatedIntegrationEvent> context) => RecordAsync("Wishlist", "Created", $"Wishlist je kreirana za korisnika {context.Message.UserId}.", context.Message.OccurredOnUtc);
-    public Task Consume(ConsumeContext<WishlistItemAddedIntegrationEvent> context) => RecordAsync("Wishlist", "ItemAdded", $"Knjiga {context.Message.BookId} je dodana u wishlist korisnika {context.Message.UserId}.", context.Message.OccurredOnUtc);
-    public Task Consume(ConsumeContext<WishlistItemRemovedIntegrationEvent> context) => RecordAsync("Wishlist", "ItemRemoved", $"Knjiga {context.Message.BookId} je uklonjena iz wishlist-e korisnika {context.Message.UserId}.", context.Message.OccurredOnUtc);
-    public Task Consume(ConsumeContext<OrderCreatedIntegrationEvent> context) => RecordAsync("Order", "Created", $"Narudzba {context.Message.OrderId} je kreirana za {context.Message.BuyerEmail}.", context.Message.OccurredOnUtc);
-    public Task Consume(ConsumeContext<OrderStatusChangedIntegrationEvent> context) => RecordAsync("Order", "StatusChanged", $"Narudzba {context.Message.OrderId} je presla u status {context.Message.Status}.", context.Message.OccurredOnUtc);
-    public Task Consume(ConsumeContext<UserLoggedInIntegrationEvent> context) => RecordAsync("User", "LoggedIn", $"Korisnik {context.Message.Email} se prijavio.", context.Message.OccurredOnUtc);
-    public Task Consume(ConsumeContext<UserDeactivatedIntegrationEvent> context) => RecordAsync("User", "Deactivated", $"Korisnik {context.Message.Email} je deaktiviran.", context.Message.OccurredOnUtc);
-    public Task Consume(ConsumeContext<CartUpdatedIntegrationEvent> context) => RecordAsync("Cart", "Updated", $"Korpa {context.Message.CartId} sada ima {context.Message.ItemCount} stavki.", context.Message.OccurredOnUtc);
-    public Task Consume(ConsumeContext<CartDeletedIntegrationEvent> context) => RecordAsync("Cart", "Deleted", $"Korpa {context.Message.CartId} je obrisana.", context.Message.OccurredOnUtc);
-    public Task Consume(ConsumeContext<UserBookGrantedIntegrationEvent> context) => RecordAsync("Library", "Granted", $"Korisnik {context.Message.UserEmail} je dobio pristup knjizi {context.Message.BookId}.", context.Message.OccurredOnUtc);
+    public Task Consume(ConsumeContext<AuthorCreatedIntegrationEvent> context) =>
+        RecordAsync(
+            "Author",
+            "Created",
+            $"Autor \"{context.Message.Name}\" je dodan u katalog. ID: {ShortId(context.Message.AuthorId)}.",
+            context.Message.OccurredOnUtc);
+
+    public Task Consume(ConsumeContext<AuthorUpdatedIntegrationEvent> context) =>
+        RecordAsync(
+            "Author",
+            "Updated",
+            $"Autor \"{context.Message.Name}\" je azuriran. ID: {ShortId(context.Message.AuthorId)}.",
+            context.Message.OccurredOnUtc);
+
+    public Task Consume(ConsumeContext<AuthorDeletedIntegrationEvent> context) =>
+        RecordAsync(
+            "Author",
+            "Deleted",
+            $"Autor \"{context.Message.Name}\" je obrisan. ID: {ShortId(context.Message.AuthorId)}.",
+            context.Message.OccurredOnUtc);
+
+    public Task Consume(ConsumeContext<BookCreatedIntegrationEvent> context) =>
+        RecordAsync(
+            "Book",
+            "Created",
+            $"Knjiga \"{context.Message.Title}\" je dodana. Cijena: {FormatMoney(context.Message.Amount, context.Message.Currency)}. Book ID: {ShortId(context.Message.BookId)}. Author ID: {ShortId(context.Message.AuthorId)}.",
+            context.Message.OccurredOnUtc);
+
+    public Task Consume(ConsumeContext<BookUpdatedIntegrationEvent> context) =>
+        RecordAsync(
+            "Book",
+            "Updated",
+            $"Knjiga \"{context.Message.Title}\" je azurirana. Cijena: {FormatMoney(context.Message.Amount, context.Message.Currency)}. Book ID: {ShortId(context.Message.BookId)}. Author ID: {ShortId(context.Message.AuthorId)}.",
+            context.Message.OccurredOnUtc);
+
+    public Task Consume(ConsumeContext<BookDeletedIntegrationEvent> context) =>
+        RecordAsync(
+            "Book",
+            "Deleted",
+            $"Knjiga \"{context.Message.Title}\" je obrisana iz kataloga. Book ID: {ShortId(context.Message.BookId)}. Author ID: {ShortId(context.Message.AuthorId)}.",
+            context.Message.OccurredOnUtc);
+
+    public Task Consume(ConsumeContext<GenreCreatedIntegrationEvent> context) =>
+        RecordAsync(
+            "Genre",
+            "Created",
+            $"Zanr \"{context.Message.Name}\" je kreiran. Genre ID: {ShortId(context.Message.GenreId)}.",
+            context.Message.OccurredOnUtc);
+
+    public Task Consume(ConsumeContext<GenreUpdatedIntegrationEvent> context) =>
+        RecordAsync(
+            "Genre",
+            "Updated",
+            $"Zanr \"{context.Message.Name}\" je azuriran. Genre ID: {ShortId(context.Message.GenreId)}.",
+            context.Message.OccurredOnUtc);
+
+    public Task Consume(ConsumeContext<GenreDeletedIntegrationEvent> context) =>
+        RecordAsync(
+            "Genre",
+            "Deleted",
+            $"Zanr \"{context.Message.Name}\" je obrisan. Genre ID: {ShortId(context.Message.GenreId)}.",
+            context.Message.OccurredOnUtc);
+
+    public Task Consume(ConsumeContext<ReviewCreatedIntegrationEvent> context) =>
+        RecordAsync(
+            "Review",
+            "Created",
+            $"Nova recenzija je dodana. Ocjena: {context.Message.Rating}/5. Review ID: {ShortId(context.Message.ReviewId)}. Book ID: {ShortId(context.Message.BookId)}. User ID: {ShortId(context.Message.UserId)}.",
+            context.Message.OccurredOnUtc);
+
+    public Task Consume(ConsumeContext<ReviewUpdatedIntegrationEvent> context) =>
+        RecordAsync(
+            "Review",
+            "Updated",
+            $"Recenzija je azurirana. Nova ocjena: {context.Message.Rating}/5. Review ID: {ShortId(context.Message.ReviewId)}. Book ID: {ShortId(context.Message.BookId)}.",
+            context.Message.OccurredOnUtc);
+
+    public Task Consume(ConsumeContext<ReviewDeletedIntegrationEvent> context) =>
+        RecordAsync(
+            "Review",
+            "Deleted",
+            $"Recenzija je obrisana. Review ID: {ShortId(context.Message.ReviewId)}. Book ID: {ShortId(context.Message.BookId)}. User ID: {ShortId(context.Message.UserId)}.",
+            context.Message.OccurredOnUtc);
+
+    public Task Consume(ConsumeContext<WishlistCreatedIntegrationEvent> context) =>
+        RecordAsync(
+            "Wishlist",
+            "Created",
+            $"Wishlist je kreirana. Wishlist ID: {ShortId(context.Message.WishlistId)}. User ID: {ShortId(context.Message.UserId)}.",
+            context.Message.OccurredOnUtc);
+
+    public Task Consume(ConsumeContext<WishlistItemAddedIntegrationEvent> context) =>
+        RecordAsync(
+            "Wishlist",
+            "ItemAdded",
+            $"Knjiga je dodana u wishlist. Wishlist ID: {ShortId(context.Message.WishlistId)}. Book ID: {ShortId(context.Message.BookId)}. User ID: {ShortId(context.Message.UserId)}.",
+            context.Message.OccurredOnUtc);
+
+    public Task Consume(ConsumeContext<WishlistItemRemovedIntegrationEvent> context) =>
+        RecordAsync(
+            "Wishlist",
+            "ItemRemoved",
+            $"Knjiga je uklonjena iz wishlist-e. Wishlist ID: {ShortId(context.Message.WishlistId)}. Book ID: {ShortId(context.Message.BookId)}. User ID: {ShortId(context.Message.UserId)}.",
+            context.Message.OccurredOnUtc);
+
+    public Task Consume(ConsumeContext<OrderCreatedIntegrationEvent> context) =>
+        RecordAsync(
+            "Order",
+            "Created",
+            $"Narudzba je kreirana za {context.Message.BuyerEmail}. Iznos: {FormatMoney(context.Message.TotalAmount, context.Message.Currency)}. Stavki: {context.Message.ItemCount}. Order ID: {ShortId(context.Message.OrderId)}.",
+            context.Message.OccurredOnUtc);
+
+    public Task Consume(ConsumeContext<OrderStatusChangedIntegrationEvent> context) =>
+        RecordAsync(
+            "Order",
+            "StatusChanged",
+            $"Narudzba {ShortId(context.Message.OrderId)} za {context.Message.BuyerEmail} je presla u status \"{context.Message.Status}\".",
+            context.Message.OccurredOnUtc);
+
+    public Task Consume(ConsumeContext<UserLoggedInIntegrationEvent> context) =>
+        RecordAsync(
+            "User",
+            "LoggedIn",
+            $"Korisnik {context.Message.Email} se prijavio. User ID: {ShortId(context.Message.UserId)}.",
+            context.Message.OccurredOnUtc);
+
+    public Task Consume(ConsumeContext<UserDeactivatedIntegrationEvent> context) =>
+        RecordAsync(
+            "User",
+            "Deactivated",
+            $"Korisnik {context.Message.Email} je deaktiviran. User ID: {ShortId(context.Message.UserId)}.",
+            context.Message.OccurredOnUtc);
+
+    public Task Consume(ConsumeContext<CartUpdatedIntegrationEvent> context) =>
+        RecordAsync(
+            "Cart",
+            "Updated",
+            $"Korpa je azurirana. Stavki: {context.Message.ItemCount}. Ukupno: {FormatMoney(context.Message.TotalAmount, context.Message.Currency)}. Cart ID: {ShortId(context.Message.CartId)}. User ID: {ShortId(context.Message.UserId)}.",
+            context.Message.OccurredOnUtc);
+
+    public Task Consume(ConsumeContext<CartDeletedIntegrationEvent> context) =>
+        RecordAsync(
+            "Cart",
+            "Deleted",
+            $"Korpa je obrisana. Cart ID: {ShortId(context.Message.CartId)}.",
+            context.Message.OccurredOnUtc);
+
+    public Task Consume(ConsumeContext<UserBookGrantedIntegrationEvent> context) =>
+        RecordAsync(
+            "Library",
+            "Granted",
+            $"Kupovina je prebacena u biblioteku za {context.Message.UserEmail}. UserBook ID: {ShortId(context.Message.UserBookId)}. Book ID: {ShortId(context.Message.BookId)}.",
+            context.Message.OccurredOnUtc);
 
     private async Task RecordAsync(string entityName, string action, string description, DateTime occurredOnUtc)
     {
         await _activityStore.AddAsync(new AnalyticsActivityEntry(entityName, action, description, occurredOnUtc));
         _logger.LogInformation("Activity projected. Entity={EntityName}, Action={Action}", entityName, action);
+    }
+
+    private static string ShortId(Guid value)
+    {
+        var text = value.ToString("N");
+        return text.Length <= 8 ? text : text[..8].ToUpperInvariant();
+    }
+
+    private static string FormatMoney(decimal amount, string currency)
+    {
+        return $"{amount:0.00} {currency}".Trim();
     }
 }

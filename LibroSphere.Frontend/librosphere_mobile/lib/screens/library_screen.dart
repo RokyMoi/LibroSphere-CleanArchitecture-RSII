@@ -26,18 +26,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
   Future<List<_LibraryDisplayItem>> _load({bool forceRefresh = false}) async {
     final session = SessionScope.read(context);
     final entries = await session.getLibraryEntries(forceRefresh: forceRefresh);
-    final items = <_LibraryDisplayItem>[];
-    for (final entry in entries) {
-      final book = await session.getBook(entry.bookId);
-      items.add(
-        _LibraryDisplayItem(
-          entry: entry,
-          book: book,
-          authorName: session.authorName(book.authorId),
-        ),
+    return entries.map((entry) {
+      final book = entry.toBookModel();
+      return _LibraryDisplayItem(
+        entry: entry,
+        book: book,
+        authorName: session.authorNameForBook(book),
       );
-    }
-    return items;
+    }).toList();
   }
 
   @override

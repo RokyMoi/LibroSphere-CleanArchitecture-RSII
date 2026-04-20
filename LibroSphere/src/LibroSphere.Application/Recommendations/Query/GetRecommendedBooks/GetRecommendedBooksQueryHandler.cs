@@ -34,7 +34,8 @@ namespace LibroSphere.Application.Recommendations.Query.GetRecommendedBooks
                         ? null
                         : book.BookLinkovi.PdfLink,
                     imageLink,
-                    book.AuthorId));
+                    book.AuthorId,
+                    book.Author?.Name.Value ?? string.Empty));
             }
 
             return Result.Success(response);

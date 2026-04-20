@@ -184,7 +184,7 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
                                 ),
                               ),
                               Text(
-                                session.authorName(book.authorId),
+                                session.authorNameForBook(book),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(color: Colors.grey.shade600),
@@ -210,7 +210,7 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
                       padding: const EdgeInsets.only(bottom: 18),
                       child: NewestBookTile(
                         book: book,
-                        authorName: session.authorName(book.authorId),
+                        authorName: session.authorNameForBook(book),
                         rating: book.averageRating,
                         onOpen: () => widget.onOpenBook(book),
                         onWishlist: () async {

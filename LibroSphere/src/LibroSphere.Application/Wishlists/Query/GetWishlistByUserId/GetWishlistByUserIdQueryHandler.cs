@@ -29,8 +29,32 @@ namespace LibroSphere.Application.Wishlists.Query.GetWishlistByUserId
             var items = new List<WishlistItemResponse>();
             foreach (var item in wishlist.Items)
             {
-                var imageLink = await _bookAssetStorageService.GetImageUrlAsync(item.Book.BookLinkovi.imageLink, cancellationToken);
-                items.Add(new WishlistItemResponse(item.BookId, item.Book.Title.Value, imageLink));
+                var imageLink = await _bookAssetStorageService.GetImageUrlAsync(
+                    item.Book.BookLinkovi.imageLink,
+                    cancellationToken);
+                var reviewCount = item.Book.Reviews.Count;
+                var averageRating = reviewCount == 0
+                    ? 0
+                    : item.Book.Reviews.Average(review => review.Rating);
+
+                items.Add(new WishlistItemResponse(
+                    item.BookId,
+                    item.Book.Title.Value,
+                    item.Book.Description.Value,
+                    item.Book.Price.amount,
+                    item.Book.Price.Currency.Code,
+                    null,
+                    imageLink,
+                    averageRating,
+                    reviewCount,
+                    item.Book.AuthorId,
+                    item.Book.Author?.Name.Value ?? string.Empty,
+                    item.Book.BookGenres.Select(bg => bg.GenreId).ToList(),
+                    item.Book.BookGenres
+                        .Where(bg => bg.Genre is not null)
+                        .Select(bg => bg.Genre!.Name.Value)
+                        .OrderBy(name => name)
+                        .ToList()));
             }
 
             return Result.Success(new WishlistResponse(

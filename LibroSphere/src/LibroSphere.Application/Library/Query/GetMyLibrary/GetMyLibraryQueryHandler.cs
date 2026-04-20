@@ -29,8 +29,33 @@ namespace LibroSphere.Application.Library.Query.GetMyLibrary
             var response = new List<LibraryBookResponse>();
             foreach (var userBook in filteredUserBooks)
             {
-                var imageLink = await _bookAssetStorageService.GetImageUrlAsync(userBook.Book.BookLinkovi.imageLink, cancellationToken);
-                response.Add(new LibraryBookResponse(userBook.BookId, userBook.Book.Title.Value, imageLink, userBook.PurchasedAt));
+                var imageLink = await _bookAssetStorageService.GetImageUrlAsync(
+                    userBook.Book.BookLinkovi.imageLink,
+                    cancellationToken);
+                var reviewCount = userBook.Book.Reviews.Count;
+                var averageRating = reviewCount == 0
+                    ? 0
+                    : userBook.Book.Reviews.Average(review => review.Rating);
+
+                response.Add(new LibraryBookResponse(
+                    userBook.BookId,
+                    userBook.Book.Title.Value,
+                    userBook.Book.Description.Value,
+                    userBook.Book.Price.amount,
+                    userBook.Book.Price.Currency.Code,
+                    null,
+                    imageLink,
+                    averageRating,
+                    reviewCount,
+                    userBook.Book.AuthorId,
+                    userBook.Book.Author?.Name.Value ?? string.Empty,
+                    userBook.Book.BookGenres.Select(bg => bg.GenreId).ToList(),
+                    userBook.Book.BookGenres
+                        .Where(bg => bg.Genre is not null)
+                        .Select(bg => bg.Genre!.Name.Value)
+                        .OrderBy(name => name)
+                        .ToList(),
+                    userBook.PurchasedAt));
             }
 
             return Result.Success(PagedResponse<LibraryBookResponse>.Create(response, request.Page, request.PageSize));

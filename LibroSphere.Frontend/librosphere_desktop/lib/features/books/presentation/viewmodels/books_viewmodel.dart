@@ -72,9 +72,12 @@ class BooksViewModel extends ChangeNotifier {
           );
           _hasLoaded = true;
         case ErrorResult<BooksPageBootstrapModel>(failure: final error):
-          failure = error is Failure
-              ? error
-              : Failure(message: error.toString());
+          await _loadLegacyPage(targetPage);
+          if (!_hasLoaded) {
+            failure = error is Failure
+                ? error
+                : Failure(message: error.toString());
+          }
       }
     } else {
       final pageResult = await _repository.loadBooksPage(
@@ -96,6 +99,28 @@ class BooksViewModel extends ChangeNotifier {
 
     isLoading = false;
     notifyListeners();
+  }
+
+  Future<void> _loadLegacyPage(int targetPage) async {
+    final pageResultFuture = _repository.loadBooksPage(
+      _token,
+      page: targetPage,
+      pageSize: pageSize,
+    );
+    final lookupResultFuture = _repository.loadLookupData(_token);
+
+    final pageResult = await pageResultFuture;
+    final lookupResult = await lookupResultFuture;
+
+    switch (pageResult) {
+      case Success<BooksDataModel>(value: final data):
+        _applyBooksData(data);
+        _hasLoaded = true;
+      case ErrorResult<BooksDataModel>(failure: final error):
+        failure = error is Failure ? error : Failure(message: error.toString());
+    }
+
+    _applyLookupResult(lookupResult);
   }
 
   Future<void> loadNextPage() async {

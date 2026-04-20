@@ -8,6 +8,7 @@ class BookModel {
     required this.amount,
     required this.currency,
     required this.authorId,
+    required this.authorName,
     this.imageLink,
     this.pdfLink,
     this.averageRating = 0,
@@ -20,6 +21,7 @@ class BookModel {
   final double amount;
   final String currency;
   final String authorId;
+  final String authorName;
   final String? imageLink;
   final String? pdfLink;
   final double averageRating;
@@ -32,6 +34,11 @@ class BookModel {
     amount: readDouble(json, ['amount', 'Amount']),
     currency: readString(json, ['currency', 'Currency'], fallback: 'USD'),
     authorId: readString(json, ['authorId', 'AuthorId']),
+    authorName: readString(
+      json,
+      ['authorName', 'AuthorName'],
+      fallback: '',
+    ),
     imageLink: readNullableString(json, ['imageLink', 'ImageLink']),
     pdfLink: readNullableString(json, ['pdfLink', 'PdfLink']),
     averageRating: readDouble(json, ['averageRating', 'AverageRating']),

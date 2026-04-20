@@ -139,7 +139,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                       children: [
                         Text(book.title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
                         const SizedBox(height: 2),
-                        Text(session.authorName(book.authorId), style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w600)),
+                        Text(session.authorNameForBook(book), style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w600)),
                         const SizedBox(height: 16),
                         Row(
                           children: [

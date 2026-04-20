@@ -54,6 +54,7 @@ namespace LibroSphere.Application.Books.Query.GetAllBooks
                     AverageRating = averageRating,
                     ReviewCount = reviewCount,
                     AuthorId = book.AuthorId,
+                    AuthorName = book.Author?.Name.Value ?? string.Empty,
                     GenreIds = book.BookGenres.Select(bg => bg.GenreId).ToList(),
                     GenreNames = book.BookGenres
                         .Where(bg => bg.Genre is not null)

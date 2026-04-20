@@ -125,7 +125,7 @@ class _WideLoginLayout extends StatelessWidget {
                   const _LoginHeader(),
                   const SizedBox(height: 14),
                   Text(
-                    'Sign in to manage catalog, readers, orders, and analytics from one secure workspace.',
+                    'Sign in with your administrator account to manage the catalog, users, orders, and reporting.',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.86),
                       fontSize: 15,
@@ -186,7 +186,7 @@ class _CompactLoginLayout extends StatelessWidget {
                   const _LoginHeader(compact: true),
                   const SizedBox(height: 12),
                   Text(
-                    'Secure access to the LibroSphere admin workspace.',
+                    'Sign in with your administrator account to continue.',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.86),
                       fontSize: 14,
@@ -265,7 +265,7 @@ class _BrandPanel extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'LibroSphere Control Center',
+            'LibroSphere Admin Portal',
             textAlign: alignStart ? TextAlign.left : TextAlign.center,
             style: const TextStyle(
               color: Color(0xFF143A6B),
@@ -278,7 +278,7 @@ class _BrandPanel extends StatelessWidget {
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 460),
             child: Text(
-              'A responsive enterprise login should stay calm under pressure: clear hierarchy, stable spacing, and a form that remains readable whether the window is compact or expansive.',
+              'Manage books, genres, users, orders, and dashboard activity from one admin workspace.',
               textAlign: alignStart ? TextAlign.left : TextAlign.center,
               style: TextStyle(
                 color: Colors.black.withValues(alpha: 0.66),
@@ -293,9 +293,9 @@ class _BrandPanel extends StatelessWidget {
             runSpacing: 10,
             alignment: alignStart ? WrapAlignment.start : WrapAlignment.center,
             children: const [
-              _InfoChip(label: 'Adaptive Layout'),
-              _InfoChip(label: 'Fast Auth Flow'),
-              _InfoChip(label: 'Secure Workspace'),
+              _InfoChip(label: 'Catalog Management'),
+              _InfoChip(label: 'Order Monitoring'),
+              _InfoChip(label: 'Role-Based Access'),
             ],
           ),
         ],
@@ -311,8 +311,8 @@ class _FormLogoBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = compact ? 78.0 : 92.0;
-    final radius = compact ? 22.0 : 26.0;
+    final size = compact ? 96.0 : 118.0;
+    final radius = compact ? 28.0 : 34.0;
 
     return Container(
       width: size,
@@ -323,10 +323,13 @@ class _FormLogoBadge extends StatelessWidget {
         border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(radius - 6),
-          child: Image.asset('assets/librosphere_logo.png', fit: BoxFit.cover),
+        padding: EdgeInsets.all(compact ? 16 : 18),
+        child: ColorFiltered(
+          colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+          child: Image.asset(
+            'assets/librosphere_logo.png',
+            fit: BoxFit.contain,
+          ),
         ),
       ),
     );
@@ -365,32 +368,15 @@ class _LoginHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final iconSize = compact ? 48.0 : 54.0;
     final titleSize = compact ? 24.0 : 30.0;
 
-    return Row(
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(14),
-          child: Image.asset(
-            'assets/librosphere_logo.png',
-            width: iconSize,
-            height: iconSize,
-            fit: BoxFit.cover,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Text(
-            'ADMIN LOGIN',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: titleSize,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
-      ],
+    return Text(
+      'ADMIN LOGIN',
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: titleSize,
+        fontWeight: FontWeight.w800,
+      ),
     );
   }
 }

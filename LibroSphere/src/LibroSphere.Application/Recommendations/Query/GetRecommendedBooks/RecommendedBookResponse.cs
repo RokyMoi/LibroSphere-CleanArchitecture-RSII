@@ -8,5 +8,6 @@ namespace LibroSphere.Application.Recommendations.Query.GetRecommendedBooks
         string Currency,
         string? PdfLink,
         string? ImageLink,
-        Guid AuthorId);
+        Guid AuthorId,
+        string AuthorName);
 }

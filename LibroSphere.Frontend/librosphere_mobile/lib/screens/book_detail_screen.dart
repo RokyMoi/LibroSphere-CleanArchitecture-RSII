@@ -64,7 +64,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
     try {
       final session = widget.session;
-      final authorsFuture = session.ensureAuthors();
       final bookFuture = session.getBook(widget.bookId, forceRefresh: true);
       final libraryAccessFuture = session.hasLibraryAccess(widget.bookId);
       final reviewPageFuture = session.getReviewPage(
@@ -75,7 +74,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       );
 
       final book = await bookFuture;
-      await authorsFuture;
       final hasLibraryAccess = await libraryAccessFuture;
       final reviewPage = await reviewPageFuture;
 
@@ -85,7 +83,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
       setState(() {
         _book = book;
-        _authorName = session.authorName(book.authorId);
+        _authorName = session.authorNameForBook(book);
         _averageRating = book.averageRating;
         _hasLibraryAccess = hasLibraryAccess;
         _reviews = reviewPage.items;

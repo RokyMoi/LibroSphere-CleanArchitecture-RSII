@@ -17,6 +17,12 @@ namespace LibroSphere.Infrastructure.Repositories
             var libo = await _context.Set<UserBook>()
                 .AsNoTracking()
                 .Include(ub => ub.Book)
+                    .ThenInclude(book => book.Author)
+                .Include(ub => ub.Book)
+                    .ThenInclude(book => book.Reviews)
+                .Include(ub => ub.Book)
+                    .ThenInclude(book => book.BookGenres)
+                        .ThenInclude(bookGenre => bookGenre.Genre)
                 .Where(ub => ub.UserEmail == email)
                 .ToListAsync(); return libo;
         }

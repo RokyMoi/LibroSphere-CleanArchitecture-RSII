@@ -46,7 +46,6 @@ class SessionViewModel extends ChangeNotifier {
   final Map<String, List<ReviewModel>> _reviewCache =
       <String, List<ReviewModel>>{};
   final Map<String, double> _ratingCache = <String, double>{};
-  Future<void>? _authorsFuture;
   _TimedCacheValue<List<BookModel>>? _recommendationsCache;
   _TimedCacheValue<List<LibraryEntry>>? _libraryCache;
   _TimedCacheValue<List<BookModel>>? _wishlistBooksCache;
@@ -112,22 +111,16 @@ class SessionViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> ensureAuthors() async {
-    if (authorNames.isNotEmpty) {
-      return;
-    }
-
-    if (_authorsFuture != null) {
-      await _authorsFuture;
-      return;
-    }
-
-    _authorsFuture = _loadAuthors();
-    await _authorsFuture;
-  }
-
   String authorName(String authorId) =>
       authorNames[authorId] ?? 'Unknown Author';
+
+  String authorNameForBook(BookModel book) {
+    if (book.authorName.trim().isNotEmpty) {
+      return book.authorName.trim();
+    }
+
+    return authorName(book.authorId);
+  }
 
   Future<void> logout() async {
     _sessionBootstrapVersion++;
@@ -155,45 +148,11 @@ class SessionViewModel extends ChangeNotifier {
   }
 
   Future<void> _hydrateSessionState(int bootstrapVersion) async {
-    try {
-      await Future.wait<void>([ensureAuthors(), _restoreCart()]);
-    } catch (_) {
-      // Keep the authenticated shell responsive even if background hydration fails.
-    }
-
     if (bootstrapVersion != _sessionBootstrapVersion || !isAuthenticated) {
       return;
     }
 
     notifyListeners();
-  }
-
-  Future<void> _restoreCart() async {
-    final cartId = _services.storage.restoreCartId();
-    if (cartId == null || accessToken == null) {
-      return;
-    }
-
-    try {
-      cart = await _services.cart.getCart(accessToken!, cartId);
-    } catch (_) {
-      await _services.storage.clearCart();
-      cart = null;
-    }
-  }
-
-  Future<void> _loadAuthors() async {
-    try {
-      final authors = await _services.catalog.getAuthors();
-      authorNames.addAll({
-        for (final author in authors) author.id: author.name,
-      });
-      notifyListeners();
-    } catch (_) {
-      // Keep UI usable even if author lookup fails.
-    } finally {
-      _authorsFuture = null;
-    }
   }
 
   void _resetRuntimeState() {
@@ -204,7 +163,6 @@ class SessionViewModel extends ChangeNotifier {
   }
 
   void _resetCaches() {
-    _authorsFuture = null;
     _bookCache.clear();
     _bookRequests.clear();
     _searchCache.clear();
@@ -262,10 +220,6 @@ class SessionViewModel extends ChangeNotifier {
     String? searchTerm,
     bool forceRefresh = false,
   }) async {
-    if (authorNames.isEmpty) {
-      unawaited(ensureAuthors());
-    }
-
     final normalizedTerm = searchTerm?.trim() ?? '';
     final cachedResult = _searchCache[normalizedTerm];
     if (!forceRefresh && _isFresh(cachedResult, _catalogCacheTtl)) {
@@ -285,10 +239,6 @@ class SessionViewModel extends ChangeNotifier {
     String? searchTerm,
     bool forceRefresh = false,
   }) async {
-    if (authorNames.isEmpty) {
-      unawaited(ensureAuthors());
-    }
-
     final normalizedTerm = searchTerm?.trim() ?? '';
     final cachedBooks = _searchCache[normalizedTerm];
     final cachedRecommendations = _recommendationsCache;
@@ -359,6 +309,9 @@ class SessionViewModel extends ChangeNotifier {
       final book = await request;
       _bookCache[id] = book;
       _ratingCache[id] = book.averageRating;
+      if (book.authorName.trim().isNotEmpty) {
+        authorNames[book.authorId] = book.authorName.trim();
+      }
       return book;
     } finally {
       _bookRequests.remove(id);
@@ -437,6 +390,7 @@ class SessionViewModel extends ChangeNotifier {
 
   Future<void> addToCart(BookModel book) async {
     _requireAuth();
+    await refreshCart();
     final existingItems = List<CartItemInput>.from(
       cart?.items ?? <CartItemInput>[],
     );
@@ -455,6 +409,7 @@ class SessionViewModel extends ChangeNotifier {
   }
 
   Future<void> removeFromCart(String bookId) async {
+    await refreshCart();
     if (cart == null || accessToken == null) {
       return;
     }
@@ -475,12 +430,22 @@ class SessionViewModel extends ChangeNotifier {
   }
 
   Future<ShoppingCartModel?> refreshCart() async {
-    if (cart == null || accessToken == null) {
+    final activeCartId = cart?.id ?? _services.storage.restoreCartId();
+    if (activeCartId == null || accessToken == null) {
       return cart;
     }
 
-    cart = await _services.cart.getCart(accessToken!, cart!.id);
-    notifyListeners();
+    try {
+      cart = await _services.cart.getCart(accessToken!, activeCartId);
+      if (cart?.id != activeCartId) {
+        await _services.storage.persistCartId(cart!.id);
+      }
+      notifyListeners();
+    } catch (_) {
+      await _services.storage.clearCart();
+      cart = null;
+      notifyListeners();
+    }
     return cart;
   }
 
@@ -548,6 +513,7 @@ class SessionViewModel extends ChangeNotifier {
     }
 
     final page = await _services.library.getLibrary(accessToken!);
+    _primeBookCaches(page.items.map((entry) => entry.toBookModel()));
     _libraryCache = _TimedCacheValue(page.items);
     return page.items;
   }
@@ -599,9 +565,8 @@ class SessionViewModel extends ChangeNotifier {
     }
 
     final wishlist = await _services.wishlist.getWishlist(accessToken!);
-    final books = await Future.wait(
-      wishlist.items.map((item) => getBook(item.bookId)),
-    );
+    final books = wishlist.items.map((item) => item.toBookModel()).toList();
+    _primeBookCaches(books);
     _wishlistBooksCache = _TimedCacheValue(books);
     return books;
   }
@@ -644,6 +609,9 @@ class SessionViewModel extends ChangeNotifier {
     for (final book in books) {
       _bookCache[book.id] = book;
       _ratingCache[book.id] = book.averageRating;
+      if (book.authorName.trim().isNotEmpty) {
+        authorNames[book.authorId] = book.authorName.trim();
+      }
     }
   }
 }

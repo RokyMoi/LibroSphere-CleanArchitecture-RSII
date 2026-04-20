@@ -21,6 +21,7 @@ namespace LibroSphere.Application.Books.Query.GetBookByIdQuery
         public int ReviewCount { get; init; }
 
         public Guid AuthorId { get; init; }
+        public string AuthorName { get; init; } = string.Empty;
         public List<Guid> GenreIds { get; init; } = new();
         public List<string> GenreNames { get; init; } = new();
       

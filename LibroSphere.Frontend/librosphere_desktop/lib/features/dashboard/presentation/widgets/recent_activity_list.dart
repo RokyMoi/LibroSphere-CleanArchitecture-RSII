@@ -40,7 +40,7 @@ class RecentActivityList extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${activity.entityName} • ${activity.action}',
+                  '${activity.entityName} - ${activity.action}',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 15,
@@ -53,7 +53,8 @@ class RecentActivityList extends StatelessWidget {
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                    height: 1.45,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 6),
