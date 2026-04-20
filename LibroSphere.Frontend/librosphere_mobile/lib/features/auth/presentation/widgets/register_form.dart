@@ -7,10 +7,7 @@ import '../../data/models/register_request.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
 class RegisterForm extends StatefulWidget {
-  const RegisterForm({
-    super.key,
-    required this.viewModel,
-  });
+  const RegisterForm({super.key, required this.viewModel});
 
   final AuthViewModel viewModel;
 
@@ -67,7 +64,9 @@ class _RegisterFormState extends State<RegisterForm> {
           : (isValidEmail(email) ? null : 'Enter a valid email address.');
       _passwordError = password.isEmpty
           ? 'Password is required.'
-          : (password.length >= 8 ? null : 'Password must be at least 8 characters.');
+          : (password.length >= 8
+                ? null
+                : 'Password must be at least 8 characters.');
     });
 
     if (_firstNameError == null &&
@@ -85,72 +84,90 @@ class _RegisterFormState extends State<RegisterForm> {
   Widget build(BuildContext context) {
     final viewModel = widget.viewModel;
 
-    return Column(
-      children: [
-        RoundedInput(
-          controller: _firstNameController,
-          hint: 'Your First Name',
-          errorText: _firstNameError,
-          onChanged: (_) {
-            if (_firstNameError != null) {
-              setState(() => _firstNameError = null);
-            }
-            viewModel.clearError();
-          },
-        ),
-        const SizedBox(height: 14),
-        RoundedInput(
-          controller: _lastNameController,
-          hint: 'Your Last Name',
-          errorText: _lastNameError,
-          onChanged: (_) {
-            if (_lastNameError != null) {
-              setState(() => _lastNameError = null);
-            }
-            viewModel.clearError();
-          },
-        ),
-        const SizedBox(height: 14),
-        RoundedInput(
-          controller: _emailController,
-          hint: 'Your Email Address',
-          keyboardType: TextInputType.emailAddress,
-          errorText: _emailError,
-          onChanged: (_) {
-            if (_emailError != null) {
-              setState(() => _emailError = null);
-            }
-            viewModel.clearError();
-          },
-        ),
-        const SizedBox(height: 14),
-        RoundedInput(
-          controller: _passwordController,
-          hint: 'Create a Password',
-          obscureText: true,
-          errorText: _passwordError,
-          onChanged: (_) {
-            if (_passwordError != null) {
-              setState(() => _passwordError = null);
-            }
-            viewModel.clearError();
-          },
-        ),
-        const SizedBox(height: 24),
-        PrimaryPillButton(
-          label: viewModel.isSubmitting ? 'Creating...' : 'Register',
-          onPressed: viewModel.isSubmitting ? null : _submit,
-        ),
-        FormMessage(message: viewModel.errorMessage),
-        const SizedBox(height: 16),
-        TextButton(
-          onPressed: viewModel.showLogin,
-          child: const Text(
-            'Already have an account? Login.',
-            style: TextStyle(color: brandBlueDark),
+    return AutofillGroup(
+      child: Column(
+        children: [
+          RoundedInput(
+            controller: _firstNameController,
+            hint: 'Your First Name',
+            textInputAction: TextInputAction.next,
+            autofillHints: const [AutofillHints.givenName],
+            errorText: _firstNameError,
+            onChanged: (_) {
+              if (_firstNameError != null) {
+                setState(() => _firstNameError = null);
+              }
+              viewModel.clearError();
+            },
           ),
-        ),
-      ],
+          const SizedBox(height: 14),
+          RoundedInput(
+            controller: _lastNameController,
+            hint: 'Your Last Name',
+            textInputAction: TextInputAction.next,
+            autofillHints: const [AutofillHints.familyName],
+            errorText: _lastNameError,
+            onChanged: (_) {
+              if (_lastNameError != null) {
+                setState(() => _lastNameError = null);
+              }
+              viewModel.clearError();
+            },
+          ),
+          const SizedBox(height: 14),
+          RoundedInput(
+            controller: _emailController,
+            hint: 'Your Email Address',
+            keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.next,
+            autofillHints: const [AutofillHints.username, AutofillHints.email],
+            enableSuggestions: false,
+            autocorrect: false,
+            errorText: _emailError,
+            onChanged: (_) {
+              if (_emailError != null) {
+                setState(() => _emailError = null);
+              }
+              viewModel.clearError();
+            },
+          ),
+          const SizedBox(height: 14),
+          RoundedInput(
+            controller: _passwordController,
+            hint: 'Create a Password',
+            obscureText: true,
+            textInputAction: TextInputAction.done,
+            autofillHints: const [AutofillHints.newPassword],
+            enableSuggestions: false,
+            autocorrect: false,
+            errorText: _passwordError,
+            onChanged: (_) {
+              if (_passwordError != null) {
+                setState(() => _passwordError = null);
+              }
+              viewModel.clearError();
+            },
+            onSubmitted: (_) => _submit(),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: PrimaryPillButton(
+              label: viewModel.isSubmitting ? 'Creating...' : 'Register',
+              onPressed: viewModel.isSubmitting ? null : _submit,
+            ),
+          ),
+          FormMessage(message: viewModel.errorMessage),
+          const SizedBox(height: 12),
+          TextButton(
+            onPressed: viewModel.isSubmitting ? null : viewModel.showLogin,
+            child: const Text(
+              'Already have an account? Login.',
+              style: TextStyle(color: brandBlueDark),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

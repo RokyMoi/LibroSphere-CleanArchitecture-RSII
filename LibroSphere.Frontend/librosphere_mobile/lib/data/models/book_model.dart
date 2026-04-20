@@ -10,6 +10,8 @@ class BookModel {
     required this.authorId,
     this.imageLink,
     this.pdfLink,
+    this.averageRating = 0,
+    this.reviewCount = 0,
   });
 
   final String id;
@@ -20,15 +22,19 @@ class BookModel {
   final String authorId;
   final String? imageLink;
   final String? pdfLink;
+  final double averageRating;
+  final int reviewCount;
 
   factory BookModel.fromJson(Map<String, dynamic> json) => BookModel(
-        id: readString(json, ['bookId', 'BookId', 'id', 'Id']),
-        title: readString(json, ['title', 'Title']),
-        description: readString(json, ['description', 'Description']),
-        amount: readDouble(json, ['amount', 'Amount']),
-        currency: readString(json, ['currency', 'Currency'], fallback: 'USD'),
-        authorId: readString(json, ['authorId', 'AuthorId']),
-        imageLink: readNullableString(json, ['imageLink', 'ImageLink']),
-        pdfLink: readNullableString(json, ['pdfLink', 'PdfLink']),
-      );
+    id: readString(json, ['bookId', 'BookId', 'id', 'Id']),
+    title: readString(json, ['title', 'Title']),
+    description: readString(json, ['description', 'Description']),
+    amount: readDouble(json, ['amount', 'Amount']),
+    currency: readString(json, ['currency', 'Currency'], fallback: 'USD'),
+    authorId: readString(json, ['authorId', 'AuthorId']),
+    imageLink: readNullableString(json, ['imageLink', 'ImageLink']),
+    pdfLink: readNullableString(json, ['pdfLink', 'PdfLink']),
+    averageRating: readDouble(json, ['averageRating', 'AverageRating']),
+    reviewCount: readInt(json, ['reviewCount', 'ReviewCount']),
+  );
 }

@@ -30,7 +30,7 @@ namespace LibroSphere.Application.Library.Query.GetBookReadLink
                 return Result.Failure<string>(Error.NullValue);
             }
 
-            var book = await _bookRepository.GetAsyncById(request.BookId, cancellationToken);
+            var book = await _bookRepository.GetReadOnlyByIdAsync(request.BookId, cancellationToken);
             return book is not null
                 ? Result.Success(await _bookAssetStorageService.GetPdfReadUrlAsync(book.BookLinkovi.PdfLink, cancellationToken))
                 : Result.Failure<string>(Error.NullValue);

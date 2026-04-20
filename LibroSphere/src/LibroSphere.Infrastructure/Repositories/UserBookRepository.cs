@@ -15,6 +15,7 @@ namespace LibroSphere.Infrastructure.Repositories
         public async Task<List<UserBook>> GetByEmailAsync(string email)
         {
             var libo = await _context.Set<UserBook>()
+                .AsNoTracking()
                 .Include(ub => ub.Book)
                 .Where(ub => ub.UserEmail == email)
                 .ToListAsync(); return libo;

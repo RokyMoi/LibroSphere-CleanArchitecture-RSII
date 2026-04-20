@@ -26,6 +26,10 @@ namespace LibroSphere.Application.Books.Query.GetBookByIdQuery
 
             var imageLink = await _bookAssetStorageService.GetImageUrlAsync(book.BookLinkovi.imageLink, cancellationToken);
             var pdfLink = await _bookAssetStorageService.GetPdfReadUrlAsync(book.BookLinkovi.PdfLink, cancellationToken);
+            var reviewCount = book.Reviews.Count;
+            var averageRating = reviewCount == 0
+                ? 0
+                : book.Reviews.Average(review => review.Rating);
 
             return Result.Success(new BookResponse
             {
@@ -36,6 +40,8 @@ namespace LibroSphere.Application.Books.Query.GetBookByIdQuery
                 currency = book.Price.Currency.Code,
                 pdfLink = pdfLink,
                 imageLink = imageLink,
+                AverageRating = averageRating,
+                ReviewCount = reviewCount,
                 AuthorId = book.AuthorId,
                 GenreIds = book.BookGenres.Select(bg => bg.GenreId).ToList(),
                 GenreNames = book.BookGenres

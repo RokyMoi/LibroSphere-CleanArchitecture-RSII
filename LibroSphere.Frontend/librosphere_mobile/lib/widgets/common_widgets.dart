@@ -27,9 +27,17 @@ class PrimaryPillButton extends StatelessWidget {
           elevation: 0,
           backgroundColor: brandBlue,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(rectangular ? 8 : 28)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(rectangular ? 8 : 28),
+          ),
         ),
-        child: Text(label, style: TextStyle(fontSize: compact ? 16 : 18, fontWeight: FontWeight.w800)),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: compact ? 16 : 18,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
     );
   }
@@ -45,6 +53,11 @@ class RoundedInput extends StatelessWidget {
     this.errorText,
     this.onChanged,
     this.keyboardType,
+    this.textInputAction,
+    this.onSubmitted,
+    this.autofillHints,
+    this.enableSuggestions = true,
+    this.autocorrect = true,
   });
 
   final TextEditingController controller;
@@ -54,6 +67,11 @@ class RoundedInput extends StatelessWidget {
   final String? errorText;
   final ValueChanged<String>? onChanged;
   final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
+  final ValueChanged<String>? onSubmitted;
+  final Iterable<String>? autofillHints;
+  final bool enableSuggestions;
+  final bool autocorrect;
 
   @override
   Widget build(BuildContext context) {
@@ -62,13 +80,24 @@ class RoundedInput extends StatelessWidget {
       obscureText: obscureText,
       onChanged: onChanged,
       keyboardType: keyboardType,
+      textInputAction: textInputAction,
+      onSubmitted: onSubmitted,
+      autofillHints: autofillHints,
+      enableSuggestions: enableSuggestions,
+      autocorrect: autocorrect,
       decoration: InputDecoration(
         hintText: hint,
         errorText: errorText,
         filled: true,
         fillColor: const Color(0xFFF3F1F8),
-        contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: dense ? 14 : 18),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(28), borderSide: BorderSide.none),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: dense ? 14 : 18,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(28),
+          borderSide: BorderSide.none,
+        ),
       ),
     );
   }
@@ -136,7 +165,10 @@ class SectionHeader extends StatelessWidget {
       children: [
         Icon(leadingIcon, color: brandBlue, size: 28),
         const SizedBox(width: 8),
-        Text(label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+        ),
       ],
     );
   }
@@ -159,7 +191,10 @@ class InfoStateView extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
       children: [
-        Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+        Text(
+          title,
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+        ),
         const SizedBox(height: 32),
         Icon(icon, size: 56, color: Colors.grey.shade400),
         const SizedBox(height: 16),
@@ -196,11 +231,19 @@ class BookCover extends StatelessWidget {
         height: height,
         color: const Color(0xFFEAF2FF),
         child: imageUrl == null || imageUrl!.isEmpty
-            ? Icon(Icons.menu_book_rounded, color: Colors.blue.shade200, size: width * 0.46)
+            ? Icon(
+                Icons.menu_book_rounded,
+                color: Colors.blue.shade200,
+                size: width * 0.46,
+              )
             : Image.network(
                 imageUrl!,
                 fit: BoxFit.cover,
-                errorBuilder: (_, error, stackTrace) => Icon(Icons.menu_book_rounded, color: Colors.blue.shade200, size: width * 0.46),
+                errorBuilder: (_, error, stackTrace) => Icon(
+                  Icons.menu_book_rounded,
+                  color: Colors.blue.shade200,
+                  size: width * 0.46,
+                ),
               ),
       ),
     );
@@ -219,14 +262,23 @@ class StarRow extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: List.generate(5, (index) {
-        return Icon(Icons.star, size: size, color: index < filled ? brandBlue : Colors.black87);
+        return Icon(
+          Icons.star,
+          size: size,
+          color: index < filled ? brandBlue : Colors.black87,
+        );
       }),
     );
   }
 }
 
 class MobileBottomNavigation extends StatelessWidget {
-  const MobileBottomNavigation({super.key, required this.currentIndex, required this.onTap, this.embedded = false});
+  const MobileBottomNavigation({
+    super.key,
+    required this.currentIndex,
+    required this.onTap,
+    this.embedded = false,
+  });
 
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -237,15 +289,38 @@ class MobileBottomNavigation extends StatelessWidget {
     final bar = Container(
       margin: EdgeInsets.fromLTRB(18, embedded ? 0 : 0, 18, 18),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(color: brandBlue, borderRadius: BorderRadius.circular(26)),
+      decoration: BoxDecoration(
+        color: brandBlue,
+        borderRadius: BorderRadius.circular(26),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _NavIcon(icon: Icons.home_outlined, active: currentIndex == 0, onTap: () => onTap(0)),
-          _NavIcon(icon: Icons.menu_book_outlined, active: currentIndex == 1, onTap: () => onTap(1)),
-          _NavIcon(icon: Icons.shopping_cart_outlined, active: currentIndex == 2, onTap: () => onTap(2)),
-          _NavIcon(icon: Icons.bookmark_border_rounded, active: currentIndex == 3, onTap: () => onTap(3)),
-          _NavIcon(icon: Icons.settings_outlined, active: currentIndex == 4, onTap: () => onTap(4)),
+          _NavIcon(
+            icon: Icons.home_outlined,
+            active: currentIndex == 0,
+            onTap: () => onTap(0),
+          ),
+          _NavIcon(
+            icon: Icons.menu_book_outlined,
+            active: currentIndex == 1,
+            onTap: () => onTap(1),
+          ),
+          _NavIcon(
+            icon: Icons.shopping_cart_outlined,
+            active: currentIndex == 2,
+            onTap: () => onTap(2),
+          ),
+          _NavIcon(
+            icon: Icons.bookmark_border_rounded,
+            active: currentIndex == 3,
+            onTap: () => onTap(3),
+          ),
+          _NavIcon(
+            icon: Icons.settings_outlined,
+            active: currentIndex == 4,
+            onTap: () => onTap(4),
+          ),
         ],
       ),
     );
@@ -255,7 +330,11 @@ class MobileBottomNavigation extends StatelessWidget {
 }
 
 class _NavIcon extends StatelessWidget {
-  const _NavIcon({required this.icon, required this.active, required this.onTap});
+  const _NavIcon({
+    required this.icon,
+    required this.active,
+    required this.onTap,
+  });
 
   final IconData icon;
   final bool active;
@@ -265,7 +344,11 @@ class _NavIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      child: Icon(icon, color: active ? Colors.white : const Color(0xB4D3E6FF), size: 31),
+      child: Icon(
+        icon,
+        color: active ? Colors.white : const Color(0xB4D3E6FF),
+        size: 31,
+      ),
     );
   }
 }
@@ -376,7 +459,13 @@ class NewestBookTile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(book.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              Text(
+                book.title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
               const SizedBox(height: 4),
               Text(authorName, style: TextStyle(color: Colors.grey.shade700)),
               const SizedBox(height: 8),
@@ -397,15 +486,29 @@ class NewestBookTile extends StatelessWidget {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  SizedBox(width: 84, child: PrimaryPillButton(label: 'Open', compact: true, onPressed: onOpen)),
+                  SizedBox(
+                    width: 84,
+                    child: PrimaryPillButton(
+                      label: 'Open',
+                      compact: true,
+                      onPressed: onOpen,
+                    ),
+                  ),
                   const SizedBox(width: 10),
                   InkWell(
                     onTap: onWishlist,
                     child: Container(
                       width: 36,
                       height: 36,
-                      decoration: const BoxDecoration(color: brandBlue, shape: BoxShape.circle),
-                      child: const Icon(Icons.bookmark_border_rounded, color: Colors.white, size: 24),
+                      decoration: const BoxDecoration(
+                        color: brandBlue,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.bookmark_border_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
                     ),
                   ),
                 ],

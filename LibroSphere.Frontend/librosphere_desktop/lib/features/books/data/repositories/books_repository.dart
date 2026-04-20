@@ -2,8 +2,12 @@ import '../../../../core/error/app_exception.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../genres/data/models/admin_genre_model.dart';
+import '../models/admin_author_model.dart';
 import '../models/admin_book_model.dart';
 import '../models/book_assets_model.dart';
+import '../models/book_lookup_data.dart';
+import '../models/books_page_bootstrap_model.dart';
 import '../models/books_data_model.dart';
 import '../models/picked_file_payload.dart';
 import '../services/books_api_service.dart';
@@ -12,6 +16,7 @@ class BooksRepository {
   BooksRepository(this._apiService);
 
   final BooksApiService _apiService;
+  BookLookupData? _cachedLookupData;
 
   Future<Result<BooksDataModel>> loadBooksPage(
     String token, {
@@ -19,8 +24,6 @@ class BooksRepository {
     int pageSize = 12,
   }) async {
     try {
-      final authors = await _apiService.getAuthors(token);
-      final genres = await _apiService.getGenres(token);
       final booksPage = await _apiService.getBooks(
         token,
         page: page,
@@ -28,8 +31,6 @@ class BooksRepository {
       );
       return Success<BooksDataModel>(
         BooksDataModel(
-          authors: authors,
-          genres: genres,
           books: booksPage.books,
           page: booksPage.page,
           totalPages: booksPage.totalPages,
@@ -45,6 +46,67 @@ class BooksRepository {
         Failure(message: exception.toString()),
       );
     }
+  }
+
+  Future<Result<BooksPageBootstrapModel>> loadBooksPageBootstrap(
+    String token, {
+    required int page,
+    int pageSize = 12,
+  }) async {
+    try {
+      final bootstrap = await _apiService.getBooksPageBootstrap(
+        token,
+        page: page,
+        pageSize: pageSize,
+      );
+      _cachedLookupData = BookLookupData(
+        authors: bootstrap.authors,
+        genres: bootstrap.genres,
+      );
+      return Success<BooksPageBootstrapModel>(bootstrap);
+    } on AppException catch (exception) {
+      return ErrorResult<BooksPageBootstrapModel>(
+        Failure.fromException(exception),
+      );
+    } catch (exception) {
+      return ErrorResult<BooksPageBootstrapModel>(
+        Failure(message: exception.toString()),
+      );
+    }
+  }
+
+  Future<Result<BookLookupData>> loadLookupData(
+    String token, {
+    bool forceRefresh = false,
+  }) async {
+    if (!forceRefresh && _cachedLookupData != null) {
+      return Success<BookLookupData>(_cachedLookupData!);
+    }
+
+    try {
+      final futures = await Future.wait<Object>([
+        _apiService.getAuthors(token),
+        _apiService.getGenres(token),
+      ]);
+
+      final lookupData = BookLookupData(
+        authors: futures[0] as List<AdminAuthorModel>,
+        genres: futures[1] as List<AdminGenreModel>,
+      );
+
+      _cachedLookupData = lookupData;
+      return Success<BookLookupData>(lookupData);
+    } on AppException catch (exception) {
+      return ErrorResult<BookLookupData>(Failure.fromException(exception));
+    } catch (exception) {
+      return ErrorResult<BookLookupData>(
+        Failure(message: exception.toString()),
+      );
+    }
+  }
+
+  void clearLookupCache() {
+    _cachedLookupData = null;
   }
 
   Future<Result<BookAssetsModel>> getBookAssets(
@@ -88,9 +150,7 @@ class BooksRepository {
     }
 
     if (authorId.trim().isEmpty) {
-      return const ErrorResult<void>(
-        Failure(message: 'Author is required.'),
-      );
+      return const ErrorResult<void>(Failure(message: 'Author is required.'));
     }
 
     if (genreIds.isEmpty) {
@@ -106,9 +166,7 @@ class BooksRepository {
     }
 
     if (normalizedPrice == null || normalizedPrice <= 0) {
-      return const ErrorResult<void>(
-        Failure(message: 'Enter a valid price.'),
-      );
+      return const ErrorResult<void>(Failure(message: 'Enter a valid price.'));
     }
 
     if (existingBook == null && (imageFile == null || pdfFile == null)) {

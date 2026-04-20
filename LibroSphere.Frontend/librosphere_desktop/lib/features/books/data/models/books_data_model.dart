@@ -1,11 +1,7 @@
-import 'admin_author_model.dart';
 import 'admin_book_model.dart';
-import 'admin_genre_model.dart';
 
 class BooksDataModel {
   BooksDataModel({
-    required this.authors,
-    required this.genres,
     required this.books,
     required this.page,
     required this.totalPages,
@@ -14,8 +10,6 @@ class BooksDataModel {
     required this.hasNextPage,
   });
 
-  final List<AdminAuthorModel> authors;
-  final List<AdminGenreModel> genres;
   final List<AdminBookModel> books;
   final int page;
   final int totalPages;

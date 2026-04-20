@@ -1,6 +1,7 @@
 import '../core/network/api_client.dart';
 import '../data/models/author_model.dart';
 import '../data/models/book_model.dart';
+import '../data/models/home_feed_model.dart';
 import '../data/models/paged_result.dart';
 import '../data/models/review_model.dart';
 
@@ -13,8 +14,21 @@ class CatalogService {
     return _apiClient.getAuthors();
   }
 
-  Future<PagedResult<BookModel>> getBooks({String? searchTerm, String? accessToken}) {
-    return _apiClient.getBooks(searchTerm: searchTerm, accessToken: accessToken);
+  Future<PagedResult<BookModel>> getBooks({
+    String? searchTerm,
+    String? accessToken,
+  }) {
+    return _apiClient.getBooks(
+      searchTerm: searchTerm,
+      accessToken: accessToken,
+    );
+  }
+
+  Future<HomeFeedModel> getHomeFeed({String? searchTerm, String? accessToken}) {
+    return _apiClient.getHomeFeed(
+      searchTerm: searchTerm,
+      accessToken: accessToken,
+    );
   }
 
   Future<BookModel> getBook(String bookId, {String? accessToken}) {

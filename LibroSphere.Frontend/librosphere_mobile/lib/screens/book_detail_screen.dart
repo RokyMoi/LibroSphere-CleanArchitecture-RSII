@@ -5,15 +5,22 @@ import '../core/app_constants.dart';
 import '../core/ui/app_feedback.dart';
 import '../data/models/book_model.dart';
 import '../data/models/review_model.dart';
-import '../features/session/presentation/session_scope.dart';
+import '../features/session/presentation/viewmodels/session_viewmodel.dart';
 import '../widgets/common_widgets.dart';
 import '../widgets/review_dialog.dart';
 import 'reader_screen.dart';
 
 class BookDetailScreen extends StatefulWidget {
-  const BookDetailScreen({super.key, required this.bookId});
+  const BookDetailScreen({
+    super.key,
+    required this.bookId,
+    required this.session,
+    required this.onNavigateToTab,
+  });
 
   final String bookId;
+  final SessionViewModel session;
+  final ValueChanged<int> onNavigateToTab;
 
   @override
   State<BookDetailScreen> createState() => _BookDetailScreenState();
@@ -56,21 +63,21 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     });
 
     try {
-      final session = context.session;
-      await session.ensureAuthors();
-
-      final book = await session.getBook(widget.bookId, forceRefresh: true);
-      final averageRatingFuture = session.getAverageRating(widget.bookId);
+      final session = widget.session;
+      final authorsFuture = session.ensureAuthors();
+      final bookFuture = session.getBook(widget.bookId, forceRefresh: true);
       final libraryAccessFuture = session.hasLibraryAccess(widget.bookId);
-      final reviewPage = await session.getReviewPage(
+      final reviewPageFuture = session.getReviewPage(
         widget.bookId,
         page: 1,
         pageSize: _reviewPageSize,
         forceRefresh: true,
       );
 
-      final averageRating = await averageRatingFuture;
+      final book = await bookFuture;
+      await authorsFuture;
       final hasLibraryAccess = await libraryAccessFuture;
+      final reviewPage = await reviewPageFuture;
 
       if (!mounted) {
         return;
@@ -79,7 +86,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       setState(() {
         _book = book;
         _authorName = session.authorName(book.authorId);
-        _averageRating = averageRating;
+        _averageRating = book.averageRating;
         _hasLibraryAccess = hasLibraryAccess;
         _reviews = reviewPage.items;
         _reviewPage = reviewPage.page == 0 ? 1 : reviewPage.page;
@@ -110,7 +117,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     });
 
     try {
-      final reviewPage = await context.session.getReviewPage(
+      final reviewPage = await widget.session.getReviewPage(
         widget.bookId,
         page: page,
         pageSize: _reviewPageSize,
@@ -151,7 +158,11 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => ReaderScreen(book: book),
+        builder: (_) => ReaderScreen(
+          book: book,
+          session: widget.session,
+          onNavigateToTab: widget.onNavigateToTab,
+        ),
       ),
     );
   }
@@ -182,12 +193,15 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     }
 
     try {
-      await context.session.addToCart(book);
+      await widget.session.addToCart(book);
       if (!mounted) {
         return;
       }
 
-      showSuccessSnackBar(context, 'You successfully added the book to your shopping cart.');
+      showSuccessSnackBar(
+        context,
+        'You successfully added the book to your shopping cart.',
+      );
     } catch (error) {
       if (!mounted) {
         return;
@@ -204,29 +218,30 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         child: _loading
             ? const CenteredLoadingIndicator()
             : _errorMessage != null
-                ? _BookDetailErrorState(
-                    message: _errorMessage!,
-                    onBack: () => Navigator.of(context).pop(),
-                    onRetry: _load,
-                  )
-                : _BookDetailContent(
-                    book: _book!,
-                    authorName: _authorName,
-                    averageRating: _averageRating,
-                    hasLibraryAccess: _hasLibraryAccess,
-                    reviews: _reviews,
-                    reviewPage: _reviewPage,
-                    reviewTotalPages: _reviewTotalPages,
-                    reviewTotalCount: _reviewTotalCount,
-                    loadingReviewPage: _loadingReviewPage,
-                    reviewErrorMessage: _reviewErrorMessage,
-                    onBack: () => Navigator.of(context).pop(),
-                    onAddToCart: _addToCart,
-                    onOpenReader: _openReader,
-                    onWriteReview: _openReview,
-                    onLoadPreviousReviews: _loadPreviousReviews,
-                    onLoadNextReviews: _loadNextReviews,
-                  ),
+            ? _BookDetailErrorState(
+                message: _errorMessage!,
+                onBack: () => Navigator.of(context).pop(),
+                onRetry: _load,
+              )
+            : _BookDetailContent(
+                book: _book!,
+                authorName: _authorName,
+                averageRating: _averageRating,
+                hasLibraryAccess: _hasLibraryAccess,
+                reviews: _reviews,
+                reviewPage: _reviewPage,
+                reviewTotalPages: _reviewTotalPages,
+                reviewTotalCount: _reviewTotalCount,
+                loadingReviewPage: _loadingReviewPage,
+                reviewErrorMessage: _reviewErrorMessage,
+                onBack: () => Navigator.of(context).pop(),
+                onAddToCart: _addToCart,
+                onOpenReader: _openReader,
+                onWriteReview: _openReview,
+                onLoadPreviousReviews: _loadPreviousReviews,
+                onLoadNextReviews: _loadNextReviews,
+                onNavigateToTab: widget.onNavigateToTab,
+              ),
       ),
     );
   }
@@ -250,6 +265,7 @@ class _BookDetailContent extends StatelessWidget {
     required this.onWriteReview,
     required this.onLoadPreviousReviews,
     required this.onLoadNextReviews,
+    required this.onNavigateToTab,
   });
 
   final BookModel book;
@@ -268,10 +284,13 @@ class _BookDetailContent extends StatelessWidget {
   final VoidCallback onWriteReview;
   final VoidCallback onLoadPreviousReviews;
   final VoidCallback onLoadNextReviews;
+  final ValueChanged<int> onNavigateToTab;
 
   @override
   Widget build(BuildContext context) {
-    final visibleReviewCount = reviewTotalCount == 0 ? reviews.length : reviewTotalCount;
+    final visibleReviewCount = reviewTotalCount == 0
+        ? reviews.length
+        : reviewTotalCount;
 
     return Column(
       children: [
@@ -283,18 +302,53 @@ class _BookDetailContent extends StatelessWidget {
                 onTap: onBack,
                 child: const Row(
                   children: [
-                    Icon(Icons.chevron_left_rounded, color: brandBlue, size: 28),
+                    Icon(
+                      Icons.chevron_left_rounded,
+                      color: brandBlue,
+                      size: 28,
+                    ),
                     SizedBox(width: 4),
-                    Text('Go Back', style: TextStyle(color: brandBlueDark, fontSize: 18, fontWeight: FontWeight.w800)),
+                    Text(
+                      'Go Back',
+                      style: TextStyle(
+                        color: brandBlueDark,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 18),
-              Align(child: BookCover(imageUrl: book.imageLink, width: 168, height: 235, radius: 0)),
+              Align(
+                child: BookCover(
+                  imageUrl: book.imageLink,
+                  width: 168,
+                  height: 235,
+                  radius: 0,
+                ),
+              ),
               const SizedBox(height: 14),
-              Center(child: Text(book.title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800))),
+              Center(
+                child: Text(
+                  book.title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
               const SizedBox(height: 4),
-              Center(child: Text(authorName, style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w600))),
+              Center(
+                child: Text(
+                  authorName,
+                  style: TextStyle(
+                    color: Colors.grey.shade700,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
               const SizedBox(height: 18),
               Wrap(
                 runSpacing: 10,
@@ -306,23 +360,37 @@ class _BookDetailContent extends StatelessWidget {
                       StarRow(rating: averageRating),
                       const SizedBox(width: 8),
                       Text(
-                        averageRating > 0 ? averageRating.toStringAsFixed(1) : 'No rating',
-                        style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w700),
+                        averageRating > 0
+                            ? averageRating.toStringAsFixed(1)
+                            : 'No rating',
+                        style: TextStyle(
+                          color: Colors.grey.shade700,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(width: 14),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
-                      color: hasLibraryAccess ? const Color(0xFFE7F6EC) : const Color(0xFFF1F5FF),
+                      color: hasLibraryAccess
+                          ? const Color(0xFFE7F6EC)
+                          : const Color(0xFFF1F5FF),
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
-                      hasLibraryAccess ? 'In Your Library' : '\$${book.amount.toStringAsFixed(2)}',
+                      hasLibraryAccess
+                          ? 'In Your Library'
+                          : '\$${book.amount.toStringAsFixed(2)}',
                       style: TextStyle(
                         fontSize: 14,
-                        color: hasLibraryAccess ? const Color(0xFF027A48) : brandBlueDark,
+                        color: hasLibraryAccess
+                            ? const Color(0xFF027A48)
+                            : brandBlueDark,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -330,7 +398,14 @@ class _BookDetailContent extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 14),
-              Text(book.description, style: TextStyle(height: 1.8, color: Colors.grey.shade800, fontWeight: FontWeight.w500)),
+              Text(
+                book.description,
+                style: TextStyle(
+                  height: 1.8,
+                  color: Colors.grey.shade800,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               const SizedBox(height: 24),
               if (hasLibraryAccess) ...[
                 PrimaryPillButton(
@@ -345,9 +420,14 @@ class _BookDetailContent extends StatelessWidget {
                     foregroundColor: brandBlueDark,
                     side: const BorderSide(color: brandBlueDark),
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  child: const Text('Write a Review', style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: const Text(
+                    'Write a Review',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
                 ),
               ] else
                 PrimaryPillButton(
@@ -358,11 +438,17 @@ class _BookDetailContent extends StatelessWidget {
               const SizedBox(height: 28),
               Text(
                 'REVIEWS${visibleReviewCount > 0 ? ' ($visibleReviewCount)' : ''}',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: 14),
               if (reviews.isEmpty)
-                Text('No reviews yet.', style: TextStyle(color: Colors.grey.shade700))
+                Text(
+                  'No reviews yet.',
+                  style: TextStyle(color: Colors.grey.shade700),
+                )
               else
                 ...reviews.map((review) => _ReviewCard(review: review)),
               if (reviewErrorMessage != null) ...[
@@ -396,7 +482,8 @@ class _BookDetailContent extends StatelessWidget {
                         ),
                       ),
                     IconButton(
-                      onPressed: loadingReviewPage || reviewPage >= reviewTotalPages
+                      onPressed:
+                          loadingReviewPage || reviewPage >= reviewTotalPages
                           ? null
                           : onLoadNextReviews,
                       icon: const Icon(Icons.arrow_forward_ios_rounded),
@@ -409,7 +496,11 @@ class _BookDetailContent extends StatelessWidget {
             ],
           ),
         ),
-        MobileBottomNavigation(currentIndex: 0, onTap: (_) {}, embedded: true),
+        MobileBottomNavigation(
+          currentIndex: 0,
+          onTap: onNavigateToTab,
+          embedded: true,
+        ),
       ],
     );
   }
@@ -427,7 +518,10 @@ class _ReviewCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: const Color(0xFFF8FAFF), borderRadius: BorderRadius.circular(18)),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFF),
+        borderRadius: BorderRadius.circular(18),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -438,7 +532,11 @@ class _ReviewCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Text(
                   DateFormat('d MMM yyyy').format(createdAt.toLocal()),
-                  style: TextStyle(color: Colors.grey.shade700, fontSize: 12, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    color: Colors.grey.shade700,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ],

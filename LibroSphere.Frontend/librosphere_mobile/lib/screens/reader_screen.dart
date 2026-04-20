@@ -4,13 +4,20 @@ import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import '../core/app_constants.dart';
 import '../core/ui/app_feedback.dart';
 import '../data/models/book_model.dart';
-import '../features/session/presentation/session_scope.dart';
+import '../features/session/presentation/viewmodels/session_viewmodel.dart';
 import '../widgets/common_widgets.dart';
 
 class ReaderScreen extends StatefulWidget {
-  const ReaderScreen({super.key, required this.book});
+  const ReaderScreen({
+    super.key,
+    required this.book,
+    required this.session,
+    required this.onNavigateToTab,
+  });
 
   final BookModel book;
+  final SessionViewModel session;
+  final ValueChanged<int> onNavigateToTab;
 
   @override
   State<ReaderScreen> createState() => _ReaderScreenState();
@@ -25,7 +32,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
   Future<String> _resolvePdfUrl() async {
     try {
-      return await SessionScope.read(context).getReadUrl(widget.book.id);
+      return await widget.session.getReadUrl(widget.book.id);
     } catch (error) {
       final fallbackUrl = widget.book.pdfLink;
       if (fallbackUrl != null && fallbackUrl.isNotEmpty) {
@@ -134,7 +141,11 @@ class _ReaderScreenState extends State<ReaderScreen> {
                       ),
                     ],
                   ),
-                  MobileBottomNavigation(currentIndex: 1, onTap: (_) {}, embedded: true),
+                  MobileBottomNavigation(
+                    currentIndex: 1,
+                    onTap: widget.onNavigateToTab,
+                    embedded: true,
+                  ),
                 ],
               ),
             ),

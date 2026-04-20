@@ -15,7 +15,7 @@ class AuthRepository {
   Future<Result<AuthSessionModel>> login(LoginRequest request) async {
     try {
       final tokens = await _apiService.login(request);
-      final user = await _apiService.getCurrentUser(tokens.accessToken);
+      final user = _apiService.decodeUserFromAccessToken(tokens.accessToken);
       return Success(AuthSessionModel(tokens: tokens, user: user));
     } on AppException catch (exception) {
       return ErrorResult(Failure.fromException(exception));
@@ -27,7 +27,7 @@ class AuthRepository {
   Future<Result<AuthSessionModel>> register(RegisterRequest request) async {
     try {
       final tokens = await _apiService.register(request);
-      final user = await _apiService.getCurrentUser(tokens.accessToken);
+      final user = _apiService.decodeUserFromAccessToken(tokens.accessToken);
       return Success(AuthSessionModel(tokens: tokens, user: user));
     } on AppException catch (exception) {
       return ErrorResult(Failure.fromException(exception));
@@ -36,7 +36,9 @@ class AuthRepository {
     }
   }
 
-  Future<Result<AuthSessionModel>> restoreSession(AuthTokensModel tokens) async {
+  Future<Result<AuthSessionModel>> restoreSession(
+    AuthTokensModel tokens,
+  ) async {
     try {
       final user = await _apiService.getCurrentUser(tokens.accessToken);
       return Success(AuthSessionModel(tokens: tokens, user: user));

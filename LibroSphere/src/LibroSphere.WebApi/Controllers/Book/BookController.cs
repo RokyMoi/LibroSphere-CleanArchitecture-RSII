@@ -1,16 +1,22 @@
 using LibroSphere.Application.Books.Command.CreateNewBook;
 using LibroSphere.Application.Books.Command.DeleteBook;
 using LibroSphere.Application.Books.Command.UpdateBook;
+using LibroSphere.Application.Authors.Query.GetAuthorById;
+using LibroSphere.Application.Authors.Query.GetAllAuthors;
 using LibroSphere.Application.Books.Query.GetAllBooks;
 using LibroSphere.Application.Books.Query.GetBookAssetLinksById;
 using LibroSphere.Application.Books.Query.GetBookByIdQuery;
 using LibroSphere.Application.Abstractions.Identity;
 using LibroSphere.Application.Abstractions.Storage;
+using LibroSphere.Application.Genres;
+using LibroSphere.Application.Genres.Query.GetAllGenres;
+using LibroSphere.Application.Recommendations.Query.GetRecommendedBooks;
 using LibroSphere.Domain.Abstraction;
 using LibroSphere.Domain.Entities.Shared;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using LibroSphere.WebApi.Extensions;
 
 namespace LibroSphere.WebApi.Controllers.Book
 {
@@ -65,6 +71,102 @@ namespace LibroSphere.WebApi.Controllers.Book
         {
             var result = await _sender.Send(new GetAllBooksQuery(searchTerm, authorId, genreId, minPrice, maxPrice, page, pageSize), cancellationToken);
             return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+        }
+
+        [HttpGet("home")]
+        public async Task<IActionResult> GetHomeFeed(
+            [FromQuery] string? searchTerm,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 12,
+            [FromQuery] int takeRecommendations = 5,
+            CancellationToken cancellationToken = default)
+        {
+            var booksResult = await _sender.Send(
+                new GetAllBooksQuery(searchTerm, null, null, null, null, page, pageSize),
+                cancellationToken);
+
+            if (!booksResult.IsSuccess)
+            {
+                return BadRequest(booksResult.Error);
+            }
+
+            if (User.Identity?.IsAuthenticated != true)
+            {
+                return Ok(new HomeFeedResponse(
+                    booksResult.Value.Items,
+                    booksResult.Value.Page,
+                    booksResult.Value.PageSize,
+                    booksResult.Value.TotalCount,
+                    booksResult.Value.TotalPages,
+                    booksResult.Value.HasPreviousPage,
+                    booksResult.Value.HasNextPage,
+                    new List<RecommendedBookResponse>()));
+            }
+
+            var recommendationsResult = await _sender.Send(
+                new GetRecommendedBooksQuery(User.GetRequiredUserId(), takeRecommendations),
+                cancellationToken);
+
+            return recommendationsResult.IsSuccess
+                ? Ok(new HomeFeedResponse(
+                    booksResult.Value.Items,
+                    booksResult.Value.Page,
+                    booksResult.Value.PageSize,
+                    booksResult.Value.TotalCount,
+                    booksResult.Value.TotalPages,
+                    booksResult.Value.HasPreviousPage,
+                    booksResult.Value.HasNextPage,
+                    recommendationsResult.Value))
+                : BadRequest(recommendationsResult.Error);
+        }
+
+        [HttpGet("admin-page")]
+        [Authorize(Roles = ApplicationRoles.Admin)]
+        public async Task<IActionResult> GetAdminBooksPage(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 12,
+            CancellationToken cancellationToken = default)
+        {
+            var booksTask = _sender.Send(
+                new GetAllBooksQuery(null, null, null, null, null, page, pageSize),
+                cancellationToken);
+            var authorsTask = _sender.Send(
+                new GetAllAuthorsQuery(null, 1, 200),
+                cancellationToken);
+            var genresTask = _sender.Send(
+                new GetAllGenresQuery(null, 1, 200),
+                cancellationToken);
+
+            await Task.WhenAll(booksTask, authorsTask, genresTask);
+
+            var booksResult = await booksTask;
+            if (!booksResult.IsSuccess)
+            {
+                return BadRequest(booksResult.Error);
+            }
+
+            var authorsResult = await authorsTask;
+            if (!authorsResult.IsSuccess)
+            {
+                return BadRequest(authorsResult.Error);
+            }
+
+            var genresResult = await genresTask;
+            if (!genresResult.IsSuccess)
+            {
+                return BadRequest(genresResult.Error);
+            }
+
+            return Ok(new AdminBooksPageResponse(
+                booksResult.Value.Items,
+                booksResult.Value.Page,
+                booksResult.Value.PageSize,
+                booksResult.Value.TotalCount,
+                booksResult.Value.TotalPages,
+                booksResult.Value.HasPreviousPage,
+                booksResult.Value.HasNextPage,
+                authorsResult.Value.Items,
+                genresResult.Value.Items));
         }
 
         [HttpPost]
@@ -215,4 +317,25 @@ namespace LibroSphere.WebApi.Controllers.Book
                 && string.Equals(Path.GetExtension(pdfFile.FileName), ".pdf", StringComparison.OrdinalIgnoreCase);
         }
     }
+
+    public sealed record HomeFeedResponse(
+        IReadOnlyList<BookResponse> Newest,
+        int Page,
+        int PageSize,
+        int TotalCount,
+        int TotalPages,
+        bool HasPreviousPage,
+        bool HasNextPage,
+        IReadOnlyList<RecommendedBookResponse> Recommendations);
+
+    public sealed record AdminBooksPageResponse(
+        IReadOnlyList<BookResponse> Books,
+        int Page,
+        int PageSize,
+        int TotalCount,
+        int TotalPages,
+        bool HasPreviousPage,
+        bool HasNextPage,
+        IReadOnlyList<AuthorResponse> Authors,
+        IReadOnlyList<GenreResponse> Genres);
 }

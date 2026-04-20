@@ -21,41 +21,52 @@ class LoginForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        AppTextField(
-          controller: emailController,
-          hintText: 'Email',
-          keyboardType: TextInputType.emailAddress,
-        ),
-        const SizedBox(height: 18),
-        AppTextField(
-          controller: passwordController,
-          hintText: 'Password',
-          obscureText: true,
-        ),
-        if (errorMessage != null) ...[
-          const SizedBox(height: 16),
-          Text(
-            errorMessage!,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+    return AutofillGroup(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppTextField(
+            controller: emailController,
+            hintText: 'Email',
+            keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.next,
+            autofillHints: const [AutofillHints.username, AutofillHints.email],
+            enableSuggestions: false,
+            autocorrect: false,
+          ),
+          const SizedBox(height: 18),
+          AppTextField(
+            controller: passwordController,
+            hintText: 'Password',
+            obscureText: true,
+            textInputAction: TextInputAction.done,
+            autofillHints: const [AutofillHints.password],
+            enableSuggestions: false,
+            autocorrect: false,
+            onSubmitted: (_) => onSubmit(),
+          ),
+          if (errorMessage != null) ...[
+            const SizedBox(height: 16),
+            Text(
+              errorMessage!,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+          const SizedBox(height: 26),
+          SizedBox(
+            width: double.infinity,
+            child: AppButton(
+              label: 'LOGIN',
+              onPressed: isSubmitting ? null : onSubmit,
+              isLoading: isSubmitting,
             ),
           ),
         ],
-        const SizedBox(height: 26),
-        Align(
-          child: AppButton(
-            label: 'LOGIN',
-            onPressed: isSubmitting ? null : onSubmit,
-            width: 180,
-            isLoading: isSubmitting,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

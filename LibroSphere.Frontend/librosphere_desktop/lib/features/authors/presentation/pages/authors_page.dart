@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app/theme/app_theme.dart';
 import '../../../../core/error/result.dart';
+import '../../../../shared/widgets/admin/admin_empty_state.dart';
+import '../../../../shared/widgets/admin/admin_panel.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/loading_view.dart';
-import '../../../../shared/widgets/table_header.dart';
+import '../../../../shared/widgets/admin/table_header.dart';
 import '../../../books/data/models/admin_author_model.dart';
 import '../viewmodels/authors_viewmodel.dart';
 import '../widgets/add_edit_author_dialog.dart';
@@ -23,16 +24,10 @@ class _AuthorsPageState extends State<AuthorsPage> {
   @override
   void initState() {
     super.initState();
-    widget.viewModel.load();
+    widget.viewModel.ensureLoaded();
   }
 
-  @override
-  void dispose() {
-    widget.viewModel.dispose();
-    super.dispose();
-  }
-
-  Future<void> _openEditor(AdminAuthorModel? author) async {
+  Future<void> _openEditor([AdminAuthorModel? author]) async {
     final wasSaved = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -46,29 +41,49 @@ class _AuthorsPageState extends State<AuthorsPage> {
       return;
     }
 
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.clearSnackBars();
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          author == null
-              ? 'Author was added successfully.'
-              : 'Author was updated successfully.',
-        ),
-        backgroundColor: const Color(0xFF1F8B4C),
-      ),
-    );
+    final message = author == null
+        ? 'Author was added successfully.'
+        : 'Author was updated successfully.';
+    _showSnackBar(message, isError: false);
   }
 
   Future<void> _deleteAuthor(AdminAuthorModel author) async {
-    final shouldDelete = await showDialog<bool>(
+    final shouldDelete = await _confirmDeletion(
+      title: 'Delete Author',
+      message:
+          'Are you sure you want to permanently delete "${author.name}"?\n\nThis will also delete all books by this author.',
+    );
+
+    if (!shouldDelete || !mounted) {
+      return;
+    }
+
+    final result = await widget.viewModel.deleteAuthor(author);
+    if (!mounted) {
+      return;
+    }
+
+    switch (result) {
+      case Success<void>():
+        _showSnackBar(
+          'Author "${author.name}" and all related books were deleted.',
+          isError: false,
+        );
+      case ErrorResult<void>(failure: final error):
+        _showSnackBar(error.toString(), isError: true);
+    }
+  }
+
+  Future<bool> _confirmDeletion({
+    required String title,
+    required String message,
+  }) async {
+    final result = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete Author'),
-          content: Text(
-            'Are you sure you want to permanently delete "${author.name}"?\n\nThis will also delete all books by this author.',
-          ),
+          title: Text(title),
+          content: Text(message),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -83,50 +98,38 @@ class _AuthorsPageState extends State<AuthorsPage> {
       },
     );
 
-    if (shouldDelete != true || !mounted) {
-      return;
-    }
+    return result == true;
+  }
 
-    final result = await widget.viewModel.deleteAuthor(author);
-    if (!mounted) {
-      return;
-    }
-
+  void _showSnackBar(String message, {required bool isError}) {
     final messenger = ScaffoldMessenger.of(context);
-    messenger.clearSnackBars();
-
-    if (result is Success<void>) {
-      messenger.showSnackBar(
+    messenger
+      ..clearSnackBars()
+      ..showSnackBar(
         SnackBar(
-          content: Text(
-            'Author "${author.name}" and all related books were deleted.',
-          ),
-          backgroundColor: const Color(0xFF1F8B4C),
+          content: Text(message),
+          backgroundColor: isError
+              ? const Color(0xFFB42318)
+              : const Color(0xFF1F8B4C),
         ),
       );
-    } else if (result is ErrorResult<void>) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(result.failure.toString()),
-          backgroundColor: const Color(0xFFB42318),
-        ),
-      );
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: widget.viewModel,
+    return ListenableBuilder(
+      listenable: widget.viewModel,
       builder: (context, _) {
-        if (widget.viewModel.isLoading) {
+        final viewModel = widget.viewModel;
+
+        if (viewModel.isLoading) {
           return const LoadingView();
         }
 
-        if (widget.viewModel.failure != null) {
+        if (viewModel.failure != null) {
           return ErrorView(
-            message: widget.viewModel.failure!.message,
-            onRetry: () => widget.viewModel.load(),
+            message: viewModel.failure!.message,
+            onRetry: () => viewModel.load(),
           );
         }
 
@@ -135,149 +138,49 @@ class _AuthorsPageState extends State<AuthorsPage> {
           child: Column(
             children: [
               Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: desktopPrimaryLight.withValues(alpha: 0.55),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                child: AdminPanel(
                   child: Column(
                     children: [
-                      TableHeader(
-                        columns: const ['Author', 'Biography', 'Action'],
+                      const TableHeader(
+                        columns: ['Author', 'Biography', 'Action'],
                       ),
-                      if (widget.viewModel.authors.isEmpty)
-                        const Expanded(
-                          child: Center(
-                            child: Text(
-                              'No authors found.',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        )
-                      else
-                        ...widget.viewModel.authors.map(
-                              (author) => Padding(
+                      Expanded(
+                        child: viewModel.authors.isEmpty
+                            ? const AdminEmptyState('No authors found.')
+                            : ListView.separated(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 18,
                                   vertical: 10,
                                 ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        author.name,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text(
-                                        author.biography,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    SizedBox(
-                                      width: 236,
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            child: AppButton(
-                                              label: 'EDIT',
-                                              onPressed: () => _openEditor(
-                                                author,
-                                              ),
-                                              height: 38,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 10),
-                                          Expanded(
-                                            child: AppButton(
-                                              label: 'DELETE',
-                                              onPressed: widget
-                                                          .viewModel
-                                                          .deletingAuthorId ==
-                                                      author.id
-                                                  ? null
-                                                  : () => _deleteAuthor(author),
-                                              height: 38,
-                                              isLoading: widget
-                                                      .viewModel
-                                                      .deletingAuthorId ==
-                                                  author.id,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                itemCount: viewModel.authors.length,
+                                separatorBuilder: (_, _) =>
+                                    const SizedBox(height: 10),
+                                itemBuilder: (context, index) {
+                                  final author = viewModel.authors[index];
+                                  return _AuthorRow(
+                                    author: author,
+                                    isDeleting:
+                                        viewModel.deletingAuthorId == author.id,
+                                    onEdit: () => _openEditor(author),
+                                    onDelete: () => _deleteAuthor(author),
+                                  );
+                                },
                               ),
-                            ),
+                      ),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        onPressed: widget.viewModel.hasPreviousPage
-                            ? () => widget.viewModel.loadPreviousPage()
-                            : null,
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      ),
-                      Text(
-                        '${widget.viewModel.currentPage}/${widget.viewModel.totalPages}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: widget.viewModel.hasNextPage
-                            ? () => widget.viewModel.loadNextPage()
-                            : null,
-                        icon: const Icon(
-                          Icons.arrow_forward,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        'Total authors: ${widget.viewModel.totalCount}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  AppButton(
-                    label: 'Add Author',
-                    onPressed: () => _openEditor(null),
-                    width: 160,
-                  ),
-                ),
+              _AuthorsFooter(
+                currentPage: viewModel.currentPage,
+                totalPages: viewModel.totalPages,
+                totalCount: viewModel.totalCount,
+                hasPreviousPage: viewModel.hasPreviousPage,
+                hasNextPage: viewModel.hasNextPage,
+                onPreviousPage: viewModel.loadPreviousPage,
+                onNextPage: viewModel.loadNextPage,
+                onAddAuthor: () => _openEditor(),
               ),
             ],
           ),
@@ -286,3 +189,145 @@ class _AuthorsPageState extends State<AuthorsPage> {
     );
   }
 }
+
+class _AuthorRow extends StatelessWidget {
+  const _AuthorRow({
+    required this.author,
+    required this.isDeleting,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final AdminAuthorModel author;
+  final bool isDeleting;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            author.name,
+            style: _rowTextStyle,
+          ),
+        ),
+        Expanded(
+          flex: 2,
+          child: Text(
+            author.biography,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: _secondaryRowTextStyle,
+          ),
+        ),
+        const SizedBox(width: 16),
+        SizedBox(
+          width: 236,
+          child: Row(
+            children: [
+              Expanded(
+                child: AppButton(
+                  label: 'EDIT',
+                  onPressed: onEdit,
+                  height: 38,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: AppButton(
+                  label: 'DELETE',
+                  onPressed: isDeleting ? null : onDelete,
+                  height: 38,
+                  isLoading: isDeleting,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AuthorsFooter extends StatelessWidget {
+  const _AuthorsFooter({
+    required this.currentPage,
+    required this.totalPages,
+    required this.totalCount,
+    required this.hasPreviousPage,
+    required this.hasNextPage,
+    required this.onPreviousPage,
+    required this.onNextPage,
+    required this.onAddAuthor,
+  });
+
+  final int currentPage;
+  final int totalPages;
+  final int totalCount;
+  final bool hasPreviousPage;
+  final bool hasNextPage;
+  final VoidCallback onPreviousPage;
+  final VoidCallback onNextPage;
+  final VoidCallback onAddAuthor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            IconButton(
+              onPressed: hasPreviousPage ? onPreviousPage : null,
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+            ),
+            Text(
+              '$currentPage/$totalPages',
+              style: _footerTextStyle,
+            ),
+            IconButton(
+              onPressed: hasNextPage ? onNextPage : null,
+              icon: const Icon(Icons.arrow_forward, color: Colors.white),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'Total authors: $totalCount',
+              style: _footerCountTextStyle,
+            ),
+          ],
+        ),
+        AppButton(
+          label: 'Add Author',
+          onPressed: onAddAuthor,
+          width: 160,
+        ),
+      ],
+    );
+  }
+}
+
+const TextStyle _rowTextStyle = TextStyle(
+  color: Colors.white,
+  fontSize: 18,
+  fontWeight: FontWeight.w700,
+);
+
+const TextStyle _secondaryRowTextStyle = TextStyle(
+  color: Colors.white,
+  fontSize: 16,
+  fontWeight: FontWeight.w500,
+);
+
+const TextStyle _footerTextStyle = TextStyle(
+  color: Colors.white,
+  fontSize: 16,
+  fontWeight: FontWeight.w700,
+);
+
+const TextStyle _footerCountTextStyle = TextStyle(
+  color: Colors.white,
+  fontSize: 14,
+  fontWeight: FontWeight.w600,
+);

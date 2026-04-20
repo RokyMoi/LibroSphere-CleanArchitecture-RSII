@@ -12,6 +12,7 @@ class UsersViewModel extends ChangeNotifier {
   final UsersRepository _repository;
   final String _token;
   final int pageSize = 12;
+  bool _hasLoaded = false;
 
   bool isLoading = true;
   String? deletingUserId;
@@ -22,6 +23,14 @@ class UsersViewModel extends ChangeNotifier {
   int totalCount = 0;
   bool hasPreviousPage = false;
   bool hasNextPage = false;
+
+  Future<void> ensureLoaded() {
+    if (_hasLoaded) {
+      return Future<void>.value();
+    }
+
+    return load();
+  }
 
   Future<void> load({int? page}) async {
     isLoading = true;
@@ -43,6 +52,7 @@ class UsersViewModel extends ChangeNotifier {
         totalCount = loadedPage.totalCount;
         hasPreviousPage = loadedPage.hasPreviousPage;
         hasNextPage = loadedPage.hasNextPage;
+        _hasLoaded = true;
       case ErrorResult<UsersPageModel>(failure: final error):
         failure = error is Failure
             ? error

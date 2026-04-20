@@ -15,7 +15,7 @@ namespace LibroSphere.Application.Genres.Query.GetGenreById
 
         public async Task<Result<GenreResponse>> Handle(GetGenreByIdQuery request, CancellationToken cancellationToken)
         {
-            var genre = await _genreRepository.GetAsyncById(request.GenreId, cancellationToken);
+            var genre = await _genreRepository.GetReadOnlyByIdAsync(request.GenreId, cancellationToken);
             if (genre is null)
             {
                 return Result.Failure<GenreResponse>(GenreErrors.NotFound);

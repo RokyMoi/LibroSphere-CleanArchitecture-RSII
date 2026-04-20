@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app/theme/app_theme.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../shared/widgets/admin/admin_panel.dart';
 import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/loading_view.dart';
 import '../viewmodels/dashboard_viewmodel.dart';
@@ -21,141 +21,140 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
-    widget.viewModel.load();
-  }
-
-  @override
-  void dispose() {
-    widget.viewModel.dispose();
-    super.dispose();
+    widget.viewModel.ensureLoaded();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: widget.viewModel,
+    return ListenableBuilder(
+      listenable: widget.viewModel,
       builder: (context, _) {
-        if (widget.viewModel.isLoading) {
+        final viewModel = widget.viewModel;
+
+        if (viewModel.isLoading) {
           return const LoadingView();
         }
 
-        if (widget.viewModel.failure != null) {
+        if (viewModel.failure != null) {
           return ErrorView(
-            message: widget.viewModel.failure!.message,
-            onRetry: () => widget.viewModel.load(),
+            message: viewModel.failure!.message,
+            onRetry: () => viewModel.load(),
           );
         }
 
-        final data = widget.viewModel.stats!;
+        final stats = viewModel.stats!;
         return Padding(
           padding: const EdgeInsets.fromLTRB(26, 24, 26, 24),
-          child: Container(
-            decoration: BoxDecoration(
-              color: desktopPrimaryLight.withValues(alpha: 0.55),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AnalyticsTile(
-                          label: 'Number of Users:',
-                          value: data.totalUsers.toString(),
-                        ),
-                      ),
-                      const SizedBox(width: 22),
-                      Expanded(
-                        child: AnalyticsTile(
-                          label: 'Total Sales:',
-                          value: data.totalSales.toString(),
-                        ),
-                      ),
-                      const SizedBox(width: 22),
-                      Expanded(
-                        child: AnalyticsTile(
-                          label: 'Total Profit:',
-                          value: formatCurrency(data.totalProfit, 'USD'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 22),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AnalyticsTile(
-                          label: 'Active Users:',
-                          value: data.activeUsers.toString(),
-                        ),
-                      ),
-                      const SizedBox(width: 22),
-                      Expanded(
-                        child: AnalyticsTile(
-                          label: 'Books / Authors:',
-                          value: '${data.totalBooks} / ${data.totalAuthors}',
-                        ),
-                      ),
-                      const SizedBox(width: 22),
-                      Expanded(
-                        child: AnalyticsTile(
-                          label: '30d Revenue:',
-                          value: formatCurrency(data.revenueLast30Days, 'USD'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 22),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AnalyticsTile(
-                          label: 'Reviews:',
-                          value: data.totalReviews.toString(),
-                        ),
-                      ),
-                      const SizedBox(width: 22),
-                      Expanded(
-                        child: AnalyticsTile(
-                          label: 'Wishlist Items:',
-                          value: data.totalWishlistItems.toString(),
-                        ),
-                      ),
-                      const SizedBox(width: 22),
-                      Expanded(
-                        child: AnalyticsTile(
-                          label: 'Avg Book Price:',
-                          value: formatCurrency(data.averageBookPrice, 'USD'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 28),
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Recent Activity',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                      ),
+          child: AdminPanel(
+            padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+            child: Column(
+              children: [
+                _DashboardRow(
+                  items: [
+                    _DashboardTileData(
+                      label: 'Number of Users:',
+                      value: stats.totalUsers.toString(),
+                    ),
+                    _DashboardTileData(
+                      label: 'Total Sales:',
+                      value: stats.totalSales.toString(),
+                    ),
+                    _DashboardTileData(
+                      label: 'Total Profit:',
+                      value: formatCurrency(stats.totalProfit, 'USD'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 22),
+                _DashboardRow(
+                  items: [
+                    _DashboardTileData(
+                      label: 'Active Users:',
+                      value: stats.activeUsers.toString(),
+                    ),
+                    _DashboardTileData(
+                      label: 'Books / Authors:',
+                      value: '${stats.totalBooks} / ${stats.totalAuthors}',
+                    ),
+                    _DashboardTileData(
+                      label: '30d Revenue:',
+                      value: formatCurrency(stats.revenueLast30Days, 'USD'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 22),
+                _DashboardRow(
+                  items: [
+                    _DashboardTileData(
+                      label: 'Reviews:',
+                      value: stats.totalReviews.toString(),
+                    ),
+                    _DashboardTileData(
+                      label: 'Wishlist Items:',
+                      value: stats.totalWishlistItems.toString(),
+                    ),
+                    _DashboardTileData(
+                      label: 'Avg Book Price:',
+                      value: formatCurrency(stats.averageBookPrice, 'USD'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 28),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Recent Activity',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
-                  const SizedBox(height: 14),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: RecentActivityList(items: data.recentActivity),
-                    ),
+                ),
+                const SizedBox(height: 14),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: RecentActivityList(items: stats.recentActivity),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         );
       },
     );
   }
+}
+
+class _DashboardRow extends StatelessWidget {
+  const _DashboardRow({required this.items});
+
+  final List<_DashboardTileData> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (var index = 0; index < items.length; index++) ...[
+          Expanded(
+            child: AnalyticsTile(
+              label: items[index].label,
+              value: items[index].value,
+            ),
+          ),
+          if (index < items.length - 1) const SizedBox(width: 22),
+        ],
+      ],
+    );
+  }
+}
+
+class _DashboardTileData {
+  const _DashboardTileData({
+    required this.label,
+    required this.value,
+  });
+
+  final String label;
+  final String value;
 }

@@ -13,6 +13,7 @@ namespace LibroSphere.Infrastructure.Repositories
         {
             return await DbContext
                 .Set<Review>()
+                .AsNoTracking()
                 .Include(r => r.User)
                 .Where(r => r.BookId == bookId)
                 .OrderByDescending(r => r.CreatedAt)
@@ -23,6 +24,7 @@ namespace LibroSphere.Infrastructure.Repositories
         {
             return await DbContext
                 .Set<Review>()
+                .AsNoTracking()
                 .Include(r => r.Book)
                 .Where(r => r.UserId == userId)
                 .OrderByDescending(r => r.CreatedAt)
@@ -33,6 +35,7 @@ namespace LibroSphere.Infrastructure.Repositories
         {
             return await DbContext
                 .Set<Review>()
+                .AsNoTracking()
                 .FirstOrDefaultAsync(r => r.UserId == userId && r.BookId == bookId, cancellationToken);
         }
 

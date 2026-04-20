@@ -13,6 +13,7 @@ namespace LibroSphere.Infrastructure.Repositories
         {
             var authors = await DbContext
                 .Set<Author>()
+                .AsNoTracking()
                 .ToListAsync(cancellationToken);
 
             return authors

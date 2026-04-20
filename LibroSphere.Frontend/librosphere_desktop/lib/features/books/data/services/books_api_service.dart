@@ -1,9 +1,10 @@
 import '../../../../core/network/api_client.dart';
 import '../../../../core/utils/json_readers.dart';
+import '../../../genres/data/models/admin_genre_model.dart';
 import '../models/admin_author_model.dart';
 import '../models/admin_book_model.dart';
-import '../models/admin_genre_model.dart';
 import '../models/book_assets_model.dart';
+import '../models/books_page_bootstrap_model.dart';
 import '../models/books_data_model.dart';
 import '../models/picked_file_payload.dart';
 
@@ -16,10 +17,7 @@ class BooksApiService {
     final response = await _apiClient.getMap(
       '/api/author',
       token: token,
-      query: <String, String>{
-        'page': '1',
-        'pageSize': '200',
-      },
+      query: <String, String>{'page': '1', 'pageSize': '200'},
     );
 
     return readItems(response).map(AdminAuthorModel.fromJson).toList();
@@ -29,10 +27,7 @@ class BooksApiService {
     final response = await _apiClient.getMap(
       '/api/genre',
       token: token,
-      query: <String, String>{
-        'page': '1',
-        'pageSize': '200',
-      },
+      query: <String, String>{'page': '1', 'pageSize': '200'},
     );
 
     return readItems(response).map(AdminGenreModel.fromJson).toList();
@@ -53,14 +48,55 @@ class BooksApiService {
     );
 
     return BooksDataModel(
-      authors: const <AdminAuthorModel>[],
-      genres: const <AdminGenreModel>[],
       books: readItems(response).map(AdminBookModel.fromJson).toList(),
       page: readInt(response, <String>['page'], fallback: page),
       totalPages: readInt(response, <String>['totalPages'], fallback: 1),
       totalCount: readInt(response, <String>['totalCount']),
       hasPreviousPage: readBool(response, <String>['hasPreviousPage']),
       hasNextPage: readBool(response, <String>['hasNextPage']),
+    );
+  }
+
+  Future<BooksPageBootstrapModel> getBooksPageBootstrap(
+    String token, {
+    required int page,
+    int pageSize = 12,
+  }) async {
+    final response = await _apiClient.getMap(
+      '/api/book/admin-page',
+      token: token,
+      query: <String, String>{
+        'page': page.toString(),
+        'pageSize': pageSize.toString(),
+      },
+    );
+
+    final books = ((response['books'] as List?) ?? const <dynamic>[])
+        .whereType<Map<String, dynamic>>()
+        .map(AdminBookModel.fromJson)
+        .toList();
+    final booksPage = BooksDataModel(
+      books: books,
+      page: readInt(response, <String>['page'], fallback: page),
+      totalPages: readInt(response, <String>['totalPages'], fallback: 1),
+      totalCount: readInt(response, <String>['totalCount']),
+      hasPreviousPage: readBool(response, <String>['hasPreviousPage']),
+      hasNextPage: readBool(response, <String>['hasNextPage']),
+    );
+
+    final authors = ((response['authors'] as List?) ?? const <dynamic>[])
+        .whereType<Map<String, dynamic>>()
+        .map(AdminAuthorModel.fromJson)
+        .toList();
+    final genres = ((response['genres'] as List?) ?? const <dynamic>[])
+        .whereType<Map<String, dynamic>>()
+        .map(AdminGenreModel.fromJson)
+        .toList();
+
+    return BooksPageBootstrapModel(
+      booksPage: booksPage,
+      authors: authors,
+      genres: genres,
     );
   }
 
@@ -166,14 +202,8 @@ class BooksApiService {
     );
   }
 
-  Future<void> deleteBook({
-    required String token,
-    required String bookId,
-  }) {
-    return _apiClient.delete(
-      '/api/book/$bookId',
-      token: token,
-    );
+  Future<void> deleteBook({required String token, required String bookId}) {
+    return _apiClient.delete('/api/book/$bookId', token: token);
   }
 
   Map<String, String> _genreFields(List<String> genreIds) {

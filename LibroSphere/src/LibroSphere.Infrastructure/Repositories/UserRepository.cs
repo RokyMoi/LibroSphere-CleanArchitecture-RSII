@@ -13,6 +13,7 @@ namespace LibroSphere.Infrastructure.Repositories
         {
             var users = await DbContext
                 .Set<User>()
+                .AsNoTracking()
                 .ToListAsync(cancellationToken);
 
             return users.FirstOrDefault(u => u.UserEmail.Value.Equals(email, StringComparison.OrdinalIgnoreCase));
@@ -22,6 +23,7 @@ namespace LibroSphere.Infrastructure.Repositories
         {
             var users = await DbContext
                 .Set<User>()
+                .AsNoTracking()
                 .ToListAsync(cancellationToken);
 
             return users

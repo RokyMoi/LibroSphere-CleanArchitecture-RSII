@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/network/api_client.dart';
@@ -12,6 +13,9 @@ import '../../features/books/presentation/viewmodels/books_viewmodel.dart';
 import '../../features/dashboard/data/repositories/dashboard_repository.dart';
 import '../../features/dashboard/data/services/dashboard_api_service.dart';
 import '../../features/dashboard/presentation/viewmodels/dashboard_viewmodel.dart';
+import '../../features/genres/data/repositories/genres_repository.dart';
+import '../../features/genres/data/services/genres_api_service.dart';
+import '../../features/genres/presentation/viewmodels/genres_viewmodel.dart';
 import '../../features/session/data/services/session_storage_service.dart';
 import '../../features/session/presentation/viewmodels/admin_session_viewmodel.dart';
 import '../../features/users/data/repositories/users_repository.dart';
@@ -46,17 +50,36 @@ class AppInjection {
     );
   }
 
-  static BooksViewModel createBooksViewModel(String token) {
+  static BooksViewModel createBooksViewModel(
+    String token, {
+    AsyncCallback? onDataChanged,
+  }) {
     return BooksViewModel(
       BooksRepository(BooksApiService(createApiClient())),
       token,
+      onDataChanged: onDataChanged,
     );
   }
 
-  static AuthorsViewModel createAuthorsViewModel(String token) {
+  static GenresViewModel createGenresViewModel(
+    String token, {
+    AsyncCallback? onDataChanged,
+  }) {
+    return GenresViewModel(
+      GenresRepository(GenresApiService(createApiClient())),
+      token,
+      onDataChanged: onDataChanged,
+    );
+  }
+
+  static AuthorsViewModel createAuthorsViewModel(
+    String token, {
+    AsyncCallback? onDataChanged,
+  }) {
     return AuthorsViewModel(
       AuthorsRepository(AuthorsApiService(createApiClient())),
       token,
+      onDataChanged: onDataChanged,
     );
   }
 }

@@ -15,7 +15,7 @@ namespace LibroSphere.Application.Reviews.Query.GetReviewById
 
         public async Task<Result<ReviewResponse>> Handle(GetReviewByIdQuery request, CancellationToken cancellationToken)
         {
-            var review = await _reviewRepository.GetAsyncById(request.ReviewId, cancellationToken);
+            var review = await _reviewRepository.GetReadOnlyByIdAsync(request.ReviewId, cancellationToken);
             if (review is null)
             {
                 return Result.Failure<ReviewResponse>(ReviewErrors.NotFound);

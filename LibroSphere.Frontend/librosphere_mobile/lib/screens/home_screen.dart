@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../core/app_constants.dart';
@@ -12,27 +14,31 @@ class MobileHomeScreen extends StatefulWidget {
   final void Function(BookModel book) onOpenBook;
 
   @override
-  State<MobileHomeScreen> createState() => _MobileHomeScreenState();
+  State<MobileHomeScreen> createState() => MobileHomeScreenState();
 }
 
-class _MobileHomeScreenState extends State<MobileHomeScreen> {
+class MobileHomeScreenState extends State<MobileHomeScreen>
+    with WidgetsBindingObserver {
   final _searchController = TextEditingController();
   late Future<_HomeData> _future = _load();
 
-  Future<_HomeData> _load([String? term]) async {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  Future<_HomeData> _load([String? term, bool forceRefresh = false]) async {
     final session = SessionScope.read(context);
     final normalizedTerm = term?.trim();
-    final books = await session.getBooks(searchTerm: normalizedTerm);
-    final recommendations = await session.getRecommendations(books.items);
-    final ratings = await session.getAverageRatings([
-      ...books.items.map((book) => book.id),
-      ...recommendations.map((book) => book.id),
-    ]);
+    final feed = await session.getHomeFeed(
+      searchTerm: normalizedTerm,
+      forceRefresh: forceRefresh,
+    );
     return _HomeData(
-      recommendations: recommendations,
-      newest: books.items,
+      recommendations: feed.recommendations,
+      newest: feed.newest.items,
       searchTerm: normalizedTerm ?? '',
-      ratings: ratings,
     );
   }
 
@@ -50,14 +56,37 @@ class _MobileHomeScreenState extends State<MobileHomeScreen> {
     });
   }
 
+  Future<void> refreshIfStale() async {
+    final session = SessionScope.read(context);
+    if (!session.shouldRefreshCatalog(searchTerm: _searchController.text)) {
+      return;
+    }
+
+    final nextFuture = _load(_searchController.text, true);
+    if (!mounted) {
+      return;
+    }
+
+    setState(() => _future = nextFuture);
+    await nextFuture;
+  }
+
   Future<void> _refresh() async {
-    final newFuture = _load(_searchController.text);
+    final newFuture = _load(_searchController.text, true);
     setState(() => _future = newFuture);
     await newFuture;
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(refreshIfStale());
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _searchController.dispose();
     super.dispose();
   }
@@ -98,7 +127,10 @@ class _MobileHomeScreenState extends State<MobileHomeScreen> {
                     Expanded(
                       child: Text(
                         'Results for "${data.searchTerm}"',
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                     TextButton(
@@ -115,7 +147,10 @@ class _MobileHomeScreenState extends State<MobileHomeScreen> {
               ],
               if (data.recommendations.isNotEmpty) ...[
                 const SizedBox(height: 26),
-                const Text('Recommended Books', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                const Text(
+                  'Recommended Books',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                ),
                 const SizedBox(height: 14),
                 SizedBox(
                   height: 190,
@@ -132,10 +167,28 @@ class _MobileHomeScreenState extends State<MobileHomeScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              BookCover(imageUrl: book.imageLink, width: 96, height: 118, radius: 2),
+                              BookCover(
+                                imageUrl: book.imageLink,
+                                width: 96,
+                                height: 118,
+                                radius: 2,
+                              ),
                               const SizedBox(height: 10),
-                              Text(book.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                              Text(session.authorName(book.authorId), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.grey.shade600)),
+                              Text(
+                                book.title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              Text(
+                                session.authorName(book.authorId),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: Colors.grey.shade600),
+                              ),
                             ],
                           ),
                         ),
@@ -145,27 +198,37 @@ class _MobileHomeScreenState extends State<MobileHomeScreen> {
                 ),
               ],
               const SizedBox(height: 22),
-              const Text('Newest', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+              const Text(
+                'Newest',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+              ),
               const SizedBox(height: 16),
-              ...data.newest.take(6).map((book) => Padding(
-                padding: const EdgeInsets.only(bottom: 18),
-                child: NewestBookTile(
-                  book: book,
-                  authorName: session.authorName(book.authorId),
-                  rating: data.ratings[book.id] ?? 0,
-                  onOpen: () => widget.onOpenBook(book),
-                  onWishlist: () async {
-                    try {
-                      await session.addToWishlist(book.id);
-                      if (!context.mounted) return;
-                      showSuccessSnackBar(context, 'Saved to wishlist.');
-                    } catch (error) {
-                      if (!context.mounted) return;
-                      showDestructiveSnackBar(context, formatErrorMessage(error));
-                    }
-                  },
-                ),
-              )),
+              ...data.newest
+                  .take(6)
+                  .map(
+                    (book) => Padding(
+                      padding: const EdgeInsets.only(bottom: 18),
+                      child: NewestBookTile(
+                        book: book,
+                        authorName: session.authorName(book.authorId),
+                        rating: book.averageRating,
+                        onOpen: () => widget.onOpenBook(book),
+                        onWishlist: () async {
+                          try {
+                            await session.addToWishlist(book.id);
+                            if (!context.mounted) return;
+                            showSuccessSnackBar(context, 'Saved to wishlist.');
+                          } catch (error) {
+                            if (!context.mounted) return;
+                            showDestructiveSnackBar(
+                              context,
+                              formatErrorMessage(error),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ),
             ],
           );
         },
@@ -179,13 +242,11 @@ class _HomeData {
     required this.recommendations,
     required this.newest,
     required this.searchTerm,
-    required this.ratings,
   });
 
   final List<BookModel> recommendations;
   final List<BookModel> newest;
   final String searchTerm;
-  final Map<String, double> ratings;
 }
 
 class _NoSearchResults extends StatelessWidget {

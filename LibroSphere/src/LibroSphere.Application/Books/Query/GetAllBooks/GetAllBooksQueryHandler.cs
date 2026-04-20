@@ -23,13 +23,24 @@ namespace LibroSphere.Application.Books.Query.GetAllBooks
 
             var filteredBooks = books
                 .Where(book => !request.MinPrice.HasValue || book.Price.amount >= request.MinPrice.Value)
-                .Where(book => !request.MaxPrice.HasValue || book.Price.amount <= request.MaxPrice.Value);
+                .Where(book => !request.MaxPrice.HasValue || book.Price.amount <= request.MaxPrice.Value)
+                .ToList();
 
-            var response = new List<BookResponse>();
-            foreach (var book in filteredBooks)
+            var totalCount = filteredBooks.Count;
+            var pageBooks = filteredBooks
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToList();
+
+            var response = new List<BookResponse>(pageBooks.Count);
+            foreach (var book in pageBooks)
             {
                 var imageLink = await _bookAssetStorageService.GetImageUrlAsync(book.BookLinkovi.imageLink, cancellationToken);
                 var pdfLink = await _bookAssetStorageService.GetPdfReadUrlAsync(book.BookLinkovi.PdfLink, cancellationToken);
+                var reviewCount = book.Reviews.Count;
+                var averageRating = reviewCount == 0
+                    ? 0
+                    : book.Reviews.Average(review => review.Rating);
 
                 response.Add(new BookResponse
                 {
@@ -40,6 +51,8 @@ namespace LibroSphere.Application.Books.Query.GetAllBooks
                     currency = book.Price.Currency.Code,
                     pdfLink = pdfLink,
                     imageLink = imageLink,
+                    AverageRating = averageRating,
+                    ReviewCount = reviewCount,
                     AuthorId = book.AuthorId,
                     GenreIds = book.BookGenres.Select(bg => bg.GenreId).ToList(),
                     GenreNames = book.BookGenres
@@ -50,7 +63,11 @@ namespace LibroSphere.Application.Books.Query.GetAllBooks
                 });
             }
 
-            return Result.Success(PagedResponse<BookResponse>.Create(response, request.Page, request.PageSize));
+            return Result.Success(new PagedResponse<BookResponse>(
+                response,
+                request.Page,
+                request.PageSize,
+                totalCount));
         }
     }
 }

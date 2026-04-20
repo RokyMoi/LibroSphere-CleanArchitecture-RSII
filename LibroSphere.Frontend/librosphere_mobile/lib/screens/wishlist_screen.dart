@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/ui/app_feedback.dart';
 import '../data/models/book_model.dart';
 import '../features/session/presentation/session_scope.dart';
+import '../features/session/presentation/viewmodels/session_viewmodel.dart';
 import '../widgets/common_widgets.dart';
 
 class WishlistScreen extends StatefulWidget {
@@ -13,10 +14,46 @@ class WishlistScreen extends StatefulWidget {
 }
 
 class _WishlistScreenState extends State<WishlistScreen> {
+  SessionViewModel? _session;
   late Future<List<BookModel>> _future = _load();
 
   Future<List<BookModel>> _load() async {
-    return SessionScope.read(context).getWishlistBooks();
+    final session = SessionScope.read(context);
+    if (!session.isAuthenticated) {
+      return <BookModel>[];
+    }
+
+    return session.getWishlistBooks();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final nextSession = SessionScope.read(context);
+    if (_session == nextSession) {
+      return;
+    }
+
+    _session?.removeListener(_handleSessionChanged);
+    _session = nextSession;
+    _session!.addListener(_handleSessionChanged);
+  }
+
+  @override
+  void dispose() {
+    _session?.removeListener(_handleSessionChanged);
+    super.dispose();
+  }
+
+  void _handleSessionChanged() {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _future = _load();
+    });
   }
 
   Future<void> _moveToCart(BookModel book) async {
@@ -49,6 +86,16 @@ class _WishlistScreenState extends State<WishlistScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final session = context.session;
+
+    if (!session.isAuthenticated) {
+      return const InfoStateView(
+        title: 'Wishlist',
+        message: 'Please login to view your wishlist.',
+        icon: Icons.bookmark_border_rounded,
+      );
+    }
+
     return FutureBuilder<List<BookModel>>(
       future: _future,
       builder: (context, snapshot) {
@@ -65,7 +112,6 @@ class _WishlistScreenState extends State<WishlistScreen> {
         }
 
         final books = snapshot.data!;
-        final session = context.session;
 
         if (books.isEmpty) {
           return const InfoStateView(

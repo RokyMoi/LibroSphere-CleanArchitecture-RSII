@@ -534,15 +534,30 @@ class _AddEditBookDialogState extends State<AddEditBookDialog> {
         children: widget.viewModel.genres.map((genre) {
           final isSelected = _selectedGenreIds.contains(genre.id);
           return FilterChip(
+            avatar: isSelected
+                ? Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: desktopPrimary,
+                      shape: BoxShape.circle,
+                    ),
+                  )
+                : null,
             label: Text(genre.name),
             selected: isSelected,
+            showCheckmark: false,
             selectedColor: Colors.white,
-            backgroundColor: Colors.white.withValues(alpha: 0.14),
-            labelStyle: TextStyle(
-              color: isSelected ? desktopPrimary : Colors.white,
+            backgroundColor: Colors.white,
+            side: BorderSide(
+              color: isSelected
+                  ? desktopPrimary
+                  : desktopPrimary.withValues(alpha: 0.28),
+            ),
+            labelStyle: const TextStyle(
+              color: desktopPrimary,
               fontWeight: FontWeight.w700,
             ),
-            checkmarkColor: desktopPrimary,
             onSelected: (selected) {
               setState(() {
                 if (selected) {

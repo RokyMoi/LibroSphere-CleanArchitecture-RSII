@@ -24,6 +24,16 @@ internal abstract class RepositoryBase<T>
             .FirstOrDefaultAsync(user => user.Id == id, cancellationToken);
     }
 
+    public async Task<T?> GetReadOnlyByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        return await DbContext
+            .Set<T>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
+    }
+
     public void Add(T entity)
     {
         DbContext.Set<T>().Add(entity);

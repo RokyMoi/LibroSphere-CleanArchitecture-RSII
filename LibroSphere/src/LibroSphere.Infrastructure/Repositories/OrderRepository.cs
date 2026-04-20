@@ -28,6 +28,7 @@ namespace LibroSphere.Infrastructure.Repositories
         public async Task<List<Order>> GetByEmailAsync(string email)
         {
             return await _context.Set<Order>()
+                .AsNoTracking()
                 .Include(o => o.Items)
                 .Where(o => o.BuyerEmail == email)
                 .OrderByDescending(o => o.OrderDate)

@@ -15,6 +15,7 @@ namespace LibroSphere.Infrastructure.Repositories
         {
             return await DbContext
                 .Set<Book>()
+                .AsNoTracking()
                 .Include(b => b.Author)
                 .Include(b => b.BookGenres)
                     .ThenInclude(bg => bg.Genre)
@@ -26,9 +27,11 @@ namespace LibroSphere.Infrastructure.Repositories
         {
             var books = await DbContext
                 .Set<Book>()
+                .AsNoTracking()
                 .Include(b => b.Author)
                 .Include(b => b.BookGenres)
                     .ThenInclude(bg => bg.Genre)
+                .Include(b => b.Reviews)
                 .ToListAsync(cancellationToken);
 
             return books
@@ -40,19 +43,22 @@ namespace LibroSphere.Infrastructure.Repositories
         {
             var books = await DbContext
                 .Set<Book>()
+                .AsNoTracking()
                 .Include(b => b.Author)
                 .Include(b => b.BookGenres)
                     .ThenInclude(bg => bg.Genre)
+                .Include(b => b.Reviews)
                 .ToListAsync(cancellationToken);
 
             IEnumerable<Book> query = books;
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
+                var normalizedSearchTerm = searchTerm.Trim();
                 query = query.Where(b =>
-                    b.Title.Value.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    b.Description.Value.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    b.Author.Name.Value.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+                    b.Title.Value.Contains(normalizedSearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    b.Description.Value.Contains(normalizedSearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    b.Author.Name.Value.Contains(normalizedSearchTerm, StringComparison.OrdinalIgnoreCase));
             }
 
             if (authorId.HasValue)

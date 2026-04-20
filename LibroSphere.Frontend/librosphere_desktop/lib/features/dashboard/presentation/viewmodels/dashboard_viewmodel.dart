@@ -10,21 +10,34 @@ class DashboardViewModel extends ChangeNotifier {
 
   final DashboardRepository _repository;
   final String _token;
+  bool _hasLoaded = false;
 
   bool isLoading = true;
   Failure? failure;
   DashboardStatsModel? stats;
 
-  Future<void> load() async {
-    isLoading = true;
+  Future<void> ensureLoaded() {
+    if (_hasLoaded) {
+      return Future<void>.value();
+    }
+
+    return load();
+  }
+
+  Future<void> load({bool showLoader = true}) async {
+    if (showLoader) {
+      isLoading = true;
+      notifyListeners();
+    }
+
     failure = null;
-    notifyListeners();
 
     final result = await _repository.getDashboard(_token);
 
     switch (result) {
       case Success<DashboardStatsModel>(value: final dashboard):
         stats = dashboard;
+        _hasLoaded = true;
       case ErrorResult<DashboardStatsModel>(failure: final error):
         failure = error is Failure
             ? error
@@ -33,5 +46,17 @@ class DashboardViewModel extends ChangeNotifier {
 
     isLoading = false;
     notifyListeners();
+  }
+
+  Future<void> refreshIfLoaded() async {
+    if (!_hasLoaded) {
+      return;
+    }
+
+    final result = await _repository.getDashboard(_token);
+    if (result case Success<DashboardStatsModel>(value: final dashboard)) {
+      stats = dashboard;
+      notifyListeners();
+    }
   }
 }

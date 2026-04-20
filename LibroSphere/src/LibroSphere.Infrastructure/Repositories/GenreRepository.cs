@@ -13,6 +13,7 @@ namespace LibroSphere.Infrastructure.Repositories
         {
             var genres = await DbContext
                 .Set<Genre>()
+                .AsNoTracking()
                 .ToListAsync(cancellationToken);
 
             return genres.FirstOrDefault(g => g.Name.Value.Equals(name, StringComparison.OrdinalIgnoreCase));
@@ -22,6 +23,7 @@ namespace LibroSphere.Infrastructure.Repositories
         {
             var genres = await DbContext
                 .Set<Genre>()
+                .AsNoTracking()
                 .ToListAsync(cancellationToken);
 
             return genres

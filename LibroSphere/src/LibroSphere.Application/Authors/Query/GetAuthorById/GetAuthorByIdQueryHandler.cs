@@ -15,7 +15,7 @@ namespace LibroSphere.Application.Authors.Query.GetAuthorById
 
         public async Task<Result<AuthorResponse>> Handle(GetAuthorByIdQuery request, CancellationToken cancellationToken)
         {
-            var author = await _authorRepository.GetAsyncById(request.autorId, cancellationToken);
+            var author = await _authorRepository.GetReadOnlyByIdAsync(request.autorId, cancellationToken);
             if (author is null)
             {
                 return Result.Failure<AuthorResponse>(AuthorErrors.NotFound);
