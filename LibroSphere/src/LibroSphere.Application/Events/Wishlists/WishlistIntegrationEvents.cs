@@ -13,9 +13,9 @@ public sealed class WishlistCreatedIntegrationEvent
     {
     }
 
-    public Guid WishlistId { get; private set; }
-    public Guid UserId { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid WishlistId { get; init; }
+    public Guid UserId { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
 }
 
 public sealed class WishlistItemAddedIntegrationEvent
@@ -32,10 +32,10 @@ public sealed class WishlistItemAddedIntegrationEvent
     {
     }
 
-    public Guid WishlistId { get; private set; }
-    public Guid UserId { get; private set; }
-    public Guid BookId { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid WishlistId { get; init; }
+    public Guid UserId { get; init; }
+    public Guid BookId { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
 }
 
 public sealed class WishlistItemRemovedIntegrationEvent
@@ -52,8 +52,8 @@ public sealed class WishlistItemRemovedIntegrationEvent
     {
     }
 
-    public Guid WishlistId { get; private set; }
-    public Guid UserId { get; private set; }
-    public Guid BookId { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid WishlistId { get; init; }
+    public Guid UserId { get; init; }
+    public Guid BookId { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
 }

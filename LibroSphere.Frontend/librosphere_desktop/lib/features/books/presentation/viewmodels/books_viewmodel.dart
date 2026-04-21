@@ -31,6 +31,7 @@ class BooksViewModel extends ChangeNotifier {
   bool isSaving = false;
   String? deletingBookId;
   Failure? failure;
+  String searchTerm = '';
   List<AdminAuthorModel> authors = <AdminAuthorModel>[];
   List<AdminGenreModel> genres = <AdminGenreModel>[];
   List<AdminBookModel> books = <AdminBookModel>[];
@@ -50,13 +51,19 @@ class BooksViewModel extends ChangeNotifier {
     return load();
   }
 
-  Future<void> load({int? page}) async {
+  Future<void> load({int? page, String? search}) async {
     isLoading = true;
     failure = null;
+    if (search != null) {
+      searchTerm = search;
+      currentPage = 1;
+    }
     notifyListeners();
 
     final targetPage = page ?? currentPage;
-    if (!_hasLookupData) {
+    final activeSearch = searchTerm.trim().isEmpty ? null : searchTerm.trim();
+
+    if (!_hasLookupData && activeSearch == null) {
       final bootstrapResult = await _repository.loadBooksPageBootstrap(
         _token,
         page: targetPage,
@@ -84,6 +91,7 @@ class BooksViewModel extends ChangeNotifier {
         _token,
         page: targetPage,
         pageSize: pageSize,
+        searchTerm: activeSearch,
       );
 
       switch (pageResult) {
@@ -100,6 +108,10 @@ class BooksViewModel extends ChangeNotifier {
     isLoading = false;
     notifyListeners();
   }
+
+  Future<void> search(String term) => load(search: term);
+
+  Future<void> clearSearch() => load(search: '');
 
   Future<void> _loadLegacyPage(int targetPage) async {
     final pageResultFuture = _repository.loadBooksPage(

@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using LibroSphere.Application.Abstractions;
 using LibroSphere.Application.Abstractions.Analytics;
 using LibroSphere.Application.Abstractions.Data;
@@ -51,6 +51,7 @@ namespace LibroSphere.Infrastructure
             services.Configure<CloudflareR2Options>(configuration.GetSection(CloudflareR2Options.SectionName));
 
             services.AddHttpContextAccessor();
+            services.AddScoped<LibroSphere.Application.Abstractions.Identity.IUserContext, LibroSphere.Infrastructure.Authentication.UserContext>();
             return services;
         }
         private static IServiceCollection RabbitMQDepedencyProviders(
@@ -122,7 +123,8 @@ namespace LibroSphere.Infrastructure
             services.AddScoped<LibroSphere.Application.Abstractions.Recommendations.IBookRecommendationService, BookRecommendationService>();
             services.AddScoped<IAnalyticsService, AnalyticsService>();
             services.AddSingleton<IAnalyticsActivityStore, RedisAnalyticsActivityStore>();
-
+            services.AddSingleton<LibroSphere.Application.Abstractions.Notifications.INewsService, LibroSphere.Infrastructure.Services.Notifications.RedisNewsService>();
+            services.AddSingleton<LibroSphere.Application.Abstractions.Notifications.INotificationCenterService, LibroSphere.Infrastructure.Services.Notifications.RedisNotificationCenterService>();
           
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<IUserBookRepository, UserBookRepository>();

@@ -1,5 +1,6 @@
 using LibroSphere.Application.Cart.Command.DeleteCart;
 using LibroSphere.Application.Cart.Command.UpdateCart;
+using LibroSphere.Application.Cart.Query.GetCartDetails;
 using LibroSphere.Application.Cart.Query.GetCartById;
 using LibroSphere.WebApi.Extensions;
 using MediatR;
@@ -23,7 +24,7 @@ namespace LibroSphere.WebApi.Controllers.Cart
         [HttpGet("{cartId:guid}")]
         public async Task<IActionResult> GetCartById(Guid cartId, CancellationToken cancellationToken)
         {
-            var result = await _sender.Send(new GetCartByIdQuery(cartId), cancellationToken);
+            var result = await _sender.Send(new GetCartDetailsQuery(cartId), cancellationToken);
             if (result.IsFailure)
             {
                 return NotFound(result.Error);

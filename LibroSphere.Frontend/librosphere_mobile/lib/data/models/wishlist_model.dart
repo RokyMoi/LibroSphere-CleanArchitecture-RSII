@@ -17,7 +17,7 @@ class WishlistModel {
   factory WishlistModel.fromJson(Map<String, dynamic> json) => WishlistModel(
         id: readString(json, ['wishlistId', 'WishlistId']),
         userId: readString(json, ['userId', 'UserId']),
-        items: ((json['items'] as List?) ?? <dynamic>[])
+        items: (((json['items'] ?? json['Items']) as List?) ?? <dynamic>[])
             .whereType<Map<String, dynamic>>()
             .map(WishlistItemModel.fromJson)
             .toList(),

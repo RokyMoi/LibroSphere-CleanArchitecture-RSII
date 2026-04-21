@@ -8,6 +8,8 @@ class ReviewModel {
     this.userId,
     this.bookId,
     this.createdAt,
+    this.userName,
+    this.userProfilePictureUrl,
   });
 
   final String id;
@@ -16,6 +18,8 @@ class ReviewModel {
   final String? userId;
   final String? bookId;
   final DateTime? createdAt;
+  final String? userName;
+  final String? userProfilePictureUrl;
 
   factory ReviewModel.fromJson(Map<String, dynamic> json) => ReviewModel(
         id: readString(json, ['id', 'Id']),
@@ -24,5 +28,7 @@ class ReviewModel {
         userId: readNullableString(json, ['userId', 'UserId']),
         bookId: readNullableString(json, ['bookId', 'BookId']),
         createdAt: readDateTime(json, ['createdAt', 'CreatedAt']),
+        userName: readOptionalString(json, ['userName', 'UserName', 'reviewerName', 'ReviewerName']),
+        userProfilePictureUrl: readOptionalString(json, ['userProfilePictureUrl', 'UserProfilePictureUrl', 'profilePictureUrl', 'ProfilePictureUrl']),
       );
 }

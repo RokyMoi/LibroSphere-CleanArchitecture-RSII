@@ -2,11 +2,12 @@ namespace LibroSphere.Application.Events.Genres;
 
 public sealed class GenreCreatedIntegrationEvent
 {
-    public GenreCreatedIntegrationEvent(Guid genreId, string name)
+    public GenreCreatedIntegrationEvent(Guid genreId, string name, string? adminEmail = null)
     {
         GenreId = genreId;
         Name = name;
         OccurredOnUtc = DateTime.UtcNow;
+        AdminEmail = adminEmail;
     }
 
     public GenreCreatedIntegrationEvent()
@@ -14,18 +15,20 @@ public sealed class GenreCreatedIntegrationEvent
         Name = string.Empty;
     }
 
-    public Guid GenreId { get; private set; }
-    public string Name { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid GenreId { get; init; }
+    public string Name { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
+    public string? AdminEmail { get; init; }
 }
 
 public sealed class GenreUpdatedIntegrationEvent
 {
-    public GenreUpdatedIntegrationEvent(Guid genreId, string name)
+    public GenreUpdatedIntegrationEvent(Guid genreId, string name, string? adminEmail = null)
     {
         GenreId = genreId;
         Name = name;
         OccurredOnUtc = DateTime.UtcNow;
+        AdminEmail = adminEmail;
     }
 
     public GenreUpdatedIntegrationEvent()
@@ -33,18 +36,20 @@ public sealed class GenreUpdatedIntegrationEvent
         Name = string.Empty;
     }
 
-    public Guid GenreId { get; private set; }
-    public string Name { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid GenreId { get; init; }
+    public string Name { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
+    public string? AdminEmail { get; init; }
 }
 
 public sealed class GenreDeletedIntegrationEvent
 {
-    public GenreDeletedIntegrationEvent(Guid genreId, string name)
+    public GenreDeletedIntegrationEvent(Guid genreId, string name, string? adminEmail = null)
     {
         GenreId = genreId;
         Name = name;
         OccurredOnUtc = DateTime.UtcNow;
+        AdminEmail = adminEmail;
     }
 
     public GenreDeletedIntegrationEvent()
@@ -52,7 +57,8 @@ public sealed class GenreDeletedIntegrationEvent
         Name = string.Empty;
     }
 
-    public Guid GenreId { get; private set; }
-    public string Name { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid GenreId { get; init; }
+    public string Name { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
+    public string? AdminEmail { get; init; }
 }

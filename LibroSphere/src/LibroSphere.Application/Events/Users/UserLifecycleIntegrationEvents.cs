@@ -14,9 +14,9 @@ public sealed class UserLoggedInIntegrationEvent
         Email = string.Empty;
     }
 
-    public Guid UserId { get; private set; }
-    public string Email { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid UserId { get; init; }
+    public string Email { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
 }
 
 public sealed class UserDeactivatedIntegrationEvent
@@ -33,7 +33,7 @@ public sealed class UserDeactivatedIntegrationEvent
         Email = string.Empty;
     }
 
-    public Guid UserId { get; private set; }
-    public string Email { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid UserId { get; init; }
+    public string Email { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
 }

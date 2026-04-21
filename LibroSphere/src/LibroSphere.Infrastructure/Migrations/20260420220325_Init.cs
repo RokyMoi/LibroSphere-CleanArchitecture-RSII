@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace LibroSphere.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -57,7 +57,7 @@ namespace LibroSphere.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     BuyerEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     TotalCurrency = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     PaymentIntentId = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
@@ -113,7 +113,7 @@ namespace LibroSphere.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     Currency = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PdfLink = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ImageLink = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -138,7 +138,7 @@ namespace LibroSphere.Infrastructure.Migrations
                     BookId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Title = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
                     ImageLink = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    PriceAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    PriceAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     PriceCurrency = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     OrderId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
@@ -392,7 +392,7 @@ namespace LibroSphere.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CartId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     BookId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    PriceAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    PriceAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     PriceCurrency = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>

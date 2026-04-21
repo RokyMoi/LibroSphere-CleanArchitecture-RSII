@@ -10,6 +10,7 @@ namespace LibroSphere.Domain.Entities.Orders
     {
         Pending,
         PaymentReceived,
-        PaymentFailed
+        PaymentFailed,
+        Refunded
     }
 }

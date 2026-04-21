@@ -1,12 +1,14 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/error/result.dart';
+import '../../../../data/models/author_model.dart';
 import '../../../../data/models/book_model.dart';
 import '../../../../data/models/cart_item_input.dart';
+import '../../../../data/models/genre_model.dart';
 import '../../../../data/models/home_feed_model.dart';
 import '../../../../data/models/library_entry.dart';
 import '../../../../data/models/order_model.dart';
@@ -29,7 +31,13 @@ class SessionViewModel extends ChangeNotifier {
   static const _userCollectionCacheTtl = Duration(seconds: 10);
 
   final AppServices _services;
+  AppServices get services => _services;
   final _uuid = const Uuid();
+  final ValueNotifier<bool> _readyState = ValueNotifier(false);
+  final ValueNotifier<AuthUserModel?> _profileState = ValueNotifier(null);
+  final ValueNotifier<ShoppingCartModel?> _cartState = ValueNotifier(null);
+  final ValueNotifier<int> _wishlistRevision = ValueNotifier(0);
+  final ValueNotifier<int> _libraryRevision = ValueNotifier(0);
 
   bool isReady = false;
   AuthTokensModel? tokens;
@@ -43,16 +51,47 @@ class SessionViewModel extends ChangeNotifier {
       <String, _TimedCacheValue<PagedResult<BookModel>>>{};
   final Map<String, PagedResult<ReviewModel>> _reviewPageCache =
       <String, PagedResult<ReviewModel>>{};
-  final Map<String, List<ReviewModel>> _reviewCache =
-      <String, List<ReviewModel>>{};
+
   final Map<String, double> _ratingCache = <String, double>{};
   _TimedCacheValue<List<BookModel>>? _recommendationsCache;
   _TimedCacheValue<List<LibraryEntry>>? _libraryCache;
   _TimedCacheValue<List<BookModel>>? _wishlistBooksCache;
-  int _sessionBootstrapVersion = 0;
+  _TimedCacheValue<List<AuthorModel>>? _authorsCache;
+  _TimedCacheValue<List<GenreModel>>? _genresCache;
+  DateTime? _cartCachedAt;
 
   bool get isAuthenticated => tokens != null && currentUser != null;
   String? get accessToken => tokens?.accessToken;
+  ValueListenable<bool> get readyState => _readyState;
+  ValueListenable<AuthUserModel?> get profileState => _profileState;
+  ValueListenable<ShoppingCartModel?> get cartState => _cartState;
+  ValueListenable<int> get wishlistState => _wishlistRevision;
+  ValueListenable<int> get libraryState => _libraryRevision;
+
+  void _setReady(bool value) {
+    isReady = value;
+    _readyState.value = value;
+  }
+
+  void _setCurrentUser(AuthUserModel? user) {
+    currentUser = user;
+    _profileState.value = user;
+  }
+
+  void _setCart(ShoppingCartModel? nextCart, {bool notifySlice = true}) {
+    cart = nextCart;
+    if (notifySlice) {
+      _cartState.value = nextCart;
+    }
+  }
+
+  void _markWishlistChanged() {
+    _wishlistRevision.value++;
+  }
+
+  void _markLibraryChanged() {
+    _libraryRevision.value++;
+  }
 
   Future<void> initialize() async {
     final restoredTokens = _services.storage.restoreTokens();
@@ -69,8 +108,7 @@ class SessionViewModel extends ChangeNotifier {
       }
     }
 
-    isReady = true;
-    notifyListeners();
+    _setReady(true);
   }
 
   Future<Result<void>> login(String email, String password) async {
@@ -85,6 +123,22 @@ class SessionViewModel extends ChangeNotifier {
       case ErrorResult<AuthSessionModel>(failure: final failure):
         return ErrorResult(failure);
     }
+  }
+
+  Future<Result<void>> requestPasswordReset(String email) {
+    return _services.authRepository.requestPasswordReset(email);
+  }
+
+  Future<Result<void>> resetPasswordWithCode({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) {
+    return _services.authRepository.resetPasswordWithCode(
+      email: email,
+      code: code,
+      newPassword: newPassword,
+    );
   }
 
   Future<Result<void>> register({
@@ -123,43 +177,95 @@ class SessionViewModel extends ChangeNotifier {
   }
 
   Future<void> logout() async {
-    _sessionBootstrapVersion++;
     if (accessToken != null) {
       await _services.authRepository.logout(accessToken!);
     }
 
     tokens = null;
-    currentUser = null;
-    cart = null;
+    _setCurrentUser(null);
+    _setCart(null);
     authorNames.clear();
     _resetCaches();
+    _markWishlistChanged();
+    _markLibraryChanged();
     await _services.storage.clearSession();
-    notifyListeners();
+  }
+
+  Future<void> updateProfile({
+    required String firstName,
+    required String lastName,
+  }) async {
+    _requireAuth();
+    await _services.apiClient.updateProfile(accessToken!, firstName, lastName);
+    _setCurrentUser(AuthUserModel(
+      id: currentUser!.id,
+      firstName: firstName,
+      lastName: lastName,
+      email: currentUser!.email,
+      profilePictureUrl: currentUser!.profilePictureUrl,
+    ));
+  }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmNewPassword,
+  }) async {
+    _requireAuth();
+    await _services.apiClient.changePassword(
+      accessToken!,
+      currentPassword,
+      newPassword,
+      confirmNewPassword,
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getOrders() async {
+    _requireAuth();
+    return _services.apiClient.getOrders(accessToken!);
+  }
+
+  bool shouldRefreshLibrary() {
+    return !_isFresh(_libraryCache, _userCollectionCacheTtl);
+  }
+
+  bool shouldRefreshCart() {
+    final activeCartId = cart?.id ?? _services.storage.restoreCartId();
+    if (accessToken == null || activeCartId == null) {
+      return false;
+    }
+
+    if (cart == null) {
+      return true;
+    }
+
+    if (_cartCachedAt == null) {
+      return true;
+    }
+
+    return DateTime.now().difference(_cartCachedAt!) >= _userCollectionCacheTtl;
+  }
+
+  Future<void> refundOrder(String orderId) async {
+    _requireAuth();
+    await _services.apiClient.refundOrder(accessToken!, orderId);
   }
 
   Future<void> _applySession(AuthSessionModel session) async {
-    final bootstrapVersion = ++_sessionBootstrapVersion;
     _resetRuntimeState();
     tokens = session.tokens;
-    currentUser = session.user;
+    _setCurrentUser(session.user);
     await _services.storage.persistTokens(session.tokens);
-    notifyListeners();
-    unawaited(_hydrateSessionState(bootstrapVersion));
-  }
-
-  Future<void> _hydrateSessionState(int bootstrapVersion) async {
-    if (bootstrapVersion != _sessionBootstrapVersion || !isAuthenticated) {
-      return;
-    }
-
-    notifyListeners();
   }
 
   void _resetRuntimeState() {
-    cart = null;
-    currentUser = null;
+    _setCart(null);
+    _cartCachedAt = null;
+    _setCurrentUser(null);
     authorNames.clear();
     _resetCaches();
+    _markWishlistChanged();
+    _markLibraryChanged();
   }
 
   void _resetCaches() {
@@ -167,11 +273,13 @@ class SessionViewModel extends ChangeNotifier {
     _bookRequests.clear();
     _searchCache.clear();
     _reviewPageCache.clear();
-    _reviewCache.clear();
     _ratingCache.clear();
     _recommendationsCache = null;
     _libraryCache = null;
     _wishlistBooksCache = null;
+    _authorsCache = null;
+    _genresCache = null;
+    _cartCachedAt = null;
   }
 
   void _invalidateWishlistCache() {
@@ -193,14 +301,7 @@ class SessionViewModel extends ChangeNotifier {
     }
   }
 
-  double _calculateAverageRating(List<ReviewModel> reviews) {
-    if (reviews.isEmpty) {
-      return 0;
-    }
 
-    return reviews.map((review) => review.rating).reduce((a, b) => a + b) /
-        reviews.length;
-  }
 
   String _reviewPageCacheKey(String bookId, int page, int pageSize) =>
       '$bookId::$page::$pageSize';
@@ -217,25 +318,63 @@ class SessionViewModel extends ChangeNotifier {
   }
 
   Future<PagedResult<BookModel>> getBooks({
+    int page = 1,
+    int pageSize = 20,
     String? searchTerm,
+    String? authorId,
+    String? genreId,
+    double? minPrice,
+    double? maxPrice,
     bool forceRefresh = false,
   }) async {
-    final normalizedTerm = searchTerm?.trim() ?? '';
-    final cachedResult = _searchCache[normalizedTerm];
+    final cacheKey = _buildFilterCacheKey(
+      searchTerm: searchTerm,
+      authorId: authorId,
+      genreId: genreId,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
+    );
+    final cachedResult = _searchCache[cacheKey];
     if (!forceRefresh && _isFresh(cachedResult, _catalogCacheTtl)) {
       return cachedResult!.value;
     }
 
     final result = await _services.catalog.getBooks(
-      searchTerm: normalizedTerm.isEmpty ? null : normalizedTerm,
+      page: page,
+      pageSize: pageSize,
+      searchTerm: searchTerm?.trim(),
+      authorId: authorId,
+      genreId: genreId,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
       accessToken: accessToken,
     );
     _primeBookCaches(result.items);
-    _searchCache[normalizedTerm] = _TimedCacheValue(result);
+    _searchCache[cacheKey] = _TimedCacheValue(result);
     return result;
   }
 
+  String _buildFilterCacheKey({
+    String? searchTerm,
+    String? authorId,
+    String? genreId,
+    double? minPrice,
+    double? maxPrice,
+  }) {
+    final parts = <String>[
+      searchTerm?.trim() ?? '',
+      authorId ?? '',
+      genreId ?? '',
+      minPrice?.toString() ?? '',
+      maxPrice?.toString() ?? '',
+    ];
+    return parts.join('|');
+  }
+
   Future<HomeFeedModel> getHomeFeed({
+    int page = 1,
+    int pageSize = 8,
+    int takeRecommendations = 4,
     String? searchTerm,
     bool forceRefresh = false,
   }) async {
@@ -257,6 +396,9 @@ class SessionViewModel extends ChangeNotifier {
     }
 
     final feed = await _services.catalog.getHomeFeed(
+      page: page,
+      pageSize: pageSize,
+      takeRecommendations: takeRecommendations,
       searchTerm: normalizedTerm.isEmpty ? null : normalizedTerm,
       accessToken: accessToken,
     );
@@ -291,6 +433,42 @@ class SessionViewModel extends ChangeNotifier {
     _primeBookCaches(recommendations);
     _recommendationsCache = _TimedCacheValue(recommendations);
     return recommendations;
+  }
+
+  Future<List<AuthorModel>> getAuthors({bool forceRefresh = false}) async {
+    if (!forceRefresh && _isFresh(_authorsCache, _catalogCacheTtl)) {
+      return _authorsCache!.value;
+    }
+    final authors = await _services.catalog.getAuthors();
+    _authorsCache = _TimedCacheValue(authors);
+    return authors;
+  }
+
+  Future<List<GenreModel>> getGenres({bool forceRefresh = false}) async {
+    if (!forceRefresh && _isFresh(_genresCache, _catalogCacheTtl)) {
+      return _genresCache!.value;
+    }
+    final genres = await _services.catalog.getGenres();
+    _genresCache = _TimedCacheValue(genres);
+    return genres;
+  }
+
+  Future<String> updateProfilePicture({
+    required List<int> imageBytes,
+    required String filename,
+    required String contentType,
+  }) async {
+    final url = await _services.apiClient.uploadProfilePicture(
+      accessToken: accessToken!,
+      imageBytes: imageBytes,
+      filename: filename,
+      contentType: contentType,
+    );
+    // Update current user with new profile picture URL
+    if (currentUser != null) {
+      _setCurrentUser(currentUser!.copyWith(profilePictureUrl: url));
+    }
+    return url;
   }
 
   Future<BookModel> getBook(String id, {bool forceRefresh = false}) async {
@@ -339,54 +517,7 @@ class SessionViewModel extends ChangeNotifier {
     return result;
   }
 
-  Future<List<ReviewModel>> getReviews(
-    String bookId, {
-    bool forceRefresh = false,
-  }) async {
-    if (!forceRefresh && _reviewCache.containsKey(bookId)) {
-      return _reviewCache[bookId]!;
-    }
 
-    final reviews = <ReviewModel>[];
-    var pageNumber = 1;
-
-    while (true) {
-      final page = await getReviewPage(
-        bookId,
-        page: pageNumber,
-        pageSize: 20,
-        forceRefresh: forceRefresh,
-      );
-      reviews.addAll(page.items);
-      if (!page.hasNextPage) {
-        break;
-      }
-      pageNumber++;
-    }
-
-    _reviewCache[bookId] = reviews;
-    _ratingCache[bookId] = _calculateAverageRating(reviews);
-    return reviews;
-  }
-
-  Future<double> getAverageRating(String bookId) async {
-    if (_ratingCache.containsKey(bookId)) {
-      return _ratingCache[bookId]!;
-    }
-
-    final reviews = await getReviews(bookId);
-    final average = _calculateAverageRating(reviews);
-    _ratingCache[bookId] = average;
-    return average;
-  }
-
-  Future<Map<String, double>> getAverageRatings(
-    Iterable<String> bookIds,
-  ) async {
-    final uniqueIds = bookIds.toSet();
-    await Future.wait(uniqueIds.map(getAverageRating));
-    return {for (final bookId in uniqueIds) bookId: _ratingCache[bookId] ?? 0};
-  }
 
   Future<void> addToCart(BookModel book) async {
     _requireAuth();
@@ -419,32 +550,43 @@ class SessionViewModel extends ChangeNotifier {
         .toList();
     if (updatedItems.isEmpty) {
       await _services.cart.deleteCart(accessToken!, cart!.id);
-      cart = null;
+      _setCart(null);
+      _cartCachedAt = DateTime.now();
       await _services.storage.clearCart();
       _invalidateLibraryCache();
-      notifyListeners();
+      _markLibraryChanged();
       return;
     }
 
     await _upsertCart(updatedItems);
   }
 
-  Future<ShoppingCartModel?> refreshCart() async {
+  Future<ShoppingCartModel?> refreshCart({bool forceRefresh = false}) async {
     final activeCartId = cart?.id ?? _services.storage.restoreCartId();
     if (activeCartId == null || accessToken == null) {
       return cart;
     }
 
+    if (!forceRefresh &&
+        cart != null &&
+        _cartCachedAt != null &&
+        DateTime.now().difference(_cartCachedAt!) < _userCollectionCacheTtl) {
+      return cart;
+    }
+
     try {
-      cart = await _services.cart.getCart(accessToken!, activeCartId);
+      _setCart(await _services.cart.getCart(accessToken!, activeCartId));
+      _cartCachedAt = DateTime.now();
+      if (cart!.books.isNotEmpty) {
+        _primeBookCaches(cart!.books);
+      }
       if (cart?.id != activeCartId) {
         await _services.storage.persistCartId(cart!.id);
       }
-      notifyListeners();
     } catch (_) {
       await _services.storage.clearCart();
-      cart = null;
-      notifyListeners();
+      _setCart(null);
+      _cartCachedAt = DateTime.now();
     }
     return cart;
   }
@@ -459,8 +601,8 @@ class SessionViewModel extends ChangeNotifier {
       accessToken!,
       cart!.id,
     );
-    cart = paymentCart;
-    notifyListeners();
+    _setCart(paymentCart);
+    _cartCachedAt = DateTime.now();
 
     final order = await _services.orders.createOrder(
       accessToken!,
@@ -475,21 +617,19 @@ class SessionViewModel extends ChangeNotifier {
       ),
     );
 
-    final latestOrder = await _services.orders.waitForPaidOrder(
-      accessToken!,
-      order.id,
-    );
     final paymentWasConfirmed =
         confirmedPaymentIntent.status == PaymentIntentsStatus.Succeeded ||
         confirmedPaymentIntent.status == PaymentIntentsStatus.Processing ||
         confirmedPaymentIntent.status == PaymentIntentsStatus.RequiresCapture;
-    final shouldClearCart =
-        paymentWasConfirmed ||
-        latestOrder.status == OrderStatus.paymentReceived;
-
-    if (!shouldClearCart) {
-      return latestOrder;
+    if (!paymentWasConfirmed) {
+      return await _services.orders.waitForPaidOrder(
+        accessToken!,
+        order.id,
+        maxAttempts: 2,
+      );
     }
+
+    unawaited(_finalizeOrderSettlement(order.id));
 
     try {
       await _services.cart.deleteCart(accessToken!, paymentCart.id);
@@ -497,11 +637,12 @@ class SessionViewModel extends ChangeNotifier {
       // Order flow can already consume the cart.
     }
 
-    cart = null;
+    _setCart(null);
+    _cartCachedAt = DateTime.now();
     await _services.storage.clearCart();
     _invalidateLibraryCache();
-    notifyListeners();
-    return latestOrder;
+    _markLibraryChanged();
+    return order;
   }
 
   Future<List<LibraryEntry>> getLibraryEntries({
@@ -527,6 +668,26 @@ class SessionViewModel extends ChangeNotifier {
     return entries.any((entry) => entry.bookId == bookId);
   }
 
+  Future<void> _finalizeOrderSettlement(String orderId) async {
+    final token = accessToken;
+    if (token == null) {
+      return;
+    }
+
+    try {
+      final latestOrder = await _services.orders.waitForPaidOrder(
+        token,
+        orderId,
+      );
+      if (latestOrder.status == OrderStatus.paymentReceived) {
+        _invalidateLibraryCache();
+        _markLibraryChanged();
+      }
+    } catch (_) {
+      // Checkout already succeeded from the user's perspective.
+    }
+  }
+
   Future<void> submitReview({
     required String bookId,
     required int rating,
@@ -535,8 +696,8 @@ class SessionViewModel extends ChangeNotifier {
     _requireAuth();
     await _services.library.createReview(accessToken!, bookId, rating, comment);
     _reviewPageCache.removeWhere((key, _) => key.startsWith('$bookId::'));
-    _reviewCache.remove(bookId);
     _ratingCache.remove(bookId);
+    _markLibraryChanged();
   }
 
   Future<String> getReadUrl(String bookId) async {
@@ -548,14 +709,14 @@ class SessionViewModel extends ChangeNotifier {
     _requireAuth();
     await _services.wishlist.addToWishlist(accessToken!, bookId);
     _invalidateWishlistCache();
-    notifyListeners();
+    _markWishlistChanged();
   }
 
   Future<void> removeFromWishlist(String bookId) async {
     _requireAuth();
     await _services.wishlist.removeFromWishlist(accessToken!, bookId);
     _invalidateWishlistCache();
-    notifyListeners();
+    _markWishlistChanged();
   }
 
   Future<List<BookModel>> getWishlistBooks() async {
@@ -576,7 +737,7 @@ class SessionViewModel extends ChangeNotifier {
     await addToCart(book);
     await _services.wishlist.removeFromWishlist(accessToken!, book.id);
     _invalidateWishlistCache();
-    notifyListeners();
+    _markWishlistChanged();
   }
 
   Future<void> _upsertCart(List<CartItemInput> items) async {
@@ -591,10 +752,10 @@ class SessionViewModel extends ChangeNotifier {
       paymentIntentId: cart?.paymentIntentId,
     );
 
-    cart = newCart;
+    _setCart(newCart);
+    _cartCachedAt = DateTime.now();
     await _services.storage.persistCartId(newCart.id);
     _invalidateSearchAndRecommendationCaches();
-    notifyListeners();
   }
 
   bool _isFresh<T>(_TimedCacheValue<T>? entry, Duration ttl) {
@@ -613,6 +774,16 @@ class SessionViewModel extends ChangeNotifier {
         authorNames[book.authorId] = book.authorName.trim();
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _readyState.dispose();
+    _profileState.dispose();
+    _cartState.dispose();
+    _wishlistRevision.dispose();
+    _libraryRevision.dispose();
+    super.dispose();
   }
 }
 

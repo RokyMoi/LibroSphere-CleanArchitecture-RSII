@@ -1,4 +1,4 @@
-﻿using LibroSphere.Application.Abstractions;
+using LibroSphere.Application.Abstractions;
 using LibroSphere.Domain.Entities.Orders;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -33,6 +33,15 @@ namespace LibroSphere.Infrastructure.Repositories
                 .Where(o => o.BuyerEmail == email)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
+        }
+
+        public async Task<List<Order>> GetAllAsync(CancellationToken cancellationToken = default)
+        {
+            return await _context.Set<Order>()
+                .AsNoTracking()
+                .Include(o => o.Items)
+                .OrderByDescending(o => o.OrderDate)
+                .ToListAsync(cancellationToken);
         }
 
         public async Task AddAsync(Order order)

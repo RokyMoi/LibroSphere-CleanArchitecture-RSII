@@ -20,7 +20,7 @@ namespace LibroSphere.Application.Library.Query.GetMyLibrary
 
         public async Task<Result<PagedResponse<LibraryBookResponse>>> Handle(GetMyLibraryQuery request, CancellationToken cancellationToken)
         {
-            var userBooks = await _userBookRepository.GetByEmailAsync(request.Email);
+            var userBooks = await _userBookRepository.GetByEmailAsync(request.Email, cancellationToken);
             var filteredUserBooks = userBooks
                 .Where(ub => string.IsNullOrWhiteSpace(request.SearchTerm) ||
                              ub.Book.Title.Value.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase))

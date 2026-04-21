@@ -22,6 +22,7 @@ class AuthorsViewModel extends ChangeNotifier {
   bool isSaving = false;
   String? deletingAuthorId;
   Failure? failure;
+  String searchTerm = '';
   List<AdminAuthorModel> authors = <AdminAuthorModel>[];
   int currentPage = 1;
   int totalPages = 1;
@@ -37,16 +38,22 @@ class AuthorsViewModel extends ChangeNotifier {
     return load();
   }
 
-  Future<void> load({int? page}) async {
+  Future<void> load({int? page, String? search}) async {
     isLoading = true;
     failure = null;
+    if (search != null) {
+      searchTerm = search;
+      currentPage = 1;
+    }
     notifyListeners();
 
     final targetPage = page ?? currentPage;
+    final activeSearch = searchTerm.trim().isEmpty ? null : searchTerm.trim();
     final result = await _repository.getAuthors(
       _token,
       page: targetPage,
       pageSize: pageSize,
+      searchTerm: activeSearch,
     );
 
     switch (result) {
@@ -67,6 +74,10 @@ class AuthorsViewModel extends ChangeNotifier {
     isLoading = false;
     notifyListeners();
   }
+
+  Future<void> search(String term) => load(search: term);
+
+  Future<void> clearSearch() => load(search: '');
 
   Future<void> loadNextPage() async {
     if (!hasNextPage || isLoading) {

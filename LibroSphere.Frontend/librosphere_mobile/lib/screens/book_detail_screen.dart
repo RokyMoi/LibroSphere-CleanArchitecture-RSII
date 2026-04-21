@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../core/app_constants.dart';
 import '../core/ui/app_feedback.dart';
 import '../data/models/book_model.dart';
+import '../data/models/paged_result.dart';
 import '../data/models/review_model.dart';
 import '../features/session/presentation/viewmodels/session_viewmodel.dart';
 import '../widgets/common_widgets.dart';
@@ -64,18 +66,19 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
     try {
       final session = widget.session;
-      final bookFuture = session.getBook(widget.bookId, forceRefresh: true);
-      final libraryAccessFuture = session.hasLibraryAccess(widget.bookId);
-      final reviewPageFuture = session.getReviewPage(
-        widget.bookId,
-        page: 1,
-        pageSize: _reviewPageSize,
-        forceRefresh: true,
-      );
-
-      final book = await bookFuture;
-      final hasLibraryAccess = await libraryAccessFuture;
-      final reviewPage = await reviewPageFuture;
+      final results = await Future.wait<Object>([
+        session.getBook(widget.bookId, forceRefresh: true),
+        session.hasLibraryAccess(widget.bookId),
+        session.getReviewPage(
+          widget.bookId,
+          page: 1,
+          pageSize: _reviewPageSize,
+          forceRefresh: true,
+        ),
+      ]);
+      final book = results[0] as BookModel;
+      final hasLibraryAccess = results[1] as bool;
+      final reviewPage = results[2] as PagedResult<ReviewModel>;
 
       if (!mounted) {
         return;
@@ -512,6 +515,8 @@ class _ReviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final createdAt = review.createdAt;
+    final profileUrl = review.userProfilePictureUrl;
+    final userName = review.userName ?? 'Anonymous';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -525,25 +530,72 @@ class _ReviewCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              StarRow(rating: review.rating.toDouble(), size: 18),
-              if (createdAt != null) ...[
-                const SizedBox(width: 10),
-                Text(
-                  DateFormat('d MMM yyyy').format(createdAt.toLocal()),
-                  style: TextStyle(
-                    color: Colors.grey.shade700,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: brandBlueDark,
+                backgroundImage: profileUrl != null && profileUrl.isNotEmpty
+                    ? CachedNetworkImageProvider(profileUrl)
+                    : null,
+                child: profileUrl == null || profileUrl.isEmpty
+                    ? Text(
+                        _initials(userName),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      userName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        StarRow(rating: review.rating.toDouble(), size: 14),
+                        if (createdAt != null) ...[
+                          const SizedBox(width: 8),
+                          Text(
+                            DateFormat('d MMM yyyy').format(createdAt.toLocal()),
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(review.comment, style: const TextStyle(height: 1.4)),
         ],
       ),
     );
+  }
+
+  String _initials(String name) {
+    final parts = name.trim().split(' ');
+    final buffer = StringBuffer();
+    if (parts.isNotEmpty && parts[0].isNotEmpty) {
+      buffer.write(parts[0][0].toUpperCase());
+    }
+    if (parts.length > 1 && parts[1].isNotEmpty) {
+      buffer.write(parts[1][0].toUpperCase());
+    }
+    return buffer.isEmpty ? '?' : buffer.toString();
   }
 }
 

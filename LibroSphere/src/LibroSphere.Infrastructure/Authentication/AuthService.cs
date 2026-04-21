@@ -1,4 +1,5 @@
-﻿using LibroSphere.Application.Abstractions.Identity;
+using System.Security.Cryptography;
+using LibroSphere.Application.Abstractions.Identity;
 using LibroSphere.Application.Events.User;
 using LibroSphere.Application.Users.AuthCommands;
 using LibroSphere.Domain.Abstraction;
@@ -8,6 +9,7 @@ using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using StackExchange.Redis;
 
 namespace LibroSphere.Infrastructure.Authentication
 {
@@ -22,6 +24,9 @@ namespace LibroSphere.Infrastructure.Authentication
         private readonly IPublishEndpoint _publishEndpoint;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly AccessControlOptions _accessControlOptions;
+        private readonly IConnectionMultiplexer _redis;
+
+        private static readonly TimeSpan PasswordResetCodeTtl = TimeSpan.FromMinutes(15);
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
@@ -32,7 +37,8 @@ namespace LibroSphere.Infrastructure.Authentication
             IOptions<JwtOptions> jwtSettings,
             IPublishEndpoint publishEndpoint,
             RoleManager<IdentityRole> roleManager,
-            IOptions<AccessControlOptions> accessControlOptions)
+            IOptions<AccessControlOptions> accessControlOptions,
+            IConnectionMultiplexer redis)
         {
             _userManager = userManager;
             _jwtService = jwtService;
@@ -43,6 +49,7 @@ namespace LibroSphere.Infrastructure.Authentication
             _publishEndpoint = publishEndpoint;
             _roleManager = roleManager;
             _accessControlOptions = accessControlOptions.Value;
+            _redis = redis;
         }
 
         public async Task<AuthResult> RegisterAsync(RegisterUserCommand command, CancellationToken ct = default)
@@ -100,29 +107,31 @@ namespace LibroSphere.Infrastructure.Authentication
                     command.LastName,
                     command.Email,
                     command.Password),
-                ct);
+                CancellationToken.None);
 
             return new AuthResult(accessToken, refreshToken, true);
         }
 
         public async Task<AuthResult> LoginAsync(LoginUserCommand command, CancellationToken ct = default)
         {
+            const string invalidCredentialsMessage = "Pogresili ste sifru ili email.";
+
             var appUser = await _userManager.FindByEmailAsync(command.Email);
             if (appUser is null)
             {
-                return new AuthResult("", "", false, "Invalid credentials.");
+                return new AuthResult("", "", false, invalidCredentialsMessage);
             }
 
             var passwordValid = await _userManager.CheckPasswordAsync(appUser, command.Password);
             if (!passwordValid)
             {
-                return new AuthResult("", "", false, "Invalid credentials.");
+                return new AuthResult("", "", false, invalidCredentialsMessage);
             }
 
             var domainUser = await _userRepository.GetAsyncById(appUser.DomainUserId, ct);
             if (domainUser is null || !domainUser.IsActive)
             {
-                return new AuthResult("", "", false, "Account is inactive.");
+                return new AuthResult("", "", false, invalidCredentialsMessage);
             }
 
             domainUser.Login(_dateTime);
@@ -207,6 +216,42 @@ namespace LibroSphere.Infrastructure.Authentication
             return _userManager.UpdateAsync(appUser);
         }
 
+        public async Task<Result> ChangePasswordAsync(Guid userId, string currentPassword, string newPassword, CancellationToken ct = default)
+        {
+            var appUser = await _userManager.Users.FirstOrDefaultAsync(u => u.DomainUserId == userId, ct);
+            if (appUser is null)
+            {
+                return Result.Failure(new Error("User.NotFound", "User not found."));
+            }
+
+            var changeResult = await _userManager.ChangePasswordAsync(appUser, currentPassword, newPassword);
+            if (!changeResult.Succeeded)
+            {
+                return Result.Failure(new Error("User.Password.ChangeFailed", changeResult.Errors.First().Description));
+            }
+
+            return Result.Success();
+        }
+
+        public async Task<Result> AdminResetPasswordAsync(Guid targetUserId, string newPassword, CancellationToken ct = default)
+        {
+            var identityUser = await _userManager.Users.FirstOrDefaultAsync(u => u.DomainUserId == targetUserId, ct);
+            if (identityUser is null)
+            {
+                return Result.Failure(new Error("User.NotFound", "Target user was not found."));
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(identityUser);
+            var result = await _userManager.ResetPasswordAsync(identityUser, token, newPassword);
+
+            if (!result.Succeeded)
+            {
+                return Result.Failure(new Error("User.Password.ResetFailed", result.Errors.First().Description));
+            }
+
+            return Result.Success();
+        }
+
         private async Task EnsureRolesExistAsync()
         {
             if (!await _roleManager.RoleExistsAsync(ApplicationRoles.User))
@@ -239,6 +284,145 @@ namespace LibroSphere.Infrastructure.Authentication
             }
 
             return roles;
+        }
+
+        public async Task<Result> CreateAdminAsync(
+            string firstName,
+            string lastName,
+            string email,
+            string password,
+            CancellationToken ct = default)
+        {
+            if (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName) ||
+                string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+            {
+                return Result.Failure(new Error("Admin.InvalidInput", "Sva polja su obavezna."));
+            }
+
+            var existing = await _userManager.FindByEmailAsync(email);
+            if (existing is not null)
+            {
+                return Result.Failure(new Error("Admin.EmailInUse", "Email je vec u upotrebi."));
+            }
+
+            var domainUser = User.Create(
+                new FirstName(firstName),
+                new LastName(lastName),
+                new Email(email),
+                _dateTime);
+
+            var appUser = new ApplicationUser
+            {
+                UserName = email,
+                Email = email,
+                DomainUserId = domainUser.Id,
+                DomainUser = domainUser,
+                DateRegistered = _dateTime.UtcNow
+            };
+
+            var result = await _userManager.CreateAsync(appUser, password);
+            if (!result.Succeeded)
+            {
+                return Result.Failure(new Error("Admin.CreateFailed", result.Errors.First().Description));
+            }
+
+            await EnsureRolesExistAsync();
+
+            var roleResult = await _userManager.AddToRolesAsync(
+                appUser,
+                new[] { ApplicationRoles.User, ApplicationRoles.Admin });
+            if (!roleResult.Succeeded)
+            {
+                return Result.Failure(new Error("Admin.RoleAssignFailed", roleResult.Errors.First().Description));
+            }
+
+            await _publishEndpoint.Publish(
+                new UserRegisteredIntegrationEvent(
+                    domainUser.Id,
+                    firstName,
+                    lastName,
+                    email,
+                    password),
+                CancellationToken.None);
+
+            return Result.Success();
+        }
+
+        public async Task<Result> RequestPasswordResetAsync(string email, CancellationToken ct = default)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return Result.Failure(new Error("PasswordReset.EmailRequired", "Email je obavezan."));
+            }
+
+            var appUser = await _userManager.FindByEmailAsync(email);
+            if (appUser is null)
+            {
+                // Do not reveal whether the email exists for security reasons.
+                return Result.Success();
+            }
+
+            var code = GenerateResetCode();
+            var db = _redis.GetDatabase();
+            var key = BuildPasswordResetKey(email);
+            await db.StringSetAsync(key, code, PasswordResetCodeTtl);
+
+            await _publishEndpoint.Publish(
+                new PasswordResetRequestedIntegrationEvent(
+                    email,
+                    code,
+                    (int)PasswordResetCodeTtl.TotalMinutes),
+                CancellationToken.None);
+
+            return Result.Success();
+        }
+
+        public async Task<Result> ResetPasswordWithCodeAsync(
+            string email,
+            string code,
+            string newPassword,
+            CancellationToken ct = default)
+        {
+            if (string.IsNullOrWhiteSpace(email) ||
+                string.IsNullOrWhiteSpace(code) ||
+                string.IsNullOrWhiteSpace(newPassword))
+            {
+                return Result.Failure(new Error("PasswordReset.InvalidInput", "Sva polja su obavezna."));
+            }
+
+            var db = _redis.GetDatabase();
+            var key = BuildPasswordResetKey(email);
+            var storedCode = await db.StringGetAsync(key);
+            if (!storedCode.HasValue || storedCode.ToString() != code.Trim())
+            {
+                return Result.Failure(new Error("PasswordReset.InvalidCode", "Kod je pogresan ili je istekao."));
+            }
+
+            var appUser = await _userManager.FindByEmailAsync(email);
+            if (appUser is null)
+            {
+                return Result.Failure(new Error("PasswordReset.InvalidCode", "Kod je pogresan ili je istekao."));
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(appUser);
+            var resetResult = await _userManager.ResetPasswordAsync(appUser, token, newPassword);
+            if (!resetResult.Succeeded)
+            {
+                return Result.Failure(new Error("PasswordReset.Failed", resetResult.Errors.First().Description));
+            }
+
+            await db.KeyDeleteAsync(key);
+            return Result.Success();
+        }
+
+        private static string BuildPasswordResetKey(string email) =>
+            $"password-reset:{email.Trim().ToLowerInvariant()}";
+
+        private static string GenerateResetCode()
+        {
+            // 6-digit numeric code
+            var number = RandomNumberGenerator.GetInt32(0, 1_000_000);
+            return number.ToString("D6");
         }
     }
 }

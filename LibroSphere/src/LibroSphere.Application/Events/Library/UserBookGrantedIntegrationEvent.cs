@@ -15,8 +15,8 @@ public sealed class UserBookGrantedIntegrationEvent
         UserEmail = string.Empty;
     }
 
-    public Guid UserBookId { get; private set; }
-    public string UserEmail { get; private set; }
-    public Guid BookId { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid UserBookId { get; init; }
+    public string UserEmail { get; init; }
+    public Guid BookId { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
 }

@@ -5,6 +5,7 @@ import '../../../../core/utils/formatters.dart';
 import '../../../../shared/widgets/admin/admin_empty_state.dart';
 import '../../../../shared/widgets/admin/admin_panel.dart';
 import '../../../../shared/widgets/app_button.dart';
+import '../../../../shared/widgets/app_text_field.dart';
 import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/loading_view.dart';
 import '../../../../shared/widgets/admin/table_header.dart';
@@ -21,6 +22,14 @@ class UsersPage extends StatefulWidget {
 }
 
 class _UsersPageState extends State<UsersPage> {
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -102,6 +111,36 @@ class _UsersPageState extends State<UsersPage> {
           padding: const EdgeInsets.fromLTRB(26, 20, 26, 24),
           child: Column(
             children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: AppTextField(
+                      controller: _searchController,
+                      hintText: 'Search users by name or email...',
+                      textInputAction: TextInputAction.search,
+                      onSubmitted: (v) => viewModel.search(v),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  AppButton(
+                    label: 'Search',
+                    onPressed: () => viewModel.search(_searchController.text),
+                    width: 100,
+                  ),
+                  if (viewModel.searchTerm.isNotEmpty) ...[  
+                    const SizedBox(width: 8),
+                    AppButton(
+                      label: 'Clear',
+                      onPressed: () {
+                        _searchController.clear();
+                        viewModel.clearSearch();
+                      },
+                      width: 80,
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 16),
               Expanded(
                 child: AdminPanel(
                   child: Column(

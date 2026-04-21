@@ -1,4 +1,4 @@
-﻿using LibroSphere.Application.Exceptions;
+using LibroSphere.Application.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LibroSphere.WebApi.MiddleWare
@@ -57,6 +57,24 @@ namespace LibroSphere.WebApi.MiddleWare
                     "Validation error",
                     "One or more validation errors has occurred",
                     validationException.Errors),
+                NotFoundException notFoundException => new ExceptionDetails(
+                    StatusCodes.Status404NotFound,
+                    "NotFound",
+                    "Not found",
+                    notFoundException.Message,
+                    null),
+                BusinessException businessException => new ExceptionDetails(
+                    StatusCodes.Status400BadRequest,
+                    "BusinessRuleViolation",
+                    "Business rule violation",
+                    businessException.Message,
+                    null),
+                InvalidOperationException invalidOperationException => new ExceptionDetails(
+                    StatusCodes.Status400BadRequest,
+                    "InvalidOperation",
+                    "Invalid operation",
+                    invalidOperationException.Message,
+                    null),
                 _ => new ExceptionDetails(
                     StatusCodes.Status500InternalServerError,
                     "ServerError",
@@ -73,4 +91,5 @@ namespace LibroSphere.WebApi.MiddleWare
         string Title,
         string Detail,
         IEnumerable<object>? Errors);
+
 }

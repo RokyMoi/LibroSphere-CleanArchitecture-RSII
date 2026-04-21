@@ -13,12 +13,14 @@ class UsersRepository {
     String token, {
     required int page,
     int pageSize = 12,
+    String? searchTerm,
   }) async {
     try {
       final users = await _apiService.getUsers(
         token,
         page: page,
         pageSize: pageSize,
+        searchTerm: searchTerm,
       );
       return Success<UsersPageModel>(users);
     } on AppException catch (exception) {

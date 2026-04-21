@@ -77,4 +77,20 @@ class AuthApiService {
   Future<void> logout(String accessToken) {
     return _apiClient.logout(accessToken);
   }
+
+  Future<void> requestPasswordReset(String email) {
+    return _apiClient.requestPasswordReset(email);
+  }
+
+  Future<void> resetPasswordWithCode({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) {
+    return _apiClient.resetPasswordWithCode(
+      email: email,
+      code: code,
+      newPassword: newPassword,
+    );
+  }
 }

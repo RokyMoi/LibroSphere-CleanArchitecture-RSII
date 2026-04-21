@@ -21,6 +21,15 @@ String? readNullableString(Map<String, dynamic> json, List<String> keys) {
   return value.isEmpty ? null : value;
 }
 
+String? readOptionalString(Map<String, dynamic> json, List<String> keys) {
+  for (final key in keys) {
+    final value = json[key];
+    if (value == null) continue;
+    if (value is String && value.isNotEmpty) return value;
+  }
+  return null;
+}
+
 int readInt(Map<String, dynamic> json, List<String> keys) {
   for (final key in keys) {
     final value = json[key];

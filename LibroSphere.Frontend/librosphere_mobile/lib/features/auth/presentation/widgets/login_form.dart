@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import '../../../../core/app_constants.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../widgets/common_widgets.dart';
+// ignore: unused_import
+import '../../../session/presentation/viewmodels/session_viewmodel.dart';
 import '../../data/models/login_request.dart';
+import '../pages/forgot_password_page.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
 class LoginForm extends StatefulWidget {
@@ -60,6 +63,15 @@ class _LoginFormState extends State<LoginForm> {
     return false;
   }
 
+  void _openForgotPassword(BuildContext context) {
+    final session = widget.viewModel.session;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ForgotPasswordPage(session: session),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final viewModel = widget.viewModel;
@@ -101,7 +113,23 @@ class _LoginFormState extends State<LoginForm> {
             },
             onSubmitted: (_) => _submit(),
           ),
-          const SizedBox(height: 24),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: viewModel.isSubmitting
+                  ? null
+                  : () => _openForgotPassword(context),
+              child: const Text(
+                'Reset password',
+                style: TextStyle(
+                  color: brandBlueDark,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
           SizedBox(
             width: double.infinity,
             child: PrimaryPillButton(

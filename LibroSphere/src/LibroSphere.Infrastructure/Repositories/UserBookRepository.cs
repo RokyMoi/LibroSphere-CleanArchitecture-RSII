@@ -12,10 +12,11 @@ namespace LibroSphere.Infrastructure.Repositories
 
         public UserBookRepository(ApplicationDbContext context) => _context = context;
 
-        public async Task<List<UserBook>> GetByEmailAsync(string email)
+        public async Task<List<UserBook>> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
         {
             var libo = await _context.Set<UserBook>()
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Include(ub => ub.Book)
                     .ThenInclude(book => book.Author)
                 .Include(ub => ub.Book)
@@ -24,7 +25,9 @@ namespace LibroSphere.Infrastructure.Repositories
                     .ThenInclude(book => book.BookGenres)
                         .ThenInclude(bookGenre => bookGenre.Genre)
                 .Where(ub => ub.UserEmail == email)
-                .ToListAsync(); return libo;
+                .ToListAsync(cancellationToken);
+
+            return libo;
         }
 
         public async Task<bool> HasAccessAsync(string email, Guid bookId)
@@ -37,7 +40,12 @@ namespace LibroSphere.Infrastructure.Repositories
         {
             await _context.Set<UserBook>().AddAsync(userBook);
         }
-       
+
+        public Task RemoveAsync(UserBook userBook)
+        {
+            _context.Set<UserBook>().Remove(userBook);
+            return Task.CompletedTask;
+        }
 
         public async Task SaveChangesAsync()
             => await _context.SaveChangesAsync();

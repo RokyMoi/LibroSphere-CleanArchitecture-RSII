@@ -14,12 +14,14 @@ class GenresRepository {
     String token, {
     required int page,
     int pageSize = 10,
+    String? searchTerm,
   }) async {
     try {
       final genres = await _apiService.getGenres(
         token,
         page: page,
         pageSize: pageSize,
+        searchTerm: searchTerm,
       );
       return Success<GenresPageModel>(genres);
     } on AppException catch (exception) {

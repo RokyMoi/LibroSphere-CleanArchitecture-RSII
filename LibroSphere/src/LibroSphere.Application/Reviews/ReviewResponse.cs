@@ -6,5 +6,7 @@ namespace LibroSphere.Application.Reviews
         Guid BookId,
         int Rating,
         string Comment,
-        DateTime CreatedAt);
+        DateTime CreatedAt,
+        string? UserName = null,
+        string? UserProfilePictureUrl = null);
 }

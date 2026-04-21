@@ -17,6 +17,7 @@ class UsersViewModel extends ChangeNotifier {
   bool isLoading = true;
   String? deletingUserId;
   Failure? failure;
+  String searchTerm = '';
   List<AdminUserModel> users = <AdminUserModel>[];
   int currentPage = 1;
   int totalPages = 1;
@@ -32,16 +33,22 @@ class UsersViewModel extends ChangeNotifier {
     return load();
   }
 
-  Future<void> load({int? page}) async {
+  Future<void> load({int? page, String? search}) async {
     isLoading = true;
     failure = null;
+    if (search != null) {
+      searchTerm = search;
+      currentPage = 1;
+    }
     notifyListeners();
 
     final targetPage = page ?? currentPage;
+    final activeSearch = searchTerm.trim().isEmpty ? null : searchTerm.trim();
     final result = await _repository.getUsers(
       _token,
       page: targetPage,
       pageSize: pageSize,
+      searchTerm: activeSearch,
     );
 
     switch (result) {
@@ -62,6 +69,10 @@ class UsersViewModel extends ChangeNotifier {
     isLoading = false;
     notifyListeners();
   }
+
+  Future<void> search(String term) => load(search: term);
+
+  Future<void> clearSearch() => load(search: '');
 
   Future<void> loadNextPage() async {
     if (!hasNextPage || isLoading) {

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
@@ -10,6 +10,7 @@ class AuthViewModel extends ChangeNotifier {
   AuthViewModel(this._session);
 
   final SessionViewModel _session;
+  SessionViewModel get session => _session;
 
   bool isLoginMode = true;
   bool isSubmitting = false;
@@ -92,10 +93,32 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   String _mapFailure(Object failure) {
-    if (failure is Failure) {
-      return failure.message;
-    }
+    return normalizeAuthMessage(failure);
+  }
+}
 
-    return failure.toString();
+String normalizeAuthMessage(Object failure) {
+  final rawMessage = failure is Failure ? failure.message : failure.toString();
+  final message = rawMessage.trim();
+
+  if (message.isEmpty ||
+      message.contains('{Api.Code') ||
+      message.contains('Api.Code')) {
+    return 'Something went wrong. Please try again.';
+  }
+
+  switch (message) {
+    case 'Pogresili ste sifru ili email.':
+      return 'Incorrect email or password.';
+    case 'Email je obavezan.':
+      return 'Email is required.';
+    case 'Sva polja su obavezna.':
+      return 'All fields are required.';
+    case 'Kod je pogresan ili je istekao.':
+      return 'The reset code is invalid or has expired.';
+    case 'Lozinka je uspjesno promijenjena.':
+      return 'Your password has been changed successfully.';
+    default:
+      return message;
   }
 }

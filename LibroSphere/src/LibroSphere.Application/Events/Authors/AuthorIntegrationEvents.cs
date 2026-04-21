@@ -2,11 +2,12 @@ namespace LibroSphere.Application.Events.Authors;
 
 public sealed class AuthorCreatedIntegrationEvent
 {
-    public AuthorCreatedIntegrationEvent(Guid authorId, string name)
+    public AuthorCreatedIntegrationEvent(Guid authorId, string name, string? adminEmail = null)
     {
         AuthorId = authorId;
         Name = name;
         OccurredOnUtc = DateTime.UtcNow;
+        AdminEmail = adminEmail;
     }
 
     public AuthorCreatedIntegrationEvent()
@@ -14,18 +15,20 @@ public sealed class AuthorCreatedIntegrationEvent
         Name = string.Empty;
     }
 
-    public Guid AuthorId { get; private set; }
-    public string Name { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid AuthorId { get; init; }
+    public string Name { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
+    public string? AdminEmail { get; init; }
 }
 
 public sealed class AuthorUpdatedIntegrationEvent
 {
-    public AuthorUpdatedIntegrationEvent(Guid authorId, string name)
+    public AuthorUpdatedIntegrationEvent(Guid authorId, string name, string? adminEmail = null)
     {
         AuthorId = authorId;
         Name = name;
         OccurredOnUtc = DateTime.UtcNow;
+        AdminEmail = adminEmail;
     }
 
     public AuthorUpdatedIntegrationEvent()
@@ -33,18 +36,20 @@ public sealed class AuthorUpdatedIntegrationEvent
         Name = string.Empty;
     }
 
-    public Guid AuthorId { get; private set; }
-    public string Name { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid AuthorId { get; init; }
+    public string Name { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
+    public string? AdminEmail { get; init; }
 }
 
 public sealed class AuthorDeletedIntegrationEvent
 {
-    public AuthorDeletedIntegrationEvent(Guid authorId, string name)
+    public AuthorDeletedIntegrationEvent(Guid authorId, string name, string? adminEmail = null)
     {
         AuthorId = authorId;
         Name = name;
         OccurredOnUtc = DateTime.UtcNow;
+        AdminEmail = adminEmail;
     }
 
     public AuthorDeletedIntegrationEvent()
@@ -52,7 +57,8 @@ public sealed class AuthorDeletedIntegrationEvent
         Name = string.Empty;
     }
 
-    public Guid AuthorId { get; private set; }
-    public string Name { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid AuthorId { get; init; }
+    public string Name { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
+    public string? AdminEmail { get; init; }
 }

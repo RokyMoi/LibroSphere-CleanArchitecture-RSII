@@ -71,7 +71,13 @@ namespace LibroSphere.Infrastructure.Services
         public async Task<List<Order>> GetOrdersForUserAsync(string email)
             => await _orderRepo.GetByEmailAsync(email);
 
+        public async Task<List<Order>> GetAllOrdersAsync(CancellationToken cancellationToken = default)
+            => await _orderRepo.GetAllAsync();
+
         public async Task<Order?> GetOrderByIdAsync(Guid id)
             => await _orderRepo.GetByIdAsync(id);
+
+        public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+            => await _orderRepo.SaveChangesAsync();
     }
 }

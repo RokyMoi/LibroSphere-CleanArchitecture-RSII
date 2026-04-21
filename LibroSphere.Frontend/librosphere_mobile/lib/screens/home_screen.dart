@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 
 import '../core/app_constants.dart';
 import '../core/ui/app_feedback.dart';
+import '../data/models/author_model.dart';
 import '../data/models/book_model.dart';
+import '../data/models/genre_model.dart';
 import '../features/session/presentation/session_scope.dart';
 import '../widgets/common_widgets.dart';
+import '../widgets/filter_dialog.dart';
 
 class MobileHomeScreen extends StatefulWidget {
   const MobileHomeScreen({super.key, required this.onOpenBook});
@@ -22,16 +25,55 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
   final _searchController = TextEditingController();
   late Future<_HomeData> _future = _load();
 
+  // Filter state
+  String? _selectedAuthorId;
+  String? _selectedAuthorName;
+  String? _selectedGenreId;
+  String? _selectedGenreName;
+  double? _minPrice;
+  double? _maxPrice;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
   }
 
+  bool get _hasActiveFilters =>
+      _selectedAuthorId != null ||
+      _selectedGenreId != null ||
+      _minPrice != null ||
+      _maxPrice != null;
+
   Future<_HomeData> _load([String? term, bool forceRefresh = false]) async {
     final session = SessionScope.read(context);
     final normalizedTerm = term?.trim();
+    final isSearchMode = _hasActiveFilters || normalizedTerm?.isNotEmpty == true;
+
+    // If we have filters, use getBooks instead of getHomeFeed
+    if (isSearchMode) {
+      final result = await session.getBooks(
+        pageSize: 20,
+        searchTerm: normalizedTerm,
+        authorId: _selectedAuthorId,
+        genreId: _selectedGenreId,
+        minPrice: _minPrice,
+        maxPrice: _maxPrice,
+        forceRefresh: forceRefresh,
+      );
+      return _HomeData(
+        recommendations: const [],
+        newest: result.items,
+        searchTerm: normalizedTerm ?? '',
+        totalCount: result.totalCount,
+        hasActiveFilters: _hasActiveFilters,
+        activeFilterDescription: _buildFilterDescription(),
+      );
+    }
+
     final feed = await session.getHomeFeed(
+      pageSize: 8,
+      takeRecommendations: 4,
       searchTerm: normalizedTerm,
       forceRefresh: forceRefresh,
     );
@@ -39,7 +81,26 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
       recommendations: feed.recommendations,
       newest: feed.newest.items,
       searchTerm: normalizedTerm ?? '',
+      totalCount: feed.newest.totalCount,
+      hasActiveFilters: false,
+      activeFilterDescription: null,
     );
+  }
+
+  String? _buildFilterDescription() {
+    final parts = <String>[];
+    if (_selectedAuthorName != null) {
+      parts.add('Author: $_selectedAuthorName');
+    }
+    if (_selectedGenreName != null) {
+      parts.add('Genre: $_selectedGenreName');
+    }
+    if (_minPrice != null || _maxPrice != null) {
+      final min = _minPrice?.toStringAsFixed(0) ?? '0';
+      final max = _maxPrice?.toStringAsFixed(0) ?? 'Any';
+      parts.add('Price: \$$min - \$$max');
+    }
+    return parts.isEmpty ? null : parts.join(', ');
   }
 
   void _runSearch([String? rawValue]) {
@@ -51,9 +112,55 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
 
   void _clearSearch() {
     _searchController.clear();
+    _clearFilters();
+  }
+
+  void _clearFilters() {
     setState(() {
+      _selectedAuthorId = null;
+      _selectedAuthorName = null;
+      _selectedGenreId = null;
+      _selectedGenreName = null;
+      _minPrice = null;
+      _maxPrice = null;
       _future = _load();
     });
+  }
+
+  Future<void> _openFilterDialog() async {
+    final session = SessionScope.read(context);
+    final results = await Future.wait<Object>([
+      session.getAuthors(),
+      session.getGenres(),
+    ]);
+    final authors = results[0] as List<AuthorModel>;
+    final genres = results[1] as List<GenreModel>;
+
+    if (!mounted) return;
+
+    final result = await showDialog<BookFilterResult>(
+      context: context,
+      builder: (context) => BookFilterDialog(
+        authors: authors,
+        genres: genres,
+        initialAuthorId: _selectedAuthorId,
+        initialGenreId: _selectedGenreId,
+        initialMinPrice: _minPrice,
+        initialMaxPrice: _maxPrice,
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedAuthorId = result.authorId;
+        _selectedAuthorName = result.authorName;
+        _selectedGenreId = result.genreId;
+        _selectedGenreName = result.genreName;
+        _minPrice = result.minPrice;
+        _maxPrice = result.maxPrice;
+        _future = _load(_searchController.text);
+      });
+    }
   }
 
   Future<void> refreshIfStale() async {
@@ -67,13 +174,17 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
       return;
     }
 
-    setState(() => _future = nextFuture);
+    setState(() {
+      _future = nextFuture;
+    });
     await nextFuture;
   }
 
   Future<void> _refresh() async {
     final newFuture = _load(_searchController.text, true);
-    setState(() => _future = newFuture);
+    setState(() {
+      _future = newFuture;
+    });
     await newFuture;
   }
 
@@ -107,34 +218,70 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
           }
 
           if (!snapshot.hasData) {
-            return const CenteredLoadingIndicator();
+            return const HomeSkeleton();
           }
 
           final data = snapshot.data!;
-          final session = context.session;
+          final session = SessionScope.read(context);
           return ListView(
             padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
             children: [
-              SearchBarCard(
-                controller: _searchController,
-                onSubmitted: _runSearch,
-                onClear: _clearSearch,
+              Row(
+                children: [
+                  Expanded(
+                    child: SearchBarCard(
+                      controller: _searchController,
+                      onSubmitted: _runSearch,
+                      onClear: _clearSearch,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: _hasActiveFilters ? brandBlueDark : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: brandBlueDark, width: 1),
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.filter_list_rounded,
+                        color: _hasActiveFilters ? Colors.white : brandBlueDark,
+                      ),
+                      onPressed: _openFilterDialog,
+                    ),
+                  ),
+                ],
               ),
-              if (data.searchTerm.isNotEmpty) ...[
+              if (data.searchTerm.isNotEmpty || data.hasActiveFilters) ...[
                 const SizedBox(height: 14),
                 Row(
                   children: [
                     Expanded(
-                      child: Text(
-                        'Results for "${data.searchTerm}"',
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Found ${data.totalCount} book${data.totalCount == 1 ? '' : 's'}${data.searchTerm.isNotEmpty ? ' for "${data.searchTerm}"' : ''}',
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          if (data.activeFilterDescription != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              'Filters: ${data.activeFilterDescription}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                     TextButton(
-                      onPressed: _clearSearch,
+                      onPressed: data.hasActiveFilters ? _clearFilters : _clearSearch,
                       child: const Text('Clear'),
                     ),
                   ],
@@ -145,7 +292,7 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
                 _NoSearchResults(searchTerm: data.searchTerm),
                 const SizedBox(height: 24),
               ],
-              if (data.recommendations.isNotEmpty) ...[
+              if (data.searchTerm.isEmpty && data.recommendations.isNotEmpty) ...[
                 const SizedBox(height: 26),
                 const Text(
                   'Recommended Books',
@@ -198,14 +345,12 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
                 ),
               ],
               const SizedBox(height: 22),
-              const Text(
-                'Newest',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+              Text(
+                data.searchTerm.isNotEmpty ? 'Search Results' : 'Newest',
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 16),
-              ...data.newest
-                  .take(6)
-                  .map(
+              ...data.newest.map(
                     (book) => Padding(
                       padding: const EdgeInsets.only(bottom: 18),
                       child: NewestBookTile(
@@ -242,11 +387,17 @@ class _HomeData {
     required this.recommendations,
     required this.newest,
     required this.searchTerm,
+    required this.totalCount,
+    required this.hasActiveFilters,
+    this.activeFilterDescription,
   });
 
   final List<BookModel> recommendations;
   final List<BookModel> newest;
   final String searchTerm;
+  final int totalCount;
+  final bool hasActiveFilters;
+  final String? activeFilterDescription;
 }
 
 class _NoSearchResults extends StatelessWidget {

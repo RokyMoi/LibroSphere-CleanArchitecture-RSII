@@ -14,12 +14,14 @@ class AuthorsRepository {
     String token, {
     required int page,
     int pageSize = 10,
+    String? searchTerm,
   }) async {
     try {
       final authors = await _apiService.getAuthors(
         token,
         page: page,
         pageSize: pageSize,
+        searchTerm: searchTerm,
       );
       return Success<AuthorsPageModel>(authors);
     } on AppException catch (exception) {

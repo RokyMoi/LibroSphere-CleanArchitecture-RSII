@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -7,6 +9,7 @@ import '../core/ui/app_feedback.dart';
 import '../core/utils/validators.dart';
 import '../data/models/book_model.dart';
 import '../data/models/order_status.dart';
+import '../data/models/shopping_cart_model.dart';
 import '../features/session/presentation/session_scope.dart';
 import '../features/session/presentation/viewmodels/session_viewmodel.dart';
 import '../widgets/common_widgets.dart';
@@ -15,44 +18,27 @@ class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
 
   @override
-  State<CartScreen> createState() => _CartScreenState();
+  State<CartScreen> createState() => CartScreenState();
 }
 
-class _CartScreenState extends State<CartScreen> {
-  SessionViewModel? _session;
+class CartScreenState extends State<CartScreen> {
+  ValueListenable<ShoppingCartModel?>? _cartState;
   late Future<List<BookModel>> _future = _load();
-
-  Future<List<BookModel>> _load() async {
-    final session = SessionScope.read(context);
-    final cart = await session.refreshCart();
-    if (cart == null) {
-      return <BookModel>[];
-    }
-
-    return Future.wait(cart.items.map((item) => session.getBook(item.bookId)));
-  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
-    final nextSession = SessionScope.read(context);
-    if (_session == nextSession) {
+    final nextState = SessionScope.read(context).cartState;
+    if (_cartState == nextState) {
       return;
     }
 
-    _session?.removeListener(_handleSessionChanged);
-    _session = nextSession;
-    _session!.addListener(_handleSessionChanged);
+    _cartState?.removeListener(_handleCartStateChanged);
+    _cartState = nextState;
+    _cartState?.addListener(_handleCartStateChanged);
   }
 
-  @override
-  void dispose() {
-    _session?.removeListener(_handleSessionChanged);
-    super.dispose();
-  }
-
-  void _handleSessionChanged() {
+  void _handleCartStateChanged() {
     if (!mounted) {
       return;
     }
@@ -62,9 +48,41 @@ class _CartScreenState extends State<CartScreen> {
     });
   }
 
+  Future<List<BookModel>> _load() async {
+    final session = SessionScope.read(context);
+    final cart = await session.refreshCart();
+    if (cart == null) {
+      return <BookModel>[];
+    }
+
+    if (cart.books.isNotEmpty) {
+      return cart.books;
+    }
+
+    return Future.wait(cart.items.map((item) => session.getBook(item.bookId)));
+  }
+
+  Future<void> refresh() async {
+    if (!mounted) {
+      return;
+    }
+
+    final nextFuture = _load();
+    setState(() {
+      _future = nextFuture;
+    });
+    await nextFuture;
+  }
+
+  @override
+  void dispose() {
+    _cartState?.removeListener(_handleCartStateChanged);
+    super.dispose();
+  }
+
   Future<void> _removeFromCart(String bookId) async {
     try {
-      await context.session.removeFromCart(bookId);
+      await SessionScope.read(context).removeFromCart(bookId);
       if (!mounted) {
         return;
       }
@@ -119,11 +137,11 @@ class _CartScreenState extends State<CartScreen> {
         }
 
         if (!snapshot.hasData) {
-          return const CenteredLoadingIndicator();
+          return const BookListSkeleton();
         }
 
         final books = snapshot.data!;
-        final session = context.session;
+        final session = SessionScope.read(context);
         final total = session.cart?.total ?? 0;
 
         if (books.isEmpty) {
@@ -134,77 +152,89 @@ class _CartScreenState extends State<CartScreen> {
           );
         }
 
-        return ListView(
+        final itemCount = books.length + 4;
+
+        return ListView.builder(
           padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
-          children: [
-            SectionHeader(title: 'Shopping Cart', count: books.length),
-            const SizedBox(height: 26),
-            ...books.map(
-              (book) => Padding(
-                padding: const EdgeInsets.only(bottom: 18),
+          itemCount: itemCount,
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              return SectionHeader(title: 'Shopping Cart', count: books.length);
+            }
+            if (index == 1) {
+              return const SizedBox(height: 26);
+            }
+            if (index == itemCount - 2) {
+              return Padding(
+                padding: const EdgeInsets.only(top: 8, bottom: 22),
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    BookCover(imageUrl: book.imageLink, width: 88, height: 130, radius: 0),
-                    const SizedBox(width: 18),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(book.title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-                          const SizedBox(height: 2),
-                          Text(
-                            session.authorNameForBook(book),
-                            style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: 96,
-                            child: PrimaryPillButton(
-                              label: 'Remove',
-                              compact: true,
-                              onPressed: () => _removeFromCart(book.id),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Text('\$${book.amount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                        ],
+                    const Expanded(
+                      child: Text(
+                        'Total Price:',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          '\$${total.toStringAsFixed(2)}',
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
-            ),
-            const SizedBox(height: 26),
-            Row(
-              children: [
-                const Expanded(
-                  child: Text(
-                    'Total Price:',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Flexible(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      '\$${total.toStringAsFixed(2)}',
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+              );
+            }
+            if (index == itemCount - 1) {
+              return PrimaryPillButton(
+                label: 'CHECKOUT',
+                onPressed: books.isEmpty ? null : _openCheckout,
+              );
+            }
+
+            final book = books[index - 2];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 18),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  BookCover(imageUrl: book.imageLink, width: 88, height: 130, radius: 0),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(book.title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 2),
+                        Text(
+                          session.authorNameForBook(book),
+                          style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: 96,
+                          child: PrimaryPillButton(
+                            label: 'Remove',
+                            compact: true,
+                            onPressed: () => _removeFromCart(book.id),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text('\$${book.amount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                      ],
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 22),
-            PrimaryPillButton(
-              label: 'CHECKOUT',
-              onPressed: books.isEmpty ? null : _openCheckout,
-            ),
-          ],
+                ],
+              ),
+            );
+          },
         );
       },
     );
@@ -238,6 +268,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _emailController = TextEditingController();
   CardFieldInputDetails? _cardDetails;
   bool _processing = false;
+  bool _stripeInitializing = false;
+  bool _stripeReady = false;
   String? _nameError;
   String? _emailError;
   String? _cardError;
@@ -257,6 +289,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     super.initState();
     _nameController.text = widget.session.currentUser?.fullName ?? '';
     _emailController.text = widget.session.currentUser?.email ?? '';
+    _stripeReady = !_supportsStripeCardField;
+    if (_supportsStripeCardField) {
+      unawaited(_ensureStripeReady());
+    }
   }
 
   @override
@@ -264,6 +300,59 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _nameController.dispose();
     _emailController.dispose();
     super.dispose();
+  }
+
+  Future<void> _ensureStripeReady() async {
+    if (!_supportsStripeCardField || _stripeInitializing) {
+      return;
+    }
+
+    final existingKey = resolveStripePublishableKey();
+    if (existingKey != null && existingKey.isNotEmpty && _stripeReady) {
+      return;
+    }
+
+    setState(() {
+      _stripeInitializing = true;
+      _cardError = null;
+      _formError = null;
+    });
+
+    try {
+      var stripeKey = existingKey;
+      if (stripeKey == null || stripeKey.isEmpty) {
+        stripeKey = await widget.session.services.apiClient.getStripePublishableKey();
+        setRuntimeStripePublishableKey(stripeKey);
+      }
+
+      if (stripeKey == null || stripeKey.isEmpty) {
+        throw Exception('Stripe is not configured for this build.');
+      }
+
+      Stripe.publishableKey = stripeKey;
+      await Stripe.instance.applySettings();
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _stripeReady = true;
+        _stripeInitializing = false;
+        _cardError = null;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _stripeReady = false;
+        _stripeInitializing = false;
+        _cardError =
+            'Card payments are currently unavailable. Please try again in a moment.';
+      });
+    }
   }
 
   Future<void> _pay() async {
@@ -276,13 +365,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-    final stripeKey = resolveStripePublishableKey();
-    if (stripeKey == null) {
-      setState(() {
-        _formError = 'Stripe is not configured for this build. Set LIBROSPHERE_STRIPE_PUBLISHABLE_KEY.';
-      });
-      showDestructiveSnackBar(context, _formError!);
-      return;
+    if (!_stripeReady) {
+      await _ensureStripeReady();
+      if (!_stripeReady) {
+        if (!mounted) {
+          return;
+        }
+
+        setState(() {
+          _formError =
+              _cardError ?? 'Card payments are currently unavailable. Please try again in a moment.';
+        });
+        showDestructiveSnackBar(context, _formError!);
+        return;
+      }
     }
 
     if (!_validate()) {
@@ -410,19 +506,49 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const Text('Card', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 8),
                   _supportsStripeCardField
-                      ? Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
-                          child: CardField(
-                            onCardChanged: (details) => setState(() {
-                              _cardDetails = details;
-                              _cardError = null;
-                              _formError = null;
-                            }),
-                            countryCode: resolveStripeMerchantCountryCode(),
-                            style: const TextStyle(fontSize: 16, color: Colors.black87),
-                          ),
-                        )
+                      ? _stripeReady
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
+                              child: CardField(
+                                onCardChanged: (details) => setState(() {
+                                  _cardDetails = details;
+                                  _cardError = null;
+                                  _formError = null;
+                                }),
+                                countryCode: resolveStripeMerchantCountryCode(),
+                                style: const TextStyle(fontSize: 16, color: Colors.black87),
+                              ),
+                            )
+                          : Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
+                              child: Row(
+                                children: [
+                                  if (_stripeInitializing) ...[
+                                    const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    ),
+                                    const SizedBox(width: 12),
+                                  ],
+                                  Expanded(
+                                    child: Text(
+                                      _stripeInitializing
+                                          ? 'Preparing secure card entry...'
+                                          : 'Card payments are currently unavailable on this device.',
+                                      style: const TextStyle(
+                                        color: Colors.black87,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
                       : Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -463,9 +589,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   const SizedBox(height: 18),
                   PrimaryPillButton(
-                    label: _processing ? 'Processing...' : 'Pay Now',
+                    label: _processing
+                        ? 'Processing...'
+                        : (_stripeInitializing ? 'Preparing payment...' : 'Pay Now'),
                     rectangular: true,
-                    onPressed: _processing || !_supportsStripeCardField ? null : _pay,
+                    onPressed: _processing || !_supportsStripeCardField || _stripeInitializing
+                        ? null
+                        : _pay,
                   ),
                   FormMessage(message: _formError, color: Colors.white),
                 ],

@@ -18,12 +18,12 @@ public sealed class OrderCreatedIntegrationEvent
         Currency = string.Empty;
     }
 
-    public Guid OrderId { get; private set; }
-    public string BuyerEmail { get; private set; }
-    public decimal TotalAmount { get; private set; }
-    public string Currency { get; private set; }
-    public int ItemCount { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid OrderId { get; init; }
+    public string BuyerEmail { get; init; }
+    public decimal TotalAmount { get; init; }
+    public string Currency { get; init; }
+    public int ItemCount { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
 }
 
 public sealed class OrderStatusChangedIntegrationEvent
@@ -42,8 +42,8 @@ public sealed class OrderStatusChangedIntegrationEvent
         Status = string.Empty;
     }
 
-    public Guid OrderId { get; private set; }
-    public string BuyerEmail { get; private set; }
-    public string Status { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid OrderId { get; init; }
+    public string BuyerEmail { get; init; }
+    public string Status { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
 }

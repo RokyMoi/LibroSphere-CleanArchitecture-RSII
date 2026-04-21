@@ -23,11 +23,11 @@ namespace LibroSphere.Application.Events.Order
             Items = items;
         }
 
-        public Guid OrderId { get; private set; }
-        public string BuyerEmail { get; private set; }
-        public decimal TotalAmount { get; private set; }
-        public string Currency { get; private set; }
-        public IReadOnlyCollection<OrderPaidItem> Items { get; private set; }
+        public Guid OrderId { get; init; }
+        public string BuyerEmail { get; init; }
+        public decimal TotalAmount { get; init; }
+        public string Currency { get; init; }
+        public IReadOnlyCollection<OrderPaidItem> Items { get; init; }
     }
 
     public sealed class OrderPaidItem
@@ -46,9 +46,9 @@ namespace LibroSphere.Application.Events.Order
             Quantity = quantity;
         }
 
-        public string Title { get; private set; }
-        public decimal Amount { get; private set; }
-        public string Currency { get; private set; }
-        public int Quantity { get; private set; }
+        public string Title { get; init; }
+        public decimal Amount { get; init; }
+        public string Currency { get; init; }
+        public int Quantity { get; init; }
     }
 }

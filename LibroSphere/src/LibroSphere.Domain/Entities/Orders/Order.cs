@@ -60,14 +60,27 @@ namespace LibroSphere.Domain.Entities.Orders
             return order;
         }
 
-        public void UpdateStatus(OrderStatus status)
+        public void UpdateStatus(OrderStatus newStatus)
         {
-            if (Status == status)
+            if (Status == newStatus)
             {
                 return;
             }
 
-            Status = status;
+            bool isValidTransition = (Status, newStatus) switch
+            {
+                (OrderStatus.Pending, OrderStatus.PaymentReceived) => true,
+                (OrderStatus.Pending, OrderStatus.PaymentFailed) => true,
+                (OrderStatus.PaymentReceived, OrderStatus.Refunded) => true,
+                _ => false
+            };
+
+            if (!isValidTransition)
+            {
+                throw new InvalidOperationException($"Invalid state transition from {Status} to {newStatus}");
+            }
+
+            Status = newStatus;
             RaiseDomainEvent(new OrderStatusChangedDomainEvent(Id, BuyerEmail, Status.ToString()));
         }
     }

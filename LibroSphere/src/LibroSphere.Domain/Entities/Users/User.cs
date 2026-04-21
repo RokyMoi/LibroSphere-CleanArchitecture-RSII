@@ -35,6 +35,7 @@ namespace LibroSphere.Domain.Entities.Users
         public DateTime DateRegistered { get; private set; }
         public DateTime? LastLogin { get; private set; }
         public bool IsActive { get; private set; }
+        public string? ProfilePictureUrl { get; private set; }
         public ICollection<Review> Reviews { get; private set; }
         public ShoppingCart? ShoppingCart { get; private set; }
         public Wishlist? Wishlist { get; private set; }
@@ -63,6 +64,17 @@ namespace LibroSphere.Domain.Entities.Users
         {
             IsActive = false;
             RaiseDomainEvent(new UserDeactivatedDomainEvent(Id, UserEmail.Value));
+        }
+
+        public void UpdateProfile(FirstName firstName, LastName lastName)
+        {
+            FirstName = firstName;
+            LastName = lastName;
+        }
+
+        public void UpdateProfilePicture(string? imageUrl)
+        {
+            ProfilePictureUrl = imageUrl;
         }
     }
 }

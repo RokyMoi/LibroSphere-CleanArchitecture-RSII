@@ -1,4 +1,4 @@
-﻿using LibroSphere.Application.Abstractions;
+using LibroSphere.Application.Abstractions;
 using LibroSphere.Application.Abstractions.ShoppingServices;
 using LibroSphere.Application.Events.Order;
 using LibroSphere.Domain.Abstraction;
@@ -15,15 +15,18 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
     private readonly IOrderRepository _orderRepository;
     private readonly IUserBookRepository _userBookRepository;
     private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IUnitOfWork _unitOfWork;
 
     public PaymentWebhookProcessor(
         IOrderRepository orderRepository,
         IUserBookRepository userBookRepository,
-        IPublishEndpoint publishEndpoint)
+        IPublishEndpoint publishEndpoint,
+        IUnitOfWork unitOfWork)
     {
         _orderRepository = orderRepository;
         _userBookRepository = userBookRepository;
         _publishEndpoint = publishEndpoint;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result> ProcessAsync(string json, string signature, string webhookSecret, CancellationToken cancellationToken = default)
@@ -75,8 +78,7 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
             }
         }
 
-        await _orderRepository.SaveChangesAsync();
-        await _userBookRepository.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         await _publishEndpoint.Publish(new OrderPaidIntegrationEvent(
             order.Id,
@@ -106,6 +108,6 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
         }
 
         order.UpdateStatus(OrderStatus.PaymentFailed);
-        await _orderRepository.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync();
     }
 }

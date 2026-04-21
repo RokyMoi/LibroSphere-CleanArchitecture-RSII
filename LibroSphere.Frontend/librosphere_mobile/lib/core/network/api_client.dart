@@ -2,13 +2,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-import '../../data/models/json_helpers.dart';
 import '../../data/models/author_model.dart';
 import '../../data/models/book_model.dart';
 import '../../data/models/cart_item_input.dart';
+import '../../data/models/genre_model.dart';
 import '../../data/models/home_feed_model.dart';
+import '../../data/models/json_helpers.dart';
 import '../../data/models/library_entry.dart';
 import '../../data/models/order_model.dart';
 import '../../data/models/order_status.dart';
@@ -20,7 +22,13 @@ import '../constants/api_constants.dart';
 import '../error/app_exception.dart';
 
 class ApiClient {
-  static const _requestTimeout = Duration(seconds: 12);
+  ApiClient(this._client);
+
+  static const _requestTimeout = Duration(seconds: 30);
+  static const _maxGetRetries = 2;
+  static const _largePayloadThreshold = 20 * 1024;
+
+  final http.Client _client;
   final String _baseUrl = resolveApiBaseUrl();
 
   Future<Map<String, dynamic>> login(String email, String password) async {
@@ -55,14 +63,121 @@ class ApiClient {
     await _post('/api/auth/logout', token: accessToken);
   }
 
+  Future<void> requestPasswordReset(String email) async {
+    await _post(
+      '/api/auth/forgot-password',
+      body: {'email': email},
+    );
+  }
+
+  Future<void> resetPasswordWithCode({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    await _post(
+      '/api/auth/reset-password',
+      body: {
+        'email': email,
+        'code': code,
+        'newPassword': newPassword,
+      },
+    );
+  }
+
   Future<Map<String, dynamic>> getCurrentUser(String accessToken) async {
     final response = await _get('/api/user/me', token: accessToken);
     return _decodeMap(response);
   }
 
+  Future<void> updateProfile(
+    String accessToken,
+    String firstName,
+    String lastName,
+  ) async {
+    await _put(
+      '/api/user/me/profile',
+      token: accessToken,
+      body: {'firstName': firstName, 'lastName': lastName},
+    );
+  }
+
+  Future<void> changePassword(
+    String accessToken,
+    String currentPassword,
+    String newPassword,
+    String confirmNewPassword,
+  ) async {
+    await _post(
+      '/api/user/me/change-password',
+      token: accessToken,
+      body: {
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+        'confirmNewPassword': confirmNewPassword,
+      },
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getOrders(
+    String accessToken, {
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    final response = await _get(
+      '/api/orders?page=$page&pageSize=$pageSize',
+      token: accessToken,
+    );
+    final json = await _decodeMap(response);
+    return _decodeItemsFromMap(json);
+  }
+
+  Future<void> refundOrder(String accessToken, String orderId) async {
+    await _post(
+      '/api/orders/$orderId/refund',
+      token: accessToken,
+      body: const <String, dynamic>{},
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getNotifications(
+    String accessToken, {
+    int take = 20,
+  }) async {
+    final response = await _get(
+      '/api/notifications?take=$take',
+      token: accessToken,
+    );
+    final body = await _decodeBody(response);
+    if (body is List) {
+      return body.whereType<Map<String, dynamic>>().toList();
+    }
+    return const [];
+  }
+
+  Future<void> markNotificationRead(
+    String accessToken,
+    String notificationId,
+  ) async {
+    await _post(
+      '/api/notifications/$notificationId/read',
+      token: accessToken,
+      body: const <String, dynamic>{},
+    );
+  }
+
+  Future<void> markAllNotificationsRead(String accessToken) async {
+    await _post(
+      '/api/notifications/read-all',
+      token: accessToken,
+      body: const <String, dynamic>{},
+    );
+  }
+
   Future<String?> getStripePublishableKey() async {
     final response = await _get('/api/payment/config');
-    final value = readString(_decodeMap(response), [
+    final json = await _decodeMap(response);
+    final value = readString(json, [
       'publishableKey',
       'PublishableKey',
     ]);
@@ -72,63 +187,83 @@ class ApiClient {
 
   Future<List<AuthorModel>> getAuthors() async {
     final response = await _get('/api/author?page=1&pageSize=200');
-    final items = _decodeItems(_decodeMap(response));
+    final items = _decodeItemsFromMap(await _decodeMap(response));
     return items.map(AuthorModel.fromJson).toList();
   }
 
+  Future<List<GenreModel>> getGenres() async {
+    final response = await _get('/api/genre?page=1&pageSize=200');
+    final items = _decodeItemsFromMap(await _decodeMap(response));
+    return items.map(GenreModel.fromJson).toList();
+  }
+
   Future<PagedResult<BookModel>> getBooks({
+    int page = 1,
+    int pageSize = 20,
     String? searchTerm,
+    String? authorId,
+    String? genreId,
+    double? minPrice,
+    double? maxPrice,
     String? accessToken,
   }) async {
-    final response = await _send(() {
-      return http.get(
-        _uri(
-          '/api/book',
-          query: {
-            'page': '1',
-            'pageSize': '20',
-            if (searchTerm != null && searchTerm.trim().isNotEmpty)
-              'searchTerm': searchTerm.trim(),
-          },
-        ),
-        headers: _headers(token: accessToken),
-      );
-    });
+    final queryParams = <String, String>{
+      'page': '$page',
+      'pageSize': '$pageSize',
+    };
 
+    if (searchTerm != null && searchTerm.isNotEmpty) {
+      queryParams['searchTerm'] = searchTerm;
+    }
+    if (authorId != null && authorId.isNotEmpty) {
+      queryParams['authorId'] = authorId;
+    }
+    if (genreId != null && genreId.isNotEmpty) {
+      queryParams['genreId'] = genreId;
+    }
+    if (minPrice != null) {
+      queryParams['minPrice'] = minPrice.toString();
+    }
+    if (maxPrice != null) {
+      queryParams['maxPrice'] = maxPrice.toString();
+    }
+
+    final response = await _get(
+      '/api/book?${_encodeQuery(queryParams)}',
+      token: accessToken,
+    );
     return PagedResult<BookModel>.fromJson(
-      _decodeMap(response),
+      await _decodeMap(response),
       (item) => BookModel.fromJson(item),
     );
   }
 
   Future<HomeFeedModel> getHomeFeed({
+    int page = 1,
+    int pageSize = 8,
+    int takeRecommendations = 4,
     String? searchTerm,
     String? accessToken,
   }) async {
-    final response = await _send(() {
-      return http.get(
-        _uri(
-          '/api/book/home',
-          query: {
-            'page': '1',
-            'pageSize': '20',
-            'takeRecommendations': '5',
-            if (searchTerm != null && searchTerm.trim().isNotEmpty)
-              'searchTerm': searchTerm.trim(),
-          },
-        ),
-        headers: _headers(token: accessToken),
-      );
-    });
+    final response = await _get(
+      '/api/book/home?${_encodeQuery({
+        'page': '$page',
+        'pageSize': '$pageSize',
+        'takeRecommendations': '$takeRecommendations',
+        if (searchTerm != null && searchTerm.trim().isNotEmpty)
+          'searchTerm': searchTerm.trim(),
+      })}',
+      token: accessToken,
+    );
 
-    final json = _decodeMap(response);
+    final json = await _decodeMap(response);
     final newest = PagedResult<BookModel>(
-      items: _decodeArray(json, 'newest').map(BookModel.fromJson).toList(),
+      items: _decodeArrayFromMap(json, 'newest').map(BookModel.fromJson).toList(),
       page: readInt(json, ['page', 'Page']),
       pageSize: readInt(json, ['pageSize', 'PageSize']),
       totalCount: readInt(json, ['totalCount', 'TotalCount']),
     );
-    final recommendations = _decodeArray(
+    final recommendations = _decodeArrayFromMap(
       json,
       'recommendations',
     ).map(BookModel.fromJson).toList();
@@ -138,7 +273,7 @@ class ApiClient {
 
   Future<BookModel> getBook(String bookId, String? accessToken) async {
     final response = await _get('/api/book/$bookId', token: accessToken);
-    return BookModel.fromJson(_decodeMap(response));
+    return BookModel.fromJson(await _decodeMap(response));
   }
 
   Future<List<BookModel>> getRecommendations(String accessToken) async {
@@ -146,7 +281,7 @@ class ApiClient {
       '/api/recommendations?take=5',
       token: accessToken,
     );
-    final decoded = jsonDecode(response.body);
+    final decoded = await _decodeBody(response);
     if (decoded is! List) {
       return <BookModel>[];
     }
@@ -157,13 +292,17 @@ class ApiClient {
         .toList();
   }
 
-  Future<PagedResult<LibraryEntry>> getLibrary(String accessToken) async {
+  Future<PagedResult<LibraryEntry>> getLibrary(
+    String accessToken, {
+    int page = 1,
+    int pageSize = 20,
+  }) async {
     final response = await _get(
-      '/api/library?page=1&pageSize=20',
+      '/api/library?page=$page&pageSize=$pageSize',
       token: accessToken,
     );
     return PagedResult<LibraryEntry>.fromJson(
-      _decodeMap(response),
+      await _decodeMap(response),
       (item) => LibraryEntry.fromJson(item),
     );
   }
@@ -173,7 +312,7 @@ class ApiClient {
       '/api/library/$bookId/read',
       token: accessToken,
     );
-    return readString(_decodeMap(response), ['pdfUrl']);
+    return readString(await _decodeMap(response), ['pdfUrl']);
   }
 
   Future<PagedResult<ReviewModel>> getReviews(
@@ -187,7 +326,7 @@ class ApiClient {
       token: accessToken,
     );
     return PagedResult<ReviewModel>.fromJson(
-      _decodeMap(response),
+      await _decodeMap(response),
       (item) => ReviewModel.fromJson(item),
     );
   }
@@ -206,11 +345,9 @@ class ApiClient {
   }
 
   Future<WishlistModel> getWishlist(String accessToken) async {
-    final response = await _send(
-      () => http.get(
-        _uri('/api/wishlist'),
-        headers: _headers(token: accessToken),
-      ),
+    final response = await _get(
+      '/api/wishlist',
+      token: accessToken,
       allow404: true,
     );
 
@@ -218,7 +355,7 @@ class ApiClient {
       return WishlistModel.empty();
     }
 
-    return WishlistModel.fromJson(_decodeMap(response));
+    return WishlistModel.fromJson(await _decodeMap(response));
   }
 
   Future<void> addWishlist(String accessToken, String bookId) async {
@@ -249,12 +386,12 @@ class ApiClient {
       },
     );
 
-    return ShoppingCartModel.fromJson(_decodeMap(response));
+    return ShoppingCartModel.fromJson(await _decodeMap(response));
   }
 
   Future<ShoppingCartModel> getCart(String accessToken, String cartId) async {
     final response = await _get('/api/cart/$cartId', token: accessToken);
-    return ShoppingCartModel.fromJson(_decodeMap(response));
+    return ShoppingCartModel.fromJson(await _decodeMap(response));
   }
 
   Future<void> deleteCart(String accessToken, String cartId) async {
@@ -266,7 +403,7 @@ class ApiClient {
     String cartId,
   ) async {
     final response = await _post('/api/payment/$cartId', token: accessToken);
-    return ShoppingCartModel.fromJson(_decodeMap(response));
+    return ShoppingCartModel.fromJson(await _decodeMap(response));
   }
 
   Future<OrderModel> createOrder(String accessToken, String cartId) async {
@@ -275,38 +412,99 @@ class ApiClient {
       token: accessToken,
       body: {'cartId': cartId},
     );
-    return OrderModel.fromJson(_decodeMap(response));
+    return OrderModel.fromJson(await _decodeMap(response));
   }
 
   Future<OrderModel> getOrder(String accessToken, String orderId) async {
     final response = await _get('/api/orders/$orderId', token: accessToken);
-    return OrderModel.fromJson(_decodeMap(response));
+    return OrderModel.fromJson(await _decodeMap(response));
   }
 
   Future<OrderModel> waitForPaidOrder(
     String accessToken,
-    String orderId,
-  ) async {
+    String orderId, {
+    int maxAttempts = 5,
+  }) async {
     var latest = await getOrder(accessToken, orderId);
-    for (var i = 0; i < 10; i++) {
+    var delay = const Duration(milliseconds: 600);
+
+    for (var i = 0; i < maxAttempts; i++) {
       if (latest.status == OrderStatus.paymentReceived) {
         return latest;
       }
-      await Future<void>.delayed(const Duration(seconds: 2));
+
+      await Future<void>.delayed(delay);
+      delay = Duration(
+        milliseconds: (delay.inMilliseconds * 1.5).round().clamp(600, 2500),
+      );
       latest = await getOrder(accessToken, orderId);
     }
     return latest;
   }
 
+  Future<String> uploadProfilePicture({
+    required String accessToken,
+    required List<int> imageBytes,
+    required String filename,
+    required String contentType,
+  }) async {
+    final uri = _uri('/api/user/me/profile-picture');
+    final request = http.MultipartRequest('POST', uri)
+      ..headers['Authorization'] = 'Bearer $accessToken';
+
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'file',
+        imageBytes,
+        filename: filename,
+        contentType: _parseMediaType(contentType),
+      ),
+    );
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    _ensureSuccess(response);
+
+    final json = await _decodeMap(response);
+    return readString(json, ['profilePictureUrl', 'ProfilePictureUrl']);
+  }
+
+  static http.MediaType _parseMediaType(String contentType) {
+    final parts = contentType.split('/');
+    if (parts.length == 2) {
+      return http.MediaType(parts[0], parts[1]);
+    }
+    return http.MediaType('application', 'octet-stream');
+  }
+
   Uri _uri(String path, {Map<String, String>? query}) =>
       Uri.parse('$_baseUrl$path').replace(queryParameters: query);
 
-  Future<http.Response> _get(String path, {String? token}) =>
-      _send(() => http.get(_uri(path), headers: _headers(token: token)));
+  Future<http.Response> _get(
+    String path, {
+    String? token,
+    bool allow404 = false,
+  }) {
+    return _send(
+      () => _client.get(_uri(path), headers: _headers(token: token)),
+      allow404: allow404,
+      retries: _maxGetRetries,
+    );
+  }
 
   Future<http.Response> _post(String path, {String? token, Object? body}) =>
       _send(
-        () => http.post(
+        () => _client.post(
+          _uri(path),
+          headers: _headers(token: token),
+          body: body == null ? null : jsonEncode(body),
+        ),
+      );
+
+  Future<http.Response> _put(String path, {String? token, Object? body}) =>
+      _send(
+        () => _client.put(
           _uri(path),
           headers: _headers(token: token),
           body: body == null ? null : jsonEncode(body),
@@ -314,30 +512,42 @@ class ApiClient {
       );
 
   Future<void> _delete(String path, {String? token}) async {
-    await _send(() => http.delete(_uri(path), headers: _headers(token: token)));
+    await _send(() => _client.delete(_uri(path), headers: _headers(token: token)));
   }
 
   Future<http.Response> _send(
     Future<http.Response> Function() request, {
     bool allow404 = false,
+    int retries = 0,
   }) async {
-    try {
-      final response = await request().timeout(_requestTimeout);
-      if (allow404 && response.statusCode == 404) {
+    var attempt = 0;
+
+    while (true) {
+      try {
+        final response = await request().timeout(_requestTimeout);
+        if (allow404 && response.statusCode == 404) {
+          return response;
+        }
+        _ensureSuccess(response);
         return response;
+      } on SocketException {
+        if (attempt >= retries) {
+          throw AppException(
+            message:
+                'Unable to reach LibroSphere API at $_baseUrl. Start Docker compose and make sure the emulator can access port 8080.',
+          );
+        }
+      } on TimeoutException {
+        if (attempt >= retries) {
+          throw AppException(
+            message:
+                'LibroSphere API at $_baseUrl did not respond in time. Check that Docker is running on port 8080.',
+          );
+        }
       }
-      _ensureSuccess(response);
-      return response;
-    } on SocketException {
-      throw AppException(
-        message:
-            'Unable to reach LibroSphere API at $_baseUrl. Start Docker compose and make sure the emulator can access port 8080.',
-      );
-    } on TimeoutException {
-      throw AppException(
-        message:
-            'LibroSphere API at $_baseUrl did not respond in time. Check that Docker is running on port 8080.',
-      );
+
+      attempt++;
+      await Future<void>.delayed(Duration(milliseconds: 250 * attempt));
     }
   }
 
@@ -346,24 +556,37 @@ class ApiClient {
     if (token != null) 'Authorization': 'Bearer $token',
   };
 
-  Map<String, dynamic> _decodeMap(http.Response response) {
+  Future<Map<String, dynamic>> _decodeMap(http.Response response) async {
     if (response.body.isEmpty) {
       return <String, dynamic>{};
     }
 
-    final decoded = jsonDecode(response.body);
+    final decoded = await _decodeBody(response);
     return decoded is Map<String, dynamic> ? decoded : <String, dynamic>{};
   }
 
-  List<Map<String, dynamic>> _decodeItems(Map<String, dynamic> json) {
-    final items = json['items'];
+  Future<dynamic> _decodeBody(http.Response response) async {
+    if (response.body.isEmpty) {
+      return null;
+    }
+
+    final body = response.body;
+    if (body.length < _largePayloadThreshold) {
+      return jsonDecode(body);
+    }
+
+    return compute(_decodeJsonBody, body);
+  }
+
+  List<Map<String, dynamic>> _decodeItemsFromMap(Map<String, dynamic> json) {
+    final items = json['items'] ?? json['Items'];
     if (items is List) {
       return items.whereType<Map<String, dynamic>>().toList();
     }
     return <Map<String, dynamic>>[];
   }
 
-  List<Map<String, dynamic>> _decodeArray(
+  List<Map<String, dynamic>> _decodeArrayFromMap(
     Map<String, dynamic> json,
     String key,
   ) {
@@ -389,19 +612,35 @@ class ApiClient {
         details = decoded;
 
         if (decoded is Map<String, dynamic>) {
-          code = readString(decoded, ['code', 'Code'], fallback: '');
-          if (code.isEmpty) {
-            code = null;
-          }
+          final nestedError = readMap(decoded, ['error', 'Error']);
+          final messageSource = nestedError.isNotEmpty ? nestedError : decoded;
 
-          message = readString(decoded, [
-            'error',
-            'Error',
+          code = readNullableString(messageSource, [
+            'code',
+            'Code',
+            'type',
+            'Type',
+          ]);
+
+          message = readString(messageSource, [
             'message',
             'Message',
+            'detail',
+            'Detail',
             'title',
             'Title',
           ], fallback: message);
+
+          if (message == 'Request failed (${response.statusCode}).') {
+            message = readString(decoded, [
+              'error',
+              'Error',
+              'message',
+              'Message',
+              'title',
+              'Title',
+            ], fallback: message);
+          }
 
           final errors = decoded['errors'];
           if (errors is Map && errors.isNotEmpty) {
@@ -428,4 +667,14 @@ class ApiClient {
       details: details,
     );
   }
+
+  String _encodeQuery(Map<String, String> queryParams) {
+    return queryParams.entries
+        .map((e) => '${e.key}=${Uri.encodeQueryComponent(e.value)}')
+        .join('&');
+  }
+}
+
+dynamic _decodeJsonBody(String body) {
+  return jsonDecode(body);
 }

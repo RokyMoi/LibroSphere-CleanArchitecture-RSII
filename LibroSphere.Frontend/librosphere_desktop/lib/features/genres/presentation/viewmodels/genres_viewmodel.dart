@@ -23,6 +23,7 @@ class GenresViewModel extends ChangeNotifier {
   bool isSaving = false;
   String? deletingGenreId;
   Failure? failure;
+  String searchTerm = '';
   List<AdminGenreModel> genres = <AdminGenreModel>[];
   int currentPage = 1;
   int totalPages = 1;
@@ -38,16 +39,22 @@ class GenresViewModel extends ChangeNotifier {
     return load();
   }
 
-  Future<void> load({int? page}) async {
+  Future<void> load({int? page, String? search}) async {
     isLoading = true;
     failure = null;
+    if (search != null) {
+      searchTerm = search;
+      currentPage = 1;
+    }
     notifyListeners();
 
     final targetPage = page ?? currentPage;
+    final activeSearch = searchTerm.trim().isEmpty ? null : searchTerm.trim();
     final result = await _repository.getGenres(
       _token,
       page: targetPage,
       pageSize: pageSize,
+      searchTerm: activeSearch,
     );
 
     switch (result) {
@@ -68,6 +75,10 @@ class GenresViewModel extends ChangeNotifier {
     isLoading = false;
     notifyListeners();
   }
+
+  Future<void> search(String term) => load(search: term);
+
+  Future<void> clearSearch() => load(search: '');
 
   Future<void> loadNextPage() async {
     if (!hasNextPage || isLoading) {

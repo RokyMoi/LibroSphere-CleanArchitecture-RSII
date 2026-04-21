@@ -22,12 +22,14 @@ class BooksRepository {
     String token, {
     required int page,
     int pageSize = 12,
+    String? searchTerm,
   }) async {
     try {
       final booksPage = await _apiService.getBooks(
         token,
         page: page,
         pageSize: pageSize,
+        searchTerm: searchTerm,
       );
       return Success<BooksDataModel>(
         BooksDataModel(

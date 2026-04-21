@@ -30,7 +30,7 @@ public sealed class OrderPaidIntegrationEventConsumer : IConsumer<OrderPaidInteg
             new AnalyticsActivityEntry(
                 "Order",
                 "Paid",
-                $"Narudzba za {message.BuyerEmail} je placena. Ukupno: {message.TotalAmount:0.00} {message.Currency}. Stavki: {message.Items.Count}. Order ID: {ShortId(message.OrderId)}.",
+                $"Narudzba za {message.BuyerEmail} je placena. Ukupno: {message.TotalAmount:0.00} {message.Currency}. Stavki: {message.Items.Count}. Order ID: {message.OrderId}.",
                 DateTime.UtcNow),
             context.CancellationToken);
 
@@ -71,12 +71,8 @@ public sealed class OrderPaidIntegrationEventConsumer : IConsumer<OrderPaidInteg
                 "Order confirmation email delivery failed. OrderId={OrderId}, Email={Email}",
                 message.OrderId,
                 message.BuyerEmail);
-        }
-    }
 
-    private static string ShortId(Guid value)
-    {
-        var text = value.ToString("N");
-        return text.Length <= 8 ? text : text[..8].ToUpperInvariant();
+            throw;
+        }
     }
 }

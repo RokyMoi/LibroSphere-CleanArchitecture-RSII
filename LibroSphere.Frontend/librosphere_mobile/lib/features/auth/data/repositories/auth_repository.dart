@@ -59,4 +59,34 @@ class AuthRepository {
       return ErrorResult(Failure(message: exception.toString()));
     }
   }
+
+  Future<Result<void>> requestPasswordReset(String email) async {
+    try {
+      await _apiService.requestPasswordReset(email);
+      return const Success<void>(null);
+    } on AppException catch (exception) {
+      return ErrorResult(Failure.fromException(exception));
+    } catch (exception) {
+      return ErrorResult(Failure(message: exception.toString()));
+    }
+  }
+
+  Future<Result<void>> resetPasswordWithCode({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    try {
+      await _apiService.resetPasswordWithCode(
+        email: email,
+        code: code,
+        newPassword: newPassword,
+      );
+      return const Success<void>(null);
+    } on AppException catch (exception) {
+      return ErrorResult(Failure.fromException(exception));
+    } catch (exception) {
+      return ErrorResult(Failure(message: exception.toString()));
+    }
+  }
 }

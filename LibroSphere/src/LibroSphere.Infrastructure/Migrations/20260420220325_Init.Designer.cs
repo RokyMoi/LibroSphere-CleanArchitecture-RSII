@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LibroSphere.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260417174056_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260420220325_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -597,6 +597,7 @@ namespace LibroSphere.Infrastructure.Migrations
                                 .HasColumnName("Currency");
 
                             b1.Property<decimal>("amount")
+                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("Price");
 
@@ -683,6 +684,7 @@ namespace LibroSphere.Infrastructure.Migrations
                                 .HasColumnName("PriceCurrency");
 
                             b1.Property<decimal>("amount")
+                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("PriceAmount");
 
@@ -745,6 +747,7 @@ namespace LibroSphere.Infrastructure.Migrations
                                 .HasColumnName("TotalCurrency");
 
                             b1.Property<decimal>("amount")
+                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("TotalAmount");
 
@@ -778,6 +781,7 @@ namespace LibroSphere.Infrastructure.Migrations
                                 .HasColumnName("PriceCurrency");
 
                             b1.Property<decimal>("amount")
+                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("PriceAmount");
 

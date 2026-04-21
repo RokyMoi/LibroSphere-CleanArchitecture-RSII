@@ -19,7 +19,15 @@ namespace LibroSphere.Application.Reviews.Query.GetReviewsByBook
             var response = reviews
                 .Where(review => !request.MinRating.HasValue || review.Rating >= request.MinRating.Value)
                 .Where(review => !request.MaxRating.HasValue || review.Rating <= request.MaxRating.Value)
-                .Select(review => new ReviewResponse(review.Id, review.UserId, review.BookId, review.Rating, review.Comment, review.CreatedAt))
+                .Select(review => new ReviewResponse(
+                    review.Id, 
+                    review.UserId, 
+                    review.BookId, 
+                    review.Rating, 
+                    review.Comment, 
+                    review.CreatedAt,
+                    review.User != null ? $"{review.User.FirstName.Value} {review.User.LastName.Value}" : null,
+                    review.User?.ProfilePictureUrl))
                 .ToList();
 
             return Result.Success(PagedResponse<ReviewResponse>.Create(response, request.Page, request.PageSize));

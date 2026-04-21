@@ -20,6 +20,12 @@ class _AuthPageState extends State<AuthPage> {
   late final AuthViewModel _viewModel = AuthViewModel(widget.session);
 
   @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
 

@@ -20,11 +20,10 @@ namespace LibroSphere.Application.Recommendations.Query.GetRecommendedBooks
         public async Task<Result<List<RecommendedBookResponse>>> Handle(GetRecommendedBooksQuery request, CancellationToken cancellationToken)
         {
             var books = await _recommendationService.GetRecommendationsForUserAsync(request.UserId, request.Take, cancellationToken);
-            var response = new List<RecommendedBookResponse>();
-            foreach (var book in books)
+            var response = await Task.WhenAll(books.Select(async book =>
             {
                 var imageLink = await _bookAssetStorageService.GetImageUrlAsync(book.BookLinkovi.imageLink, cancellationToken);
-                response.Add(new RecommendedBookResponse(
+                return new RecommendedBookResponse(
                     book.Id,
                     book.Title.Value,
                     book.Description.Value,
@@ -35,10 +34,10 @@ namespace LibroSphere.Application.Recommendations.Query.GetRecommendedBooks
                         : book.BookLinkovi.PdfLink,
                     imageLink,
                     book.AuthorId,
-                    book.Author?.Name.Value ?? string.Empty));
-            }
+                    book.Author?.Name.Value ?? string.Empty);
+            }));
 
-            return Result.Success(response);
+            return Result.Success(response.ToList());
         }
     }
 }

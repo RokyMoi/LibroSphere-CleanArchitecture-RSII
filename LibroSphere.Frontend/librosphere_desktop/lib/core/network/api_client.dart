@@ -62,7 +62,7 @@ class _ProgressMultipartRequest extends http.MultipartRequest {
 }
 
 class ApiClient {
-  const ApiClient({this.baseUrl = ApiConstants.baseUrl});
+  ApiClient({String? baseUrl}) : baseUrl = baseUrl ?? ApiConstants.baseUrl;
 
   final String baseUrl;
 
@@ -79,6 +79,28 @@ class ApiClient {
     );
 
     return _decodeMap(response.body);
+  }
+
+  Future<List<Map<String, dynamic>>> getList(
+    String path, {
+    String? token,
+    Map<String, String>? query,
+  }) async {
+    final response = await _send(
+      () => http.get(_uri(path, query: query), headers: _headers(token)),
+    );
+
+    final decoded = _decodeDynamic(response.body);
+    if (decoded is List) {
+      return decoded.whereType<Map<String, dynamic>>().toList();
+    }
+    if (decoded is Map<String, dynamic>) {
+      final items = decoded['items'] ?? decoded['data'];
+      if (items is List) {
+        return items.whereType<Map<String, dynamic>>().toList();
+      }
+    }
+    return <Map<String, dynamic>>[];
   }
 
   Future<dynamic> postJson(
@@ -155,6 +177,42 @@ class ApiClient {
       );
       await _ensureStreamSuccess(response);
       onProgress?.call(1);
+    } on SocketException catch (error) {
+      throw _networkException(error);
+    } on TimeoutException catch (error) {
+      throw _uploadTimeoutException(error);
+    }
+  }
+
+  /// Multipart POST that returns JSON response
+  Future<Map<String, dynamic>> postMultipartJson(
+    String path, {
+    required String token,
+    List<MultipartFileDescriptor> files = const <MultipartFileDescriptor>[],
+    Map<String, String> fields = const <String, String>{},
+  }) async {
+    final request = _ProgressMultipartRequest('POST', _uri(path))
+      ..headers['Authorization'] = 'Bearer $token'
+      ..fields.addAll(fields);
+
+    for (final file in files) {
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          file.field,
+          file.bytes,
+          filename: file.filename,
+          contentType: MediaType.parse(file.contentType),
+        ),
+      );
+    }
+
+    try {
+      final streamedResponse = await request.send().timeout(
+        ApiConstants.uploadRequestTimeout,
+      );
+      final response = await http.Response.fromStream(streamedResponse);
+      _ensureSuccess(response.statusCode, response.body);
+      return _decodeMap(response.body);
     } on SocketException catch (error) {
       throw _networkException(error);
     } on TimeoutException catch (error) {

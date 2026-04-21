@@ -1,6 +1,7 @@
 import '../core/network/api_client.dart';
 import '../data/models/author_model.dart';
 import '../data/models/book_model.dart';
+import '../data/models/genre_model.dart';
 import '../data/models/home_feed_model.dart';
 import '../data/models/paged_result.dart';
 import '../data/models/review_model.dart';
@@ -14,18 +15,43 @@ class CatalogService {
     return _apiClient.getAuthors();
   }
 
+  Future<List<GenreModel>> getGenres() {
+    return _apiClient.getGenres();
+  }
+
   Future<PagedResult<BookModel>> getBooks({
+    int page = 1,
+    int pageSize = 20,
     String? searchTerm,
+    String? authorId,
+    String? genreId,
+    double? minPrice,
+    double? maxPrice,
     String? accessToken,
   }) {
     return _apiClient.getBooks(
+      page: page,
+      pageSize: pageSize,
       searchTerm: searchTerm,
+      authorId: authorId,
+      genreId: genreId,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
       accessToken: accessToken,
     );
   }
 
-  Future<HomeFeedModel> getHomeFeed({String? searchTerm, String? accessToken}) {
+  Future<HomeFeedModel> getHomeFeed({
+    int page = 1,
+    int pageSize = 8,
+    int takeRecommendations = 4,
+    String? searchTerm,
+    String? accessToken,
+  }) {
     return _apiClient.getHomeFeed(
+      page: page,
+      pageSize: pageSize,
+      takeRecommendations: takeRecommendations,
       searchTerm: searchTerm,
       accessToken: accessToken,
     );

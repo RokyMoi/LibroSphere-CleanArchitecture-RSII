@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   librosphere-api:
     container_name: LibroSphere.Api
@@ -11,13 +13,19 @@ services:
       - redis
       - rabbitmq
     environment:
-      ASPNETCORE_URLS: http://+:8080
-      DB_HOST: librosphere-db
-      ConnectionStrings__Redis: redis:6379,abortConnect=false
-      RabbitMQ__Host: librosphere-rabbitmq
-      Swagger__Enabled: "true"
+      ASPNETCORE_URLS: http://+:${API_HTTP_PORT}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_SA_PASSWORD}
+      ConnectionStrings__Redis: ${ConnectionStrings__Redis}
+      RabbitMQ__Host: ${RabbitMQ__Host}
+      RabbitMQ__Username: ${RabbitMQ__Username}
+      RabbitMQ__Password: ${RabbitMQ__Password}
+      Swagger__Enabled: ${Swagger__Enabled}
     ports:
-      - "8080:8080"
+      - "${API_HTTP_PORT}:${API_HTTP_PORT}"
     restart: unless-stopped
 
   librosphere-worker:
@@ -32,9 +40,15 @@ services:
       - redis
       - rabbitmq
     environment:
-      DB_HOST: librosphere-db
-      ConnectionStrings__Redis: redis:6379,abortConnect=false
-      RabbitMQ__Host: librosphere-rabbitmq
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_SA_PASSWORD}
+      ConnectionStrings__Redis: ${ConnectionStrings__Redis}
+      RabbitMQ__Host: ${RabbitMQ__Host}
+      RabbitMQ__Username: ${RabbitMQ__Username}
+      RabbitMQ__Password: ${RabbitMQ__Password}
     restart: unless-stopped
 
   librosphere-db:
@@ -42,9 +56,9 @@ services:
     container_name: LibroSphere.Db
     environment:
       ACCEPT_EULA: "Y"
-      SA_PASSWORD: "YourStrong!Pass123"
+      SA_PASSWORD: ${DB_SA_PASSWORD}
     ports:
-      - "1433:1433"
+      - "${DB_PORT}:1433"
     volumes:
       - mssql-data:/var/opt/mssql
     restart: unless-stopped
@@ -65,8 +79,8 @@ services:
       - "5672:5672"
       - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RabbitMQ__Username}
+      RABBITMQ_DEFAULT_PASS: ${RabbitMQ__Password}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     restart: unless-stopped

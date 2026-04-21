@@ -401,6 +401,9 @@ namespace LibroSphere.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("ProfilePictureUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("UserEmail")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -594,6 +597,7 @@ namespace LibroSphere.Infrastructure.Migrations
                                 .HasColumnName("Currency");
 
                             b1.Property<decimal>("amount")
+                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("Price");
 
@@ -680,6 +684,7 @@ namespace LibroSphere.Infrastructure.Migrations
                                 .HasColumnName("PriceCurrency");
 
                             b1.Property<decimal>("amount")
+                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("PriceAmount");
 
@@ -742,6 +747,7 @@ namespace LibroSphere.Infrastructure.Migrations
                                 .HasColumnName("TotalCurrency");
 
                             b1.Property<decimal>("amount")
+                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("TotalAmount");
 
@@ -775,6 +781,7 @@ namespace LibroSphere.Infrastructure.Migrations
                                 .HasColumnName("PriceCurrency");
 
                             b1.Property<decimal>("amount")
+                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("PriceAmount");
 

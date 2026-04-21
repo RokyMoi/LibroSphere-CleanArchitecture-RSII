@@ -17,12 +17,12 @@ public sealed class CartUpdatedIntegrationEvent
         Currency = string.Empty;
     }
 
-    public Guid CartId { get; private set; }
-    public Guid UserId { get; private set; }
-    public int ItemCount { get; private set; }
-    public decimal TotalAmount { get; private set; }
-    public string Currency { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid CartId { get; init; }
+    public Guid UserId { get; init; }
+    public int ItemCount { get; init; }
+    public decimal TotalAmount { get; init; }
+    public string Currency { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
 }
 
 public sealed class CartDeletedIntegrationEvent
@@ -37,6 +37,6 @@ public sealed class CartDeletedIntegrationEvent
     {
     }
 
-    public Guid CartId { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid CartId { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
 }

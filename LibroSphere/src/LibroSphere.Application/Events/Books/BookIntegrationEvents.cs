@@ -2,7 +2,7 @@ namespace LibroSphere.Application.Events.Books;
 
 public sealed class BookCreatedIntegrationEvent
 {
-    public BookCreatedIntegrationEvent(Guid bookId, string title, Guid authorId, decimal amount, string currency)
+    public BookCreatedIntegrationEvent(Guid bookId, string title, Guid authorId, decimal amount, string currency, string? adminEmail = null)
     {
         BookId = bookId;
         Title = title;
@@ -10,6 +10,7 @@ public sealed class BookCreatedIntegrationEvent
         Amount = amount;
         Currency = currency;
         OccurredOnUtc = DateTime.UtcNow;
+        AdminEmail = adminEmail;
     }
 
     public BookCreatedIntegrationEvent()
@@ -18,17 +19,18 @@ public sealed class BookCreatedIntegrationEvent
         Currency = string.Empty;
     }
 
-    public Guid BookId { get; private set; }
-    public string Title { get; private set; }
-    public Guid AuthorId { get; private set; }
-    public decimal Amount { get; private set; }
-    public string Currency { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid BookId { get; init; }
+    public string Title { get; init; }
+    public Guid AuthorId { get; init; }
+    public decimal Amount { get; init; }
+    public string Currency { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
+    public string? AdminEmail { get; init; }
 }
 
 public sealed class BookUpdatedIntegrationEvent
 {
-    public BookUpdatedIntegrationEvent(Guid bookId, string title, Guid authorId, decimal amount, string currency)
+    public BookUpdatedIntegrationEvent(Guid bookId, string title, Guid authorId, decimal amount, string currency, string? adminEmail = null)
     {
         BookId = bookId;
         Title = title;
@@ -36,6 +38,7 @@ public sealed class BookUpdatedIntegrationEvent
         Amount = amount;
         Currency = currency;
         OccurredOnUtc = DateTime.UtcNow;
+        AdminEmail = adminEmail;
     }
 
     public BookUpdatedIntegrationEvent()
@@ -44,22 +47,24 @@ public sealed class BookUpdatedIntegrationEvent
         Currency = string.Empty;
     }
 
-    public Guid BookId { get; private set; }
-    public string Title { get; private set; }
-    public Guid AuthorId { get; private set; }
-    public decimal Amount { get; private set; }
-    public string Currency { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid BookId { get; init; }
+    public string Title { get; init; }
+    public Guid AuthorId { get; init; }
+    public decimal Amount { get; init; }
+    public string Currency { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
+    public string? AdminEmail { get; init; }
 }
 
 public sealed class BookDeletedIntegrationEvent
 {
-    public BookDeletedIntegrationEvent(Guid bookId, string title, Guid authorId)
+    public BookDeletedIntegrationEvent(Guid bookId, string title, Guid authorId, string? adminEmail = null)
     {
         BookId = bookId;
         Title = title;
         AuthorId = authorId;
         OccurredOnUtc = DateTime.UtcNow;
+        AdminEmail = adminEmail;
     }
 
     public BookDeletedIntegrationEvent()
@@ -67,8 +72,9 @@ public sealed class BookDeletedIntegrationEvent
         Title = string.Empty;
     }
 
-    public Guid BookId { get; private set; }
-    public string Title { get; private set; }
-    public Guid AuthorId { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid BookId { get; init; }
+    public string Title { get; init; }
+    public Guid AuthorId { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
+    public string? AdminEmail { get; init; }
 }

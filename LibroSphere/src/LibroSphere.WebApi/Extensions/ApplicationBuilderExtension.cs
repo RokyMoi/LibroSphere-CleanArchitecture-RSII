@@ -6,6 +6,7 @@ using LibroSphere.Infrastructure.Authentication;
 using LibroSphere.WebApi.MiddleWare;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using LibroSphere.Application.Exceptions;
 
 namespace LibroSphere.Api.Extensions;
 
@@ -84,7 +85,7 @@ public static class ApplicationBuilderExtensions
 
         var result = await userManager.CreateAsync(appUser, password);
         if (!result.Succeeded)
-            throw new Exception($"Nije moguce kreirati korisnika {email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            throw new BusinessException($"Nije moguce kreirati korisnika {email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
 
         await userManager.AddToRoleAsync(appUser, ApplicationRoles.User);
 
@@ -94,6 +95,7 @@ public static class ApplicationBuilderExtensions
 
     public static void UseCustomMiddleWare(this IApplicationBuilder app)
     {
+        app.UseMiddleware<RequestTimingMiddleware>();
         app.UseMiddleware<ExceptionHandlingMiddleware>();
     }
 }

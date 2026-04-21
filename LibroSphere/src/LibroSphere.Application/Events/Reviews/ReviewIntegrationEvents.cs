@@ -15,11 +15,11 @@ public sealed class ReviewCreatedIntegrationEvent
     {
     }
 
-    public Guid ReviewId { get; private set; }
-    public Guid UserId { get; private set; }
-    public Guid BookId { get; private set; }
-    public int Rating { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid ReviewId { get; init; }
+    public Guid UserId { get; init; }
+    public Guid BookId { get; init; }
+    public int Rating { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
 }
 
 public sealed class ReviewUpdatedIntegrationEvent
@@ -37,11 +37,11 @@ public sealed class ReviewUpdatedIntegrationEvent
     {
     }
 
-    public Guid ReviewId { get; private set; }
-    public Guid UserId { get; private set; }
-    public Guid BookId { get; private set; }
-    public int Rating { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid ReviewId { get; init; }
+    public Guid UserId { get; init; }
+    public Guid BookId { get; init; }
+    public int Rating { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
 }
 
 public sealed class ReviewDeletedIntegrationEvent
@@ -58,8 +58,8 @@ public sealed class ReviewDeletedIntegrationEvent
     {
     }
 
-    public Guid ReviewId { get; private set; }
-    public Guid UserId { get; private set; }
-    public Guid BookId { get; private set; }
-    public DateTime OccurredOnUtc { get; private set; }
+    public Guid ReviewId { get; init; }
+    public Guid UserId { get; init; }
+    public Guid BookId { get; init; }
+    public DateTime OccurredOnUtc { get; init; }
 }

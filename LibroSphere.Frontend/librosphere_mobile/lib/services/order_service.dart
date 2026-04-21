@@ -10,7 +10,15 @@ class OrderService {
     return _apiClient.createOrder(accessToken, cartId);
   }
 
-  Future<OrderModel> waitForPaidOrder(String accessToken, String orderId) {
-    return _apiClient.waitForPaidOrder(accessToken, orderId);
+  Future<OrderModel> waitForPaidOrder(
+    String accessToken,
+    String orderId, {
+    int maxAttempts = 5,
+  }) {
+    return _apiClient.waitForPaidOrder(
+      accessToken,
+      orderId,
+      maxAttempts: maxAttempts,
+    );
   }
 }

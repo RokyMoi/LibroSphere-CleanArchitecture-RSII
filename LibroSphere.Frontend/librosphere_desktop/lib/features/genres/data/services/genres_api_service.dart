@@ -12,14 +12,19 @@ class GenresApiService {
     String token, {
     required int page,
     int pageSize = 10,
+    String? searchTerm,
   }) async {
+    final query = <String, String>{
+      'page': page.toString(),
+      'pageSize': pageSize.toString(),
+    };
+    if (searchTerm != null && searchTerm.trim().isNotEmpty) {
+      query['searchTerm'] = searchTerm.trim();
+    }
     final response = await _apiClient.getMap(
       '/api/genre',
       token: token,
-      query: <String, String>{
-        'page': page.toString(),
-        'pageSize': pageSize.toString(),
-      },
+      query: query,
     );
 
     return GenresPageModel(

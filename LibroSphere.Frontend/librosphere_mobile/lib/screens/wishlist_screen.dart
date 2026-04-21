@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../core/ui/app_feedback.dart';
 import '../data/models/book_model.dart';
 import '../features/session/presentation/session_scope.dart';
-import '../features/session/presentation/viewmodels/session_viewmodel.dart';
 import '../widgets/common_widgets.dart';
 
 class WishlistScreen extends StatefulWidget {
@@ -14,7 +13,7 @@ class WishlistScreen extends StatefulWidget {
 }
 
 class _WishlistScreenState extends State<WishlistScreen> {
-  SessionViewModel? _session;
+  Listenable? _wishlistState;
   late Future<List<BookModel>> _future = _load();
 
   Future<List<BookModel>> _load() async {
@@ -30,19 +29,19 @@ class _WishlistScreenState extends State<WishlistScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final nextSession = SessionScope.read(context);
-    if (_session == nextSession) {
+    final nextState = SessionScope.read(context).wishlistState;
+    if (_wishlistState == nextState) {
       return;
     }
 
-    _session?.removeListener(_handleSessionChanged);
-    _session = nextSession;
-    _session!.addListener(_handleSessionChanged);
+    _wishlistState?.removeListener(_handleSessionChanged);
+    _wishlistState = nextState;
+    _wishlistState?.addListener(_handleSessionChanged);
   }
 
   @override
   void dispose() {
-    _session?.removeListener(_handleSessionChanged);
+    _wishlistState?.removeListener(_handleSessionChanged);
     super.dispose();
   }
 
@@ -58,7 +57,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
 
   Future<void> _moveToCart(BookModel book) async {
     try {
-      await context.session.moveWishlistBookToCart(book);
+      await SessionScope.read(context).moveWishlistBookToCart(book);
       if (!mounted) return;
       showSuccessSnackBar(context, 'The book was moved from your wishlist to the shopping cart.');
       setState(() {
@@ -72,7 +71,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
 
   Future<void> _removeFromWishlist(String bookId) async {
     try {
-      await context.session.removeFromWishlist(bookId);
+      await SessionScope.read(context).removeFromWishlist(bookId);
       if (!mounted) return;
       showDestructiveSnackBar(context, 'The book was removed from your wishlist.');
       setState(() {
@@ -86,7 +85,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final session = context.session;
+    final session = SessionScope.read(context);
 
     if (!session.isAuthenticated) {
       return const InfoStateView(
@@ -108,7 +107,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
         }
 
         if (!snapshot.hasData) {
-          return const CenteredLoadingIndicator();
+          return const BookListSkeleton();
         }
 
         final books = snapshot.data!;
@@ -121,12 +120,19 @@ class _WishlistScreenState extends State<WishlistScreen> {
           );
         }
 
-        return ListView(
+        return ListView.builder(
           padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
-          children: [
-            SectionHeader(title: 'Wishlist', count: books.length),
-            const SizedBox(height: 26),
-            ...books.map((book) => Padding(
+          itemCount: books.length + 2,
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              return SectionHeader(title: 'Wishlist', count: books.length);
+            }
+            if (index == 1) {
+              return const SizedBox(height: 26);
+            }
+
+            final book = books[index - 2];
+            return Padding(
               padding: const EdgeInsets.only(bottom: 18),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,8 +174,8 @@ class _WishlistScreenState extends State<WishlistScreen> {
                   ),
                 ],
               ),
-            )),
-          ],
+            );
+          },
         );
       },
     );

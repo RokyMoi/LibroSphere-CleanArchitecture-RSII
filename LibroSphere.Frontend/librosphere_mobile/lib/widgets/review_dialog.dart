@@ -46,7 +46,7 @@ class _ReviewDialogState extends State<ReviewDialog> {
 
     setState(() => _submitting = true);
     try {
-      await context.session.submitReview(
+      await SessionScope.read(context).submitReview(
         bookId: widget.book.id,
         rating: _rating,
         comment: _textController.text.trim(),

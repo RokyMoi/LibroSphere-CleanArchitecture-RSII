@@ -10,7 +10,15 @@ import '../../../dashboard/presentation/pages/dashboard_page.dart';
 import '../../../dashboard/presentation/viewmodels/dashboard_viewmodel.dart';
 import '../../../genres/presentation/pages/genres_page.dart';
 import '../../../genres/presentation/viewmodels/genres_viewmodel.dart';
+import '../../../news/presentation/pages/news_page.dart';
+import '../../../news/presentation/viewmodels/news_viewmodel.dart';
+import '../../../orders/presentation/pages/orders_page.dart';
+import '../../../orders/presentation/viewmodels/orders_viewmodel.dart';
+import '../../../reports/presentation/pages/reports_page.dart';
+import '../../../reports/presentation/viewmodels/reports_viewmodel.dart';
 import '../../../session/presentation/viewmodels/admin_session_viewmodel.dart';
+import '../../../settings/presentation/pages/settings_page.dart';
+import '../../../settings/presentation/viewmodels/settings_viewmodel.dart';
 import '../../../users/presentation/pages/users_page.dart';
 import '../../../users/presentation/viewmodels/users_viewmodel.dart';
 import '../widgets/shell_side_nav.dart';
@@ -32,6 +40,10 @@ class _AdminShellPageState extends State<AdminShellPage> {
   late final BooksViewModel _booksViewModel;
   late final GenresViewModel _genresViewModel;
   late final AuthorsViewModel _authorsViewModel;
+  late final ReportsViewModel _reportsViewModel;
+  late final OrdersViewModel _ordersViewModel;
+  late final NewsViewModel _newsViewModel;
+  late final SettingsViewModel _settingsViewModel;
   late final List<Widget?> _pages;
 
   @override
@@ -52,7 +64,11 @@ class _AdminShellPageState extends State<AdminShellPage> {
       _token,
       onDataChanged: _handleAuthorsChanged,
     );
-    _pages = List<Widget?>.filled(5, null);
+    _reportsViewModel = AppInjection.createReportsViewModel(_token);
+    _ordersViewModel = AppInjection.createOrdersViewModel(_token);
+    _newsViewModel = AppInjection.createNewsViewModel(_token);
+    _settingsViewModel = AppInjection.createSettingsViewModel(_token);
+    _pages = List<Widget?>.filled(9, null);
     _pageAt(0);
   }
 
@@ -63,6 +79,10 @@ class _AdminShellPageState extends State<AdminShellPage> {
     _booksViewModel.dispose();
     _genresViewModel.dispose();
     _authorsViewModel.dispose();
+    _reportsViewModel.dispose();
+    _ordersViewModel.dispose();
+    _newsViewModel.dispose();
+    _settingsViewModel.dispose();
     super.dispose();
   }
 
@@ -88,6 +108,13 @@ class _AdminShellPageState extends State<AdminShellPage> {
       2 => BooksPage(viewModel: _booksViewModel),
       3 => GenresPage(viewModel: _genresViewModel),
       4 => AuthorsPage(viewModel: _authorsViewModel),
+      5 => ReportsPage(viewModel: _reportsViewModel),
+      6 => OrdersPage(viewModel: _ordersViewModel),
+      7 => NewsPage(viewModel: _newsViewModel),
+      8 => SettingsPage(
+        viewModel: _settingsViewModel,
+        session: widget.session,
+      ),
       _ => const SizedBox.shrink(),
     };
 
@@ -112,31 +139,15 @@ class _AdminShellPageState extends State<AdminShellPage> {
             color: desktopPrimary,
             borderRadius: BorderRadius.circular(2),
           ),
-          child: Stack(
+          child: Row(
             children: [
-              Row(
-                children: [
-                  ShellSideNav(selectedTab: _tab, onSelectTab: _selectTab),
-                  Expanded(
-                    child: IndexedStack(
-                      index: _tab,
-                      children: List<Widget>.generate(
-                        _pages.length,
-                        (index) => _pages[index] ?? const SizedBox.shrink(),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              Positioned(
-                top: 10,
-                right: 10,
-                child: IconButton(
-                  onPressed: widget.session.logout,
-                  icon: const Icon(
-                    Icons.cancel_outlined,
-                    color: Colors.white,
-                    size: 34,
+              ShellSideNav(selectedTab: _tab, onSelectTab: _selectTab),
+              Expanded(
+                child: IndexedStack(
+                  index: _tab,
+                  children: List<Widget>.generate(
+                    _pages.length,
+                    (index) => _pages[index] ?? const SizedBox.shrink(),
                   ),
                 ),
               ),

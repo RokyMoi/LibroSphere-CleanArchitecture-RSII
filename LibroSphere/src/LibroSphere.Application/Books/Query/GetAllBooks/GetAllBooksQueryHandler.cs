@@ -32,25 +32,26 @@ namespace LibroSphere.Application.Books.Query.GetAllBooks
                 .Take(request.PageSize)
                 .ToList();
 
-            var response = new List<BookResponse>(pageBooks.Count);
-            foreach (var book in pageBooks)
+            var response = await Task.WhenAll(pageBooks.Select(async book =>
             {
-                var imageLink = await _bookAssetStorageService.GetImageUrlAsync(book.BookLinkovi.imageLink, cancellationToken);
-                var pdfLink = await _bookAssetStorageService.GetPdfReadUrlAsync(book.BookLinkovi.PdfLink, cancellationToken);
+                var imageLinkTask = _bookAssetStorageService.GetImageUrlAsync(book.BookLinkovi.imageLink, cancellationToken);
+                var pdfLinkTask = _bookAssetStorageService.GetPdfReadUrlAsync(book.BookLinkovi.PdfLink, cancellationToken);
+                await Task.WhenAll((Task)imageLinkTask, pdfLinkTask);
+
                 var reviewCount = book.Reviews.Count;
                 var averageRating = reviewCount == 0
                     ? 0
                     : book.Reviews.Average(review => review.Rating);
 
-                response.Add(new BookResponse
+                return new BookResponse
                 {
                     bookId = book.Id,
                     Title = book.Title.Value,
                     Description = book.Description.Value,
                     amount = book.Price.amount,
                     currency = book.Price.Currency.Code,
-                    pdfLink = pdfLink,
-                    imageLink = imageLink,
+                    pdfLink = await pdfLinkTask,
+                    imageLink = await imageLinkTask,
                     AverageRating = averageRating,
                     ReviewCount = reviewCount,
                     AuthorId = book.AuthorId,
@@ -61,8 +62,8 @@ namespace LibroSphere.Application.Books.Query.GetAllBooks
                         .Select(bg => bg.Genre!.Name.Value)
                         .OrderBy(name => name)
                         .ToList()
-                });
-            }
+                };
+            }));
 
             return Result.Success(new PagedResponse<BookResponse>(
                 response,

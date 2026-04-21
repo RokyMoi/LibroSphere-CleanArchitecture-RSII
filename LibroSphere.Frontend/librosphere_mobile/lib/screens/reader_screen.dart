@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -28,6 +29,10 @@ class ReaderScreen extends StatefulWidget {
 }
 
 class _ReaderScreenState extends State<ReaderScreen> {
+  static const _maxCachedFiles = 12;
+  static const _maxCacheBytes = 250 * 1024 * 1024;
+  static const _progressUpdateThrottle = Duration(milliseconds: 120);
+
   final PdfViewerController _controller = PdfViewerController();
   late Future<File> _documentFuture = _prepareDocument();
   String? _viewerError;
@@ -35,6 +40,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   int _pageCount = 1;
   double? _downloadProgress;
   String _loadingMessage = 'Preparing your book...';
+  DateTime? _lastProgressUiUpdate;
 
   Future<String> _resolvePdfUrl() async {
     try {
@@ -72,10 +78,46 @@ class _ReaderScreenState extends State<ReaderScreen> {
     if (!await cacheDirectory.exists()) {
       await cacheDirectory.create(recursive: true);
     }
+    unawaited(_pruneCacheDirectory(cacheDirectory));
 
     return File(
       '${cacheDirectory.path}${Platform.pathSeparator}${widget.book.id}.pdf',
     );
+  }
+
+  Future<void> _pruneCacheDirectory(Directory cacheDirectory) async {
+    try {
+      final entities = await cacheDirectory.list().where((entity) {
+        return entity is File && entity.path.endsWith('.pdf');
+      }).cast<File>().toList();
+
+      if (entities.length <= _maxCachedFiles) {
+        var totalBytes = 0;
+        for (final file in entities) {
+          totalBytes += await file.length();
+        }
+        if (totalBytes <= _maxCacheBytes) {
+          return;
+        }
+      }
+
+      final fileStats = <({File file, DateTime modified, int length})>[];
+      for (final file in entities) {
+        final stat = await file.stat();
+        fileStats.add((file: file, modified: stat.modified, length: stat.size));
+      }
+
+      fileStats.sort((a, b) => a.modified.compareTo(b.modified));
+      var totalBytes = fileStats.fold<int>(0, (sum, item) => sum + item.length);
+
+      while (fileStats.length > _maxCachedFiles || totalBytes > _maxCacheBytes) {
+        final oldest = fileStats.removeAt(0);
+        totalBytes -= oldest.length;
+        await oldest.file.delete();
+      }
+    } catch (_) {
+      // Cache cleanup should never block reading.
+    }
   }
 
   Future<File> _downloadPdf(String pdfUrl, File destinationFile) async {
@@ -102,10 +144,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
         sink.add(chunk);
         receivedBytes += chunk.length;
         if (totalBytes != null && totalBytes > 0) {
-          _updateLoadingState(
-            'Downloading book to your device...',
-            receivedBytes / totalBytes,
-          );
+          _updateProgressThrottled(receivedBytes, totalBytes);
         }
       }
     } finally {
@@ -138,6 +177,20 @@ class _ReaderScreenState extends State<ReaderScreen> {
     });
   }
 
+  void _updateProgressThrottled(int receivedBytes, int totalBytes) {
+    final now = DateTime.now();
+    if (_lastProgressUiUpdate != null &&
+        now.difference(_lastProgressUiUpdate!) < _progressUpdateThrottle) {
+      return;
+    }
+
+    _lastProgressUiUpdate = now;
+    _updateLoadingState(
+      'Downloading book to your device...',
+      receivedBytes / totalBytes,
+    );
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -151,6 +204,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
       _pageCount = 1;
       _downloadProgress = null;
       _loadingMessage = 'Preparing your book...';
+      _lastProgressUiUpdate = null;
       _documentFuture = _prepareDocument(forceDownload: true);
     });
   }

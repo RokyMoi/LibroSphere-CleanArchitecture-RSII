@@ -23,6 +23,24 @@ namespace LibroSphere.Infrastructure.Repositories
                 .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
         }
 
+        public async Task<List<Book>> GetByIdsWithDetailsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default)
+        {
+            if (ids.Count == 0)
+            {
+                return new List<Book>();
+            }
+
+            return await DbContext
+                .Set<Book>()
+                .AsNoTracking()
+                .Where(b => ids.Contains(b.Id))
+                .Include(b => b.Author)
+                .Include(b => b.BookGenres)
+                    .ThenInclude(bg => bg.Genre)
+                .Include(b => b.Reviews)
+                .ToListAsync(cancellationToken);
+        }
+
         public async Task<List<Book>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             var books = await DbContext
