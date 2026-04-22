@@ -66,7 +66,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     try {
       final session = widget.session;
       final results = await Future.wait<Object>([
-        session.getBook(widget.bookId),
+        session.getBook(widget.bookId, forceRefresh: true),
         session.hasLibraryAccess(widget.bookId),
         session.getReviewPage(
           widget.bookId,
@@ -290,6 +290,13 @@ class _BookDetailContent extends StatelessWidget {
     final visibleReviewCount = reviewTotalCount == 0
         ? reviews.length
         : reviewTotalCount;
+    final hasRating = averageRating > 0;
+    final ratingLabel = hasRating
+        ? '${averageRating.toStringAsFixed(1)} / 5'
+        : 'No ratings yet';
+    final ratingCountLabel = visibleReviewCount == 1
+        ? '1 review'
+        : '$visibleReviewCount reviews';
 
     return Column(
       children: [
@@ -353,21 +360,43 @@ class _BookDetailContent extends StatelessWidget {
                 runSpacing: 10,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      StarRow(rating: averageRating),
-                      const SizedBox(width: 8),
-                      Text(
-                        averageRating > 0
-                            ? averageRating.toStringAsFixed(1)
-                            : 'No rating',
-                        style: TextStyle(
-                          color: Colors.grey.shade700,
-                          fontWeight: FontWeight.w700,
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFF),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        StarRow(rating: averageRating, size: 18),
+                        const SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              ratingLabel,
+                              style: const TextStyle(
+                                color: brandBlueDark,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            Text(
+                              ratingCountLabel,
+                              style: TextStyle(
+                                color: Colors.grey.shade700,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   const SizedBox(width: 14),
                   Container(

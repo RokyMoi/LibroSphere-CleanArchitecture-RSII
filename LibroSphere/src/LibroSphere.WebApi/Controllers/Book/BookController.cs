@@ -86,19 +86,9 @@ namespace LibroSphere.WebApi.Controllers.Book
             [FromQuery] int takeRecommendations = 5,
             CancellationToken cancellationToken = default)
         {
-            var booksTask = _sender.Send(
+            var booksResult = await _sender.Send(
                 new GetAllBooksQuery(searchTerm, null, null, null, null, page, pageSize),
                 cancellationToken);
-
-            Task<Result<List<RecommendedBookResponse>>>? recommendationsTask = null;
-            if (User.Identity?.IsAuthenticated == true)
-            {
-                recommendationsTask = _sender.Send(
-                    new GetRecommendedBooksQuery(User.GetRequiredUserId(), takeRecommendations),
-                    cancellationToken);
-            }
-
-            var booksResult = await booksTask;
 
             if (!booksResult.IsSuccess)
             {
@@ -120,7 +110,9 @@ namespace LibroSphere.WebApi.Controllers.Book
 
             try
             {
-                var recommendationsResult = await recommendationsTask!;
+                var recommendationsResult = await _sender.Send(
+                    new GetRecommendedBooksQuery(User.GetRequiredUserId(), takeRecommendations),
+                    cancellationToken);
 
                 if (!recommendationsResult.IsSuccess)
                 {
@@ -173,31 +165,25 @@ namespace LibroSphere.WebApi.Controllers.Book
             [FromQuery] int pageSize = 12,
             CancellationToken cancellationToken = default)
         {
-            var booksTask = _sender.Send(
+            var booksResult = await _sender.Send(
                 new GetAllBooksQuery(null, null, null, null, null, page, pageSize),
                 cancellationToken);
-            var authorsTask = _sender.Send(
+            var authorsResult = await _sender.Send(
                 new GetAllAuthorsQuery(null, 1, 200),
                 cancellationToken);
-            var genresTask = _sender.Send(
+            var genresResult = await _sender.Send(
                 new GetAllGenresQuery(null, 1, 200),
                 cancellationToken);
-
-            await Task.WhenAll(booksTask, authorsTask, genresTask);
-
-            var booksResult = await booksTask;
             if (!booksResult.IsSuccess)
             {
                 return BadRequest(booksResult.Error);
             }
 
-            var authorsResult = await authorsTask;
             if (!authorsResult.IsSuccess)
             {
                 return BadRequest(authorsResult.Error);
             }
 
-            var genresResult = await genresTask;
             if (!genresResult.IsSuccess)
             {
                 return BadRequest(genresResult.Error);
