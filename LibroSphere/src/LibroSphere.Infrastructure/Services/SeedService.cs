@@ -264,8 +264,9 @@ internal sealed class SeedService : ISeedService
         var books = await _dbContext.Set<Book>().ToListAsync(cancellationToken);
         var existingReviews = await _dbContext
             .Set<Review>()
-            .Select(x => new { x.UserId, x.BookId })
             .ToListAsync(cancellationToken);
+
+        var reviewsChanged = false;
 
         var reviewDefinitions = new[]
         {
@@ -274,21 +275,21 @@ internal sealed class SeedService : ISeedService
                 ReviewerEmail = "mila.thompson.seed@librosphere.test",
                 BookTitle = "Java Programming",
                 Rating = 5,
-                Comment = "Clear explanations and practical examples make this a strong programming seed title."
+                Comment = "Probably the clearest intro to Java I've read. It explains the basics without talking down to you, and the examples actually help."
             },
             new
             {
                 ReviewerEmail = "noah.carter.seed@librosphere.test",
                 BookTitle = "Java Programming",
                 Rating = 4,
-                Comment = "Very solid for beginners and still useful later when revisiting Java fundamentals."
+                Comment = "Really good starting point if you're new to Java. A few chapters feel a bit dry, but overall it's practical and easy to follow."
             },
             new
             {
                 ReviewerEmail = "emma.brooks.seed@librosphere.test",
                 BookTitle = "Java Programming",
                 Rating = 5,
-                Comment = "Excellent technical starter book and perfect for testing non-fiction coding recommendations."
+                Comment = "I liked that it focuses on understanding how the language works instead of just dumping syntax. Solid beginner book."
             },
 
             new
@@ -296,21 +297,21 @@ internal sealed class SeedService : ISeedService
                 ReviewerEmail = "mila.thompson.seed@librosphere.test",
                 BookTitle = "To Kill a Mockingbird",
                 Rating = 5,
-                Comment = "Compassionate, sharp and timeless, with memorable characters and emotional weight."
+                Comment = "This one really stays with you. Scout's voice feels so real, and the story handles difficult themes with a lot of heart."
             },
             new
             {
                 ReviewerEmail = "liam.parker.seed@librosphere.test",
                 BookTitle = "To Kill a Mockingbird",
                 Rating = 4,
-                Comment = "A powerful literary classic that deserves its place in the catalog."
+                Comment = "A deserved classic. It starts gently, but by the end it hits hard and gives you a lot to think about."
             },
             new
             {
                 ReviewerEmail = "emma.brooks.seed@librosphere.test",
                 BookTitle = "To Kill a Mockingbird",
                 Rating = 5,
-                Comment = "One of the strongest seed choices for classic fiction and courtroom drama readers."
+                Comment = "Beautifully written and emotionally sharp. I can see why people return to it years later."
             },
 
             new
@@ -318,21 +319,21 @@ internal sealed class SeedService : ISeedService
                 ReviewerEmail = "noah.carter.seed@librosphere.test",
                 BookTitle = "Meditations",
                 Rating = 5,
-                Comment = "Short, reflective and full of practical wisdom that feels relevant even now."
+                Comment = "I expected something distant and academic, but a lot of it feels surprisingly direct and useful in everyday life."
             },
             new
             {
                 ReviewerEmail = "emma.brooks.seed@librosphere.test",
                 BookTitle = "Meditations",
                 Rating = 4,
-                Comment = "A strong philosophy seed with plenty of concise passages worth revisiting."
+                Comment = "Some passages are repetitive, but when it clicks it's incredibly grounding. Best read slowly rather than all at once."
             },
             new
             {
                 ReviewerEmail = "liam.parker.seed@librosphere.test",
                 BookTitle = "Meditations",
                 Rating = 5,
-                Comment = "Great for generating a distinct philosophy preference signal in recommendations."
+                Comment = "Not a flashy book, but I kept highlighting lines. It has that rare quality of making you pause and reset."
             },
 
             new
@@ -340,21 +341,21 @@ internal sealed class SeedService : ISeedService
                 ReviewerEmail = "mila.thompson.seed@librosphere.test",
                 BookTitle = "Rich Dad Poor Dad",
                 Rating = 4,
-                Comment = "Accessible and motivating, especially for readers getting into finance and money mindset."
+                Comment = "Very easy to read and definitely motivating. I don't agree with every point, but it does make you think differently about money."
             },
             new
             {
                 ReviewerEmail = "noah.carter.seed@librosphere.test",
                 BookTitle = "Rich Dad Poor Dad",
                 Rating = 3,
-                Comment = "Useful as an entry point for business readers even if it is more inspirational than technical."
+                Comment = "Useful as a mindset book more than a practical guide. Worth reading once, just don't expect detailed financial advice."
             },
             new
             {
                 ReviewerEmail = "liam.parker.seed@librosphere.test",
                 BookTitle = "Rich Dad Poor Dad",
                 Rating = 4,
-                Comment = "A good business seed title that gives the engine a clearly different audience signal."
+                Comment = "A bit repetitive in places, but it explains assets, liabilities and long-term thinking in a way that's easy to remember."
             },
 
             new
@@ -362,21 +363,21 @@ internal sealed class SeedService : ISeedService
                 ReviewerEmail = "emma.brooks.seed@librosphere.test",
                 BookTitle = "Alice in Wonderland",
                 Rating = 5,
-                Comment = "Inventive, playful and iconic, with fantasy energy that stands apart from the other books."
+                Comment = "Completely strange in the best way. It feels playful on the surface, but there's a lot of cleverness underneath."
             },
             new
             {
                 ReviewerEmail = "mila.thompson.seed@librosphere.test",
                 BookTitle = "Alice in Wonderland",
                 Rating = 4,
-                Comment = "Whimsical and imaginative, ideal for a lighter classic fantasy option in recommendations."
+                Comment = "Funny, chaotic and imaginative. It's one of those books where the dream logic is half the fun."
             },
             new
             {
                 ReviewerEmail = "noah.carter.seed@librosphere.test",
                 BookTitle = "Alice in Wonderland",
                 Rating = 4,
-                Comment = "Adds variety to the catalog and helps the recommendation system test genre diversity."
+                Comment = "Not really plot-heavy, but the mood and characters carry it. A charming read if you lean into the weirdness."
             }
         };
 
@@ -392,22 +393,35 @@ internal sealed class SeedService : ISeedService
                 continue;
             }
 
-            if (existingReviews.Any(x => x.UserId == reviewer.Id && x.BookId == book.Id))
+            var existingReview = existingReviews.FirstOrDefault(x => x.UserId == reviewer.Id && x.BookId == book.Id);
+
+            if (existingReview is not null)
             {
+                if (existingReview.Rating != definition.Rating ||
+                    !string.Equals(existingReview.Comment, definition.Comment, StringComparison.Ordinal))
+                {
+                    existingReview.Update(definition.Rating, definition.Comment);
+                    reviewsChanged = true;
+                }
+
                 continue;
             }
 
             var review = Review.Create(reviewer.Id, book.Id, definition.Rating, definition.Comment);
             await _dbContext.Set<Review>().AddAsync(review, cancellationToken);
-            existingReviews.Add(new { UserId = reviewer.Id, BookId = book.Id });
+            existingReviews.Add(review);
+            reviewsChanged = true;
         }
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        if (reviewsChanged)
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
 
         return new SeedResult(
             genreResult.GenresCreated,
             authorsCreated,
             booksCreated,
-            genreResult.HasChanges || authorsCreated > 0 || booksCreated > 0);
+            genreResult.HasChanges || authorsCreated > 0 || booksCreated > 0 || reviewsChanged);
     }
 }

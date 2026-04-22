@@ -8,6 +8,8 @@ namespace LibroSphere.Application.Recommendations.Query.GetRecommendedBooks
         string Currency,
         string? PdfLink,
         string? ImageLink,
+        double AverageRating,
+        int ReviewCount,
         Guid AuthorId,
         string AuthorName);
 }

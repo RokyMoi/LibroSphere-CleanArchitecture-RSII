@@ -23,6 +23,11 @@ namespace LibroSphere.Application.Recommendations.Query.GetRecommendedBooks
             var response = await Task.WhenAll(books.Select(async book =>
             {
                 var imageLink = await _bookAssetStorageService.GetImageUrlAsync(book.BookLinkovi.imageLink, cancellationToken);
+                var reviewCount = book.Reviews.Count;
+                var averageRating = reviewCount == 0
+                    ? 0
+                    : book.Reviews.Average(review => review.Rating);
+
                 return new RecommendedBookResponse(
                     book.Id,
                     book.Title.Value,
@@ -33,6 +38,8 @@ namespace LibroSphere.Application.Recommendations.Query.GetRecommendedBooks
                         ? null
                         : book.BookLinkovi.PdfLink,
                     imageLink,
+                    averageRating,
+                    reviewCount,
                     book.AuthorId,
                     book.Author?.Name.Value ?? string.Empty);
             }));
