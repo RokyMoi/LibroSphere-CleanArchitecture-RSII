@@ -253,10 +253,10 @@ class _BookRow extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: Text(authorName, style: _rowTextStyle),
+          child: _EllipsisCell(text: authorName, style: _rowTextStyle),
         ),
         Expanded(
-          child: Text(book.title, style: _rowTextStyle),
+          child: _EllipsisCell(text: book.title, style: _rowTextStyle),
         ),
         Expanded(
           child: Text(
@@ -288,6 +288,30 @@ class _BookRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _EllipsisCell extends StatelessWidget {
+  const _EllipsisCell({
+    required this.text,
+    required this.style,
+  });
+
+  final String text;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: text,
+      waitDuration: const Duration(milliseconds: 350),
+      child: Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: style,
+      ),
     );
   }
 }

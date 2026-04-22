@@ -31,25 +31,4 @@ class OrdersApiService {
     final response = await _apiClient.getMap('/api/orders/all?$query', token: token);
     return OrdersPageModel.fromJson(response);
   }
-
-  Future<void> refundOrder({
-    required String token,
-    required String orderId,
-    double? amount,
-    String? reason,
-  }) async {
-    final body = <String, dynamic>{};
-    if (amount != null) {
-      body['amount'] = amount;
-    }
-    if (reason != null) {
-      body['reason'] = reason;
-    }
-
-    await _apiClient.postJson(
-      '/api/orders/$orderId/refund',
-      token: token,
-      body: body.isEmpty ? null : body,
-    );
-  }
 }

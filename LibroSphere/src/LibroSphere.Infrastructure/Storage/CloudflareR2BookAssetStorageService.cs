@@ -61,7 +61,8 @@ internal sealed class CloudflareR2BookAssetStorageService : IBookAssetStorageSer
             return Task.FromResult<string?>(null);
         }
 
-        return Task.FromResult<string?>(ResolveAssetUrl(storedValue.Trim(), TimeSpan.FromMinutes(_options.SignedUrlMinutes)));
+        return Task.FromResult<string?>(
+            ResolveAssetUrl(storedValue.Trim(), TimeSpan.FromMinutes(_options.SignedUrlMinutes)));
     }
 
     public Task<string> GetPdfReadUrlAsync(string storedValue, CancellationToken cancellationToken = default)
@@ -144,19 +145,46 @@ internal sealed class CloudflareR2BookAssetStorageService : IBookAssetStorageSer
 
     private string ResolveAssetUrl(string storedValue, TimeSpan expiresIn)
     {
-        if (!IsManagedStorageKey(storedValue))
+        var normalizedValue = NormalizeStoredValue(storedValue);
+        if (!IsManagedStorageKey(normalizedValue))
         {
-            return storedValue;
+            return normalizedValue;
         }
 
         var request = new GetPreSignedUrlRequest
         {
             BucketName = _options.BucketName,
-            Key = storedValue,
+            Key = normalizedValue,
             Verb = HttpVerb.GET,
             Expires = DateTime.UtcNow.Add(expiresIn)
         };
 
         return _s3Client.GetPreSignedURL(request);
+    }
+
+    private string NormalizeStoredValue(string storedValue)
+    {
+        if (!Uri.TryCreate(storedValue, UriKind.Absolute, out var uri))
+        {
+            return storedValue;
+        }
+
+        if (!Uri.TryCreate(_options.AccountEndpoint, UriKind.Absolute, out var accountEndpoint))
+        {
+            return storedValue;
+        }
+
+        if (!string.Equals(uri.Host, accountEndpoint.Host, StringComparison.OrdinalIgnoreCase))
+        {
+            return storedValue;
+        }
+
+        var path = uri.AbsolutePath.Trim('/');
+        if (path.StartsWith($"{_options.BucketName}/", StringComparison.OrdinalIgnoreCase))
+        {
+            return path[(_options.BucketName.Length + 1)..];
+        }
+
+        return storedValue;
     }
 }

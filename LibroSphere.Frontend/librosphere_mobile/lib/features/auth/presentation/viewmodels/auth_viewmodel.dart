@@ -11,38 +11,57 @@ class AuthViewModel extends ChangeNotifier {
 
   final SessionViewModel _session;
   SessionViewModel get session => _session;
+  final ValueNotifier<bool> _modeState = ValueNotifier(true);
+  final ValueNotifier<int> _formState = ValueNotifier(0);
+  bool _isDisposed = false;
 
   bool isLoginMode = true;
   bool isSubmitting = false;
   String? errorMessage;
+  ValueListenable<bool> get modeState => _modeState;
+  ValueListenable<int> get formState => _formState;
 
   void showLogin() {
+    if (_isDisposed) {
+      return;
+    }
+
     if (isLoginMode) {
       return;
     }
 
     isLoginMode = true;
+    _modeState.value = true;
     errorMessage = null;
-    notifyListeners();
+    _notifyFormState();
   }
 
   void showRegister() {
+    if (_isDisposed) {
+      return;
+    }
+
     if (!isLoginMode) {
       return;
     }
 
     isLoginMode = false;
+    _modeState.value = false;
     errorMessage = null;
-    notifyListeners();
+    _notifyFormState();
   }
 
   void clearError() {
+    if (_isDisposed) {
+      return;
+    }
+
     if (errorMessage == null) {
       return;
     }
 
     errorMessage = null;
-    notifyListeners();
+    _notifyFormState();
   }
 
   Future<bool> login(LoginRequest request) async {
@@ -65,20 +84,32 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<bool> _run(Future<bool> Function() action) async {
+    if (_isDisposed) {
+      return false;
+    }
+
     isSubmitting = true;
     errorMessage = null;
-    notifyListeners();
+    _notifyFormState();
 
     bool success;
     try {
       success = await action();
     } catch (error) {
+      if (_isDisposed) {
+        return false;
+      }
+
       errorMessage = error.toString();
       success = false;
     }
 
+    if (_isDisposed) {
+      return success;
+    }
+
     isSubmitting = false;
-    notifyListeners();
+    _notifyFormState();
     return success;
   }
 
@@ -95,16 +126,38 @@ class AuthViewModel extends ChangeNotifier {
   String _mapFailure(Object failure) {
     return normalizeAuthMessage(failure);
   }
+
+  void _notifyFormState() {
+    if (_isDisposed) {
+      return;
+    }
+
+    _formState.value++;
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    _modeState.dispose();
+    _formState.dispose();
+    super.dispose();
+  }
 }
 
 String normalizeAuthMessage(Object failure) {
   final rawMessage = failure is Failure ? failure.message : failure.toString();
   final message = rawMessage.trim();
+  final normalizedMessage = message.toLowerCase();
 
   if (message.isEmpty ||
       message.contains('{Api.Code') ||
       message.contains('Api.Code')) {
     return 'Something went wrong. Please try again.';
+  }
+
+  if (normalizedMessage.contains('unable to reach librosphere api') ||
+      normalizedMessage.contains('did not respond in time')) {
+    return 'Unable to connect to the server. On the Android emulator, make sure the API is reachable at 10.0.2.2:8080.';
   }
 
   switch (message) {

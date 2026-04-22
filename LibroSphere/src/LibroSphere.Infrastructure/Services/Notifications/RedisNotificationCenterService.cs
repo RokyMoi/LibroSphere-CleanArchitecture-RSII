@@ -35,8 +35,7 @@ internal sealed class RedisNotificationCenterService : INotificationCenterServic
         "Wishlist",
         "Cart",
         "Order",
-        "Library",
-        "News"
+        "Library"
     };
 
     public RedisNotificationCenterService(
@@ -85,11 +84,6 @@ internal sealed class RedisNotificationCenterService : INotificationCenterServic
         if (!UserRelevantEntities.Contains(activity.EntityName))
         {
             return false;
-        }
-
-        if (activity.EntityName.Equals("News", StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
         }
 
         var userIdShort = userId.ToString("N")[..8].ToUpperInvariant();

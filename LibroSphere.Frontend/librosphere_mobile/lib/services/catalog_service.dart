@@ -44,7 +44,7 @@ class CatalogService {
   Future<HomeFeedModel> getHomeFeed({
     int page = 1,
     int pageSize = 8,
-    int takeRecommendations = 4,
+    int takeRecommendations = 5,
     String? searchTerm,
     String? accessToken,
   }) {

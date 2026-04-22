@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 import '../core/app_constants.dart';
 import '../core/ui/app_feedback.dart';
@@ -67,13 +66,12 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     try {
       final session = widget.session;
       final results = await Future.wait<Object>([
-        session.getBook(widget.bookId, forceRefresh: true),
+        session.getBook(widget.bookId),
         session.hasLibraryAccess(widget.bookId),
         session.getReviewPage(
           widget.bookId,
           page: 1,
           pageSize: _reviewPageSize,
-          forceRefresh: true,
         ),
       ]);
       final book = results[0] as BookModel;
@@ -451,7 +449,15 @@ class _BookDetailContent extends StatelessWidget {
                   style: TextStyle(color: Colors.grey.shade700),
                 )
               else
-                ...reviews.map((review) => _ReviewCard(review: review)),
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: reviews.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 14),
+                  itemBuilder: (context, index) {
+                    return _ReviewCard(review: reviews[index]);
+                  },
+                ),
               if (reviewErrorMessage != null) ...[
                 const SizedBox(height: 10),
                 FormMessage(message: reviewErrorMessage),
@@ -530,22 +536,18 @@ class _ReviewCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              CircleAvatar(
+              NetworkAvatar(
+                imageUrl: profileUrl,
                 radius: 18,
                 backgroundColor: brandBlueDark,
-                backgroundImage: profileUrl != null && profileUrl.isNotEmpty
-                    ? CachedNetworkImageProvider(profileUrl)
-                    : null,
-                child: profileUrl == null || profileUrl.isEmpty
-                    ? Text(
-                        _initials(userName),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      )
-                    : null,
+                fallback: Text(
+                  _initials(userName),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(

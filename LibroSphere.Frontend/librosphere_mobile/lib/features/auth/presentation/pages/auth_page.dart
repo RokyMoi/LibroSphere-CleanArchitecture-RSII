@@ -71,9 +71,9 @@ class _AuthPageState extends State<AuthPage> {
                       child: Center(
                         child: ConstrainedBox(
                           constraints: BoxConstraints(maxWidth: cardWidth),
-                          child: Container(
-                            width: double.infinity,
-                            padding: cardPadding,
+                            child: Container(
+                              width: double.infinity,
+                              padding: cardPadding,
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(
@@ -87,19 +87,17 @@ class _AuthPageState extends State<AuthPage> {
                                 ),
                               ],
                             ),
-                            child: AnimatedBuilder(
-                              animation: _viewModel,
-                              builder: (context, _) {
+                            child: ValueListenableBuilder<bool>(
+                              valueListenable: _viewModel.modeState,
+                              builder: (context, isLoginMode, _) {
                                 return Column(
                                   mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    AuthHeader(
-                                      isLoginMode: _viewModel.isLoginMode,
-                                    ),
+                                    AuthHeader(isLoginMode: isLoginMode),
                                     SizedBox(height: compact ? 6 : 8),
                                     Text(
-                                      _viewModel.isLoginMode
+                                      isLoginMode
                                           ? 'Sign in to continue your reading journey.'
                                           : 'Create your account and continue where your reading journey begins.',
                                       style: TextStyle(
@@ -112,7 +110,7 @@ class _AuthPageState extends State<AuthPage> {
                                       duration: const Duration(
                                         milliseconds: 250,
                                       ),
-                                      child: _viewModel.isLoginMode
+                                      child: isLoginMode
                                           ? LoginForm(
                                               key: const ValueKey('login'),
                                               viewModel: _viewModel,

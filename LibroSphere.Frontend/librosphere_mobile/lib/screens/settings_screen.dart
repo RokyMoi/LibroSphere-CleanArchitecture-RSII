@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 import '../core/app_constants.dart';
 import '../core/ui/app_feedback.dart';
+import '../data/models/order_status.dart';
 import '../features/session/presentation/session_scope.dart';
 import '../features/session/presentation/viewmodels/session_viewmodel.dart';
 import '../widgets/common_widgets.dart';
@@ -113,20 +113,20 @@ class _ProfileCardState extends State<_ProfileCard> {
               children: [
                 CircleAvatar(
                   radius: 28,
-                  backgroundColor: brandBlueDark,
-                  backgroundImage: profileUrl != null && profileUrl.isNotEmpty
-                      ? CachedNetworkImageProvider(profileUrl)
-                      : null,
-                  child: profileUrl == null || profileUrl.isEmpty
-                      ? Text(
-                          _initials(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        )
-                      : null,
+                  backgroundColor: Colors.transparent,
+                  child: NetworkAvatar(
+                    imageUrl: profileUrl,
+                    radius: 28,
+                    backgroundColor: brandBlueDark,
+                    fallback: Text(
+                      _initials(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
                 ),
                 if (_isUploading)
                   Positioned.fill(
@@ -547,26 +547,29 @@ class _MyOrdersScreen extends StatefulWidget {
 }
 
 class _MyOrdersScreenState extends State<_MyOrdersScreen> {
-  late Future<List<Map<String, dynamic>>> _future;
+  late Future<List<_OrderViewData>> _future;
 
   @override
   void initState() {
     super.initState();
-    _future = widget.session.getOrders();
+    _future = _loadOrders();
+  }
+
+  Future<List<_OrderViewData>> _loadOrders({bool forceRefresh = false}) async {
+    final orders = await widget.session.getOrders(forceRefresh: forceRefresh);
+    return orders.map(_OrderViewData.fromMap).toList(growable: false);
   }
 
   Future<void> _refresh() async {
-    final next = widget.session.getOrders();
+    final next = _loadOrders(forceRefresh: true);
     setState(() {
       _future = next;
     });
     await next;
   }
 
-  Future<void> _refund(Map<String, dynamic> order) async {
-    final orderId = (order['id'] ?? order['Id'] ?? '').toString();
-    if (orderId.isEmpty) return;
-
+  Future<bool> _refund(String orderId) async {
+    if (orderId.isEmpty) return false;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -585,16 +588,35 @@ class _MyOrdersScreenState extends State<_MyOrdersScreen> {
       ),
     );
 
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !mounted) return false;
 
     try {
       await widget.session.refundOrder(orderId);
-      if (!mounted) return;
+      if (!mounted) return false;
       showSuccessSnackBar(context, 'Refund requested successfully.');
-      _refresh();
+      await _refresh();
+      return true;
     } catch (error) {
-      if (!mounted) return;
+      if (!mounted) return false;
       showDestructiveSnackBar(context, formatErrorMessage(error));
+      return false;
+    }
+  }
+
+  Future<void> _openOrderDetails(_OrderViewData order) async {
+    final didRefund = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => _OrderDetailsScreen(
+          order: order,
+          onRefund: order.isRefundable
+              ? () => _refund(order.id)
+              : null,
+        ),
+      ),
+    );
+
+    if (didRefund == true && mounted) {
+      await _refresh();
     }
   }
 
@@ -604,10 +626,10 @@ class _MyOrdersScreenState extends State<_MyOrdersScreen> {
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _refresh,
-          child: FutureBuilder<List<Map<String, dynamic>>>(
+          child: FutureBuilder<List<_OrderViewData>>(
             future: _future,
             builder: (context, snapshot) {
-              final orders = snapshot.data ?? const <Map<String, dynamic>>[];
+              final orders = snapshot.data ?? const <_OrderViewData>[];
               final itemCount = orders.isEmpty ? 3 : orders.length + 2;
 
               return ListView.builder(
@@ -649,7 +671,7 @@ class _MyOrdersScreenState extends State<_MyOrdersScreen> {
                   final order = orders[index - 2];
                   return _OrderCard(
                     order: order,
-                    onRefund: () => _refund(order),
+                    onTap: () => _openOrderDetails(order),
                   );
                 },
               );
@@ -662,172 +684,401 @@ class _MyOrdersScreenState extends State<_MyOrdersScreen> {
 }
 
 class _OrderCard extends StatelessWidget {
-  const _OrderCard({required this.order, required this.onRefund});
+  const _OrderCard({required this.order, required this.onTap});
 
-  final Map<String, dynamic> order;
-  final VoidCallback onRefund;
+  final _OrderViewData order;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final orderId = (order['id'] ?? order['Id'] ?? '').toString();
-    final status = (order['status'] ?? order['Status'] ?? '').toString();
-    final totalAmount = order['totalAmount'] ?? order['TotalAmount'];
-    final createdAt = order['createdOnUtc'] ?? order['CreatedOnUtc'] ?? '';
-    final items = order['items'] ?? order['Items'];
-    final itemCount = items is List ? items.length : 0;
-    final isRefundable = status.toLowerCase() == 'paymentreceived' ||
-        status.toLowerCase() == 'payment_received';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFF),
-        borderRadius: BorderRadius.circular(18),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(28),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0B000000),
+              blurRadius: 16,
+              offset: Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Order #${order.shortId}',
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        order.itemSummary,
+                        style: TextStyle(
+                          color: Colors.grey.shade700,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                _StatusChip(status: order.status),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    order.formattedTotal,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFEAF2FF),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.chevron_right_rounded,
+                    color: brandBlueDark,
+                  ),
+                ),
+              ],
+            ),
+            if (order.orderDateLabel != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                order.orderDateLabel!,
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+            if (order.items.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              ...order.items.take(2).map((item) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.book_outlined,
+                        size: 16,
+                        color: brandBlueDark,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          item.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+              if (order.items.length > 2)
+                Text(
+                  '+ ${order.items.length - 2} more item${order.items.length - 2 == 1 ? '' : 's'}',
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+            ],
+          ],
+        ),
       ),
-      child: Column(
+    );
+  }
+}
+
+class _OrderDetailsScreen extends StatelessWidget {
+  const _OrderDetailsScreen({
+    required this.order,
+    required this.onRefund,
+  });
+
+  final _OrderViewData order;
+  final Future<bool> Function()? onRefund;
+
+  Future<void> _handleRefund(BuildContext context) async {
+    final refundAction = onRefund;
+    if (refundAction == null) {
+      return;
+    }
+
+    final didRefund = await refundAction();
+    if (didRefund && context.mounted) {
+      Navigator.of(context).pop(true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
+          children: [
+            const _BackHeader(title: 'Order Details'),
+            const SizedBox(height: 18),
+            Container(
+              padding: const EdgeInsets.all(22),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x0B000000),
+                    blurRadius: 18,
+                    offset: Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: brandBlue,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Order #${order.shortId}',
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                order.itemSummary,
+                                style: const TextStyle(
+                                  color: Color(0xD9FFFFFF),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        _StatusChip(status: order.status, inverse: true),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  _OrderMetaRow(
+                    label: 'Total',
+                    value: order.formattedTotal,
+                    emphasize: true,
+                  ),
+                  if (order.orderDateLabel != null)
+                    _OrderMetaRow(
+                      label: 'Order date',
+                      value: order.orderDateLabel!,
+                    ),
+                  if (order.buyerEmail.isNotEmpty)
+                    _OrderMetaRow(
+                      label: 'Email',
+                      value: order.buyerEmail,
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Purchased Items',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (order.items.isEmpty)
+              const _OrdersMessage(
+                message: 'No item details are available for this order yet.',
+                icon: Icons.inventory_2_outlined,
+              )
+            else
+              ...order.items.map((item) => _OrderItemTile(item: item)),
+            if (order.isRefundable) ...[
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => _handleRefund(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFB42318),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    minimumSize: const Size.fromHeight(56),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                  ),
+                  child: const Text(
+                    'Request Refund',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _OrderItemTile extends StatelessWidget {
+  const _OrderItemTile({required this.item});
+
+  final _OrderLineItemViewData item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0B000000),
+            blurRadius: 14,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Order #${orderId.length > 8 ? orderId.substring(0, 8) : orderId}',
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEAF2FF),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: const Icon(
+              Icons.menu_book_rounded,
+              color: brandBlueDark,
+              size: 26,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.title,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-              ),
-              _StatusChip(status: status),
-            ],
-          ),
-          const SizedBox(height: 8),
-          if (createdAt.toString().isNotEmpty)
-            Text(
-              'Date: ${_formatDate(createdAt.toString())}',
-              style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
-            ),
-          if (itemCount > 0)
-            Text(
-              '$itemCount item${itemCount == 1 ? '' : 's'}',
-              style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
-            ),
-          if (totalAmount != null) ...[
-            const SizedBox(height: 6),
-            Text(
-              '\$${_formatAmount(totalAmount)}',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ],
-          if (items is List && items.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            ...items.take(3).map((item) {
-              final title = item['bookTitle'] ?? item['BookTitle'] ?? 'Book';
-              final price = item['priceAtPurchase'] ?? item['PriceAtPurchase'];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Row(
-                  children: [
-                    const Icon(Icons.book_outlined, size: 16, color: brandBlueDark),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        title.toString(),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 13),
-                      ),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEAF2FF),
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: Text(
+                    'Quantity: ${item.quantity}',
+                    style: const TextStyle(
+                      color: brandBlueDark,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
                     ),
-                    if (price != null)
-                      Text(
-                        '\$${_formatAmount(price)}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade700,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                  ],
-                ),
-              );
-            }),
-            if (items.length > 3)
-              Text(
-                '+ ${items.length - 3} more',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-          ],
-          if (isRefundable) ...[
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: onRefund,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFFB42318),
-                  side: const BorderSide(color: Color(0xFFB42318)),
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  'Request Refund',
-                  style: TextStyle(fontWeight: FontWeight.w700),
+                const SizedBox(height: 10),
+                Text(
+                  item.formattedTotal,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ],
       ),
     );
   }
-
-  static String _formatDate(String raw) {
-    try {
-      final date = DateTime.parse(raw).toLocal();
-      return '${date.day}/${date.month}/${date.year}';
-    } catch (_) {
-      return raw;
-    }
-  }
-
-  static String _formatAmount(dynamic amount) {
-    if (amount is num) return amount.toStringAsFixed(2);
-    return amount.toString();
-  }
 }
 
 class _StatusChip extends StatelessWidget {
-  const _StatusChip({required this.status});
+  const _StatusChip({required this.status, this.inverse = false});
 
-  final String status;
+  final OrderStatus status;
+  final bool inverse;
 
   @override
   Widget build(BuildContext context) {
-    final normalized = status.toLowerCase().replaceAll('_', '');
     Color bg;
     Color fg;
 
-    switch (normalized) {
-      case 'paymentreceived':
+    switch (status) {
+      case OrderStatus.paymentReceived:
         bg = const Color(0xFFE7F6EC);
         fg = const Color(0xFF027A48);
-      case 'refunded':
+      case OrderStatus.refunded:
         bg = const Color(0xFFFFF4ED);
         fg = const Color(0xFFB54708);
-      case 'pending':
-      case 'created':
+      case OrderStatus.pending:
         bg = const Color(0xFFFFF8E1);
         fg = const Color(0xFF92400E);
+      case OrderStatus.paymentFailed:
+        bg = const Color(0xFFFFF4ED);
+        fg = const Color(0xFFB54708);
       default:
         bg = const Color(0xFFF2F4F7);
         fg = const Color(0xFF344054);
@@ -836,13 +1087,13 @@ class _StatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: bg,
+        color: inverse ? Colors.white.withValues(alpha: 0.2) : bg,
         borderRadius: BorderRadius.circular(99),
       ),
       child: Text(
         _displayStatus(status),
         style: TextStyle(
-          color: fg,
+          color: inverse ? Colors.white : fg,
           fontSize: 12,
           fontWeight: FontWeight.w700,
         ),
@@ -850,10 +1101,14 @@ class _StatusChip extends StatelessWidget {
     );
   }
 
-  static String _displayStatus(String raw) {
-    final clean = raw.replaceAll('_', ' ').replaceAll(RegExp(r'([a-z])([A-Z])'), r'$1 $2');
-    if (clean.isEmpty) return 'Unknown';
-    return '${clean[0].toUpperCase()}${clean.substring(1)}';
+  static String _displayStatus(OrderStatus status) {
+    return switch (status) {
+      OrderStatus.pending => 'Pending',
+      OrderStatus.paymentReceived => 'Paid',
+      OrderStatus.paymentFailed => 'Payment Failed',
+      OrderStatus.refunded => 'Refunded',
+      OrderStatus.unknown => 'Unknown',
+    };
   }
 }
 
@@ -867,23 +1122,270 @@ class _OrdersMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(top: 40),
-      child: Column(
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(26),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0B000000),
+              blurRadius: 14,
+              offset: Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 48, color: brandBlueDark),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade700,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _OrderMetaRow extends StatelessWidget {
+  const _OrderMetaRow({
+    required this.label,
+    required this.value,
+    this.emphasize = false,
+  });
+
+  final String label;
+  final String value;
+  final bool emphasize;
+
+  @override
+  Widget build(BuildContext context) {
+    final valueStyle = emphasize
+        ? const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)
+        : const TextStyle(fontSize: 14, fontWeight: FontWeight.w700);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 48, color: brandBlueDark),
-          const SizedBox(height: 12),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey.shade700,
-              fontWeight: FontWeight.w600,
+          SizedBox(
+            width: 86,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: Colors.grey.shade700,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: valueStyle,
             ),
           ),
         ],
       ),
     );
   }
+}
+
+class _OrderViewData {
+  _OrderViewData({
+    required this.id,
+    required this.status,
+    required this.totalAmount,
+    required this.currencyCode,
+    required this.items,
+    required this.buyerEmail,
+    required this.orderDate,
+  });
+
+  final String id;
+  final OrderStatus status;
+  final double totalAmount;
+  final String currencyCode;
+  final List<_OrderLineItemViewData> items;
+  final String buyerEmail;
+  final DateTime? orderDate;
+
+  bool get isRefundable => status == OrderStatus.paymentReceived;
+
+  String get shortId => id.length > 8 ? id.substring(0, 8) : id;
+
+  String get formattedTotal => _formatMoney(totalAmount, currencyCode);
+
+  String get itemSummary {
+    final quantity = items.fold<int>(0, (sum, item) => sum + item.quantity);
+    final count = quantity == 0 ? items.length : quantity;
+    return '$count item${count == 1 ? '' : 's'}';
+  }
+
+  String? get orderDateLabel {
+    final date = orderDate;
+    if (date == null) {
+      return null;
+    }
+
+    return '${date.day}/${date.month}/${date.year}';
+  }
+
+  factory _OrderViewData.fromMap(Map<String, dynamic> json) {
+    final totalValue = _readAny(json, const ['totalAmount', 'TotalAmount']);
+    final rawItems = _readAny(json, const ['items', 'Items']);
+    final itemMaps = rawItems is List
+        ? rawItems.whereType<Map>().map((item) {
+            return Map<String, dynamic>.from(item);
+          }).toList()
+        : <Map<String, dynamic>>[];
+    final items = itemMaps.map(_OrderLineItemViewData.fromMap).toList();
+    final fallbackCurrency = items.isNotEmpty ? items.first.currencyCode : 'USD';
+
+    return _OrderViewData(
+      id: (_readAny(json, const ['id', 'Id']) ?? '').toString(),
+      status: parseOrderStatus(_readAny(json, const ['status', 'Status'])),
+      totalAmount: _parseMoneyAmount(totalValue),
+      currencyCode: _parseMoneyCurrency(totalValue, fallbackCode: fallbackCurrency),
+      items: items,
+      buyerEmail: (_readAny(json, const ['buyerEmail', 'BuyerEmail']) ?? '')
+          .toString(),
+      orderDate: _parseDate(
+        _readAny(
+          json,
+          const ['orderDate', 'OrderDate', 'createdOnUtc', 'CreatedOnUtc'],
+        ),
+      ),
+    );
+  }
+}
+
+class _OrderLineItemViewData {
+  _OrderLineItemViewData({
+    required this.title,
+    required this.quantity,
+    required this.price,
+    required this.currencyCode,
+  });
+
+  final String title;
+  final int quantity;
+  final double price;
+  final String currencyCode;
+
+  String get formattedTotal => _formatMoney(price * quantity, currencyCode);
+
+  factory _OrderLineItemViewData.fromMap(Map<String, dynamic> json) {
+    final priceValue = _readAny(
+      json,
+      const ['price', 'Price', 'priceAtPurchase', 'PriceAtPurchase'],
+    );
+
+    return _OrderLineItemViewData(
+      title: (_readAny(json, const ['title', 'Title', 'bookTitle', 'BookTitle']) ??
+              'Book')
+          .toString(),
+      quantity: _parseInt(
+        _readAny(json, const ['quantity', 'Quantity']),
+        fallback: 1,
+      ),
+      price: _parseMoneyAmount(priceValue),
+      currencyCode: _parseMoneyCurrency(priceValue),
+    );
+  }
+}
+
+dynamic _readAny(Map<String, dynamic> json, List<String> keys) {
+  for (final key in keys) {
+    if (json.containsKey(key) && json[key] != null) {
+      return json[key];
+    }
+  }
+  return null;
+}
+
+double _parseMoneyAmount(dynamic value) {
+  if (value is num) {
+    return value.toDouble();
+  }
+
+  if (value is String) {
+    return double.tryParse(value) ?? 0;
+  }
+
+  if (value is Map) {
+    final map = Map<String, dynamic>.from(value);
+    final amount = _readAny(map, const ['amount', 'Amount']);
+    return _parseMoneyAmount(amount);
+  }
+
+  return 0;
+}
+
+String _parseMoneyCurrency(dynamic value, {String fallbackCode = 'USD'}) {
+  if (value is Map) {
+    final map = Map<String, dynamic>.from(value);
+    final directCode = _readAny(map, const ['code', 'Code']);
+    if (directCode != null) {
+      return directCode.toString();
+    }
+
+    final currency = _readAny(map, const ['currency', 'Currency']);
+    if (currency is Map) {
+      final currencyMap = Map<String, dynamic>.from(currency);
+      final nestedCode = _readAny(currencyMap, const ['code', 'Code']);
+      if (nestedCode != null) {
+        return nestedCode.toString();
+      }
+    }
+  }
+
+  return fallbackCode;
+}
+
+DateTime? _parseDate(dynamic value) {
+  if (value is DateTime) {
+    return value.toLocal();
+  }
+
+  if (value is String && value.trim().isNotEmpty) {
+    return DateTime.tryParse(value)?.toLocal();
+  }
+
+  return null;
+}
+
+int _parseInt(dynamic value, {int fallback = 0}) {
+  if (value is int) {
+    return value;
+  }
+
+  if (value is num) {
+    return value.toInt();
+  }
+
+  if (value is String) {
+    return int.tryParse(value) ?? fallback;
+  }
+
+  return fallback;
+}
+
+String _formatMoney(double amount, String currencyCode) {
+  final normalizedCurrency = currencyCode.trim().toUpperCase();
+  if (normalizedCurrency == 'USD') {
+    return '\$${amount.toStringAsFixed(2)}';
+  }
+
+  return '${amount.toStringAsFixed(2)} $normalizedCurrency';
 }
 
 class _BackHeader extends StatelessWidget {

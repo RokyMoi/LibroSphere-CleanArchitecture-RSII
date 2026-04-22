@@ -89,15 +89,21 @@ namespace LibroSphere.Infrastructure.Services
             StripeConfiguration.ApiKey = _config["StripeSettings:SecretKey"];
 
             var refundService = new RefundService();
+            var trimmedReason = reason?.Trim();
             var options = new RefundCreateOptions
             {
                 PaymentIntent = paymentIntentId,
                 Amount = amountInCents,
-                Reason = "requested_by_customer",
-                Metadata = string.IsNullOrWhiteSpace(reason)
-                    ? null
-                    : new Dictionary<string, string> { { "reason", reason.Trim() } }
+                Reason = "requested_by_customer"
             };
+
+            if (!string.IsNullOrWhiteSpace(trimmedReason))
+            {
+                options.Metadata = new Dictionary<string, string>
+                {
+                    { "reason", trimmedReason }
+                };
+            }
 
             try
             {

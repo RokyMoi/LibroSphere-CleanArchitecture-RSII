@@ -247,17 +247,16 @@ class _AuthorRow extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: Text(
-            author.name,
+          child: _EllipsisCell(
+            text: author.name,
             style: _rowTextStyle,
           ),
         ),
         Expanded(
           flex: 2,
-          child: Text(
-            author.biography,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+          child: _EllipsisCell(
+            text: author.biography,
+            maxLines: 1,
             style: _secondaryRowTextStyle,
           ),
         ),
@@ -286,6 +285,32 @@ class _AuthorRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _EllipsisCell extends StatelessWidget {
+  const _EllipsisCell({
+    required this.text,
+    required this.style,
+    this.maxLines = 1,
+  });
+
+  final String text;
+  final TextStyle style;
+  final int maxLines;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: text,
+      waitDuration: const Duration(milliseconds: 350),
+      child: Text(
+        text,
+        maxLines: maxLines,
+        overflow: TextOverflow.ellipsis,
+        style: style,
+      ),
     );
   }
 }

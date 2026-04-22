@@ -85,88 +85,93 @@ class _RegisterFormState extends State<RegisterForm> {
     final viewModel = widget.viewModel;
 
     return AutofillGroup(
-      child: Column(
-        children: [
-          RoundedInput(
-            controller: _firstNameController,
-            hint: 'Your First Name',
-            textInputAction: TextInputAction.next,
-            autofillHints: const [AutofillHints.givenName],
-            errorText: _firstNameError,
-            onChanged: (_) {
-              if (_firstNameError != null) {
-                setState(() => _firstNameError = null);
-              }
-              viewModel.clearError();
-            },
-          ),
-          const SizedBox(height: 14),
-          RoundedInput(
-            controller: _lastNameController,
-            hint: 'Your Last Name',
-            textInputAction: TextInputAction.next,
-            autofillHints: const [AutofillHints.familyName],
-            errorText: _lastNameError,
-            onChanged: (_) {
-              if (_lastNameError != null) {
-                setState(() => _lastNameError = null);
-              }
-              viewModel.clearError();
-            },
-          ),
-          const SizedBox(height: 14),
-          RoundedInput(
-            controller: _emailController,
-            hint: 'Your Email Address',
-            keyboardType: TextInputType.emailAddress,
-            textInputAction: TextInputAction.next,
-            autofillHints: const [AutofillHints.username, AutofillHints.email],
-            enableSuggestions: false,
-            autocorrect: false,
-            errorText: _emailError,
-            onChanged: (_) {
-              if (_emailError != null) {
-                setState(() => _emailError = null);
-              }
-              viewModel.clearError();
-            },
-          ),
-          const SizedBox(height: 14),
-          RoundedInput(
-            controller: _passwordController,
-            hint: 'Create a Password',
-            obscureText: true,
-            textInputAction: TextInputAction.done,
-            autofillHints: const [AutofillHints.newPassword],
-            enableSuggestions: false,
-            autocorrect: false,
-            errorText: _passwordError,
-            onChanged: (_) {
-              if (_passwordError != null) {
-                setState(() => _passwordError = null);
-              }
-              viewModel.clearError();
-            },
-            onSubmitted: (_) => _submit(),
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: PrimaryPillButton(
-              label: viewModel.isSubmitting ? 'Creating...' : 'Register',
-              onPressed: viewModel.isSubmitting ? null : _submit,
-            ),
-          ),
-          FormMessage(message: viewModel.errorMessage),
-          const SizedBox(height: 12),
-          TextButton(
-            onPressed: viewModel.isSubmitting ? null : viewModel.showLogin,
-            child: const Text(
-              'Already have an account? Login.',
-              style: TextStyle(color: brandBlueDark),
-            ),
-          ),
-        ],
+      child: ValueListenableBuilder<int>(
+        valueListenable: viewModel.formState,
+        builder: (context, _, child) {
+          return Column(
+            children: [
+              RoundedInput(
+                controller: _firstNameController,
+                hint: 'Your First Name',
+                textInputAction: TextInputAction.next,
+                autofillHints: const [AutofillHints.givenName],
+                errorText: _firstNameError,
+                onChanged: (_) {
+                  if (_firstNameError != null) {
+                    setState(() => _firstNameError = null);
+                  }
+                  viewModel.clearError();
+                },
+              ),
+              const SizedBox(height: 14),
+              RoundedInput(
+                controller: _lastNameController,
+                hint: 'Your Last Name',
+                textInputAction: TextInputAction.next,
+                autofillHints: const [AutofillHints.familyName],
+                errorText: _lastNameError,
+                onChanged: (_) {
+                  if (_lastNameError != null) {
+                    setState(() => _lastNameError = null);
+                  }
+                  viewModel.clearError();
+                },
+              ),
+              const SizedBox(height: 14),
+              RoundedInput(
+                controller: _emailController,
+                hint: 'Your Email Address',
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                autofillHints: const [AutofillHints.username, AutofillHints.email],
+                enableSuggestions: false,
+                autocorrect: false,
+                errorText: _emailError,
+                onChanged: (_) {
+                  if (_emailError != null) {
+                    setState(() => _emailError = null);
+                  }
+                  viewModel.clearError();
+                },
+              ),
+              const SizedBox(height: 14),
+              RoundedInput(
+                controller: _passwordController,
+                hint: 'Create a Password',
+                obscureText: true,
+                textInputAction: TextInputAction.done,
+                autofillHints: const [AutofillHints.newPassword],
+                enableSuggestions: false,
+                autocorrect: false,
+                errorText: _passwordError,
+                onChanged: (_) {
+                  if (_passwordError != null) {
+                    setState(() => _passwordError = null);
+                  }
+                  viewModel.clearError();
+                },
+                onSubmitted: (_) => _submit(),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: PrimaryPillButton(
+                  label: viewModel.isSubmitting ? 'Creating...' : 'Register',
+                  onPressed: viewModel.isSubmitting ? null : _submit,
+                ),
+              ),
+              FormMessage(message: viewModel.errorMessage),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: viewModel.isSubmitting ? null : viewModel.showLogin,
+                child: const Text(
+                  'Already have an account? Login.',
+                  style: TextStyle(color: brandBlueDark),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

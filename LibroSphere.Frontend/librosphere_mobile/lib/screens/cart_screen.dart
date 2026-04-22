@@ -50,7 +50,9 @@ class CartScreenState extends State<CartScreen> {
 
   Future<List<BookModel>> _load() async {
     final session = SessionScope.read(context);
-    final cart = await session.refreshCart();
+    final cart = session.shouldRefreshCart()
+        ? await session.refreshCart()
+        : session.cart;
     if (cart == null) {
       return <BookModel>[];
     }
@@ -88,9 +90,6 @@ class CartScreenState extends State<CartScreen> {
       }
 
       showDestructiveSnackBar(context, 'The book was removed from your shopping cart.');
-      setState(() {
-        _future = _load();
-      });
     } catch (error) {
       if (!mounted) {
         return;
@@ -117,10 +116,6 @@ class CartScreenState extends State<CartScreen> {
     } else {
       showDestructiveSnackBar(context, result.message);
     }
-
-    setState(() {
-      _future = _load();
-    });
   }
 
   @override

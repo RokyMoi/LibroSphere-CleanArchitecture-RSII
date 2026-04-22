@@ -38,7 +38,7 @@ class ShellSideNav extends StatelessWidget {
           const SizedBox(height: 18),
           _navIcon(Icons.shopping_bag_outlined, 6),
           const SizedBox(height: 18),
-          _navIcon(Icons.newspaper_rounded, 7),
+          _navIcon(Icons.sticky_note_2_outlined, 7),
           const SizedBox(height: 18),
           _navIcon(Icons.settings_outlined, 8),
         ],

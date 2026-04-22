@@ -77,76 +77,81 @@ class _LoginFormState extends State<LoginForm> {
     final viewModel = widget.viewModel;
 
     return AutofillGroup(
-      child: Column(
-        children: [
-          RoundedInput(
-            controller: _emailController,
-            hint: 'Your Email Address',
-            keyboardType: TextInputType.emailAddress,
-            textInputAction: TextInputAction.next,
-            autofillHints: const [AutofillHints.username, AutofillHints.email],
-            enableSuggestions: false,
-            autocorrect: false,
-            errorText: _emailError,
-            onChanged: (_) {
-              if (_emailError != null) {
-                setState(() => _emailError = null);
-              }
-              viewModel.clearError();
-            },
-          ),
-          const SizedBox(height: 16),
-          RoundedInput(
-            controller: _passwordController,
-            hint: 'Your Password',
-            obscureText: true,
-            textInputAction: TextInputAction.done,
-            autofillHints: const [AutofillHints.password],
-            enableSuggestions: false,
-            autocorrect: false,
-            errorText: _passwordError,
-            onChanged: (_) {
-              if (_passwordError != null) {
-                setState(() => _passwordError = null);
-              }
-              viewModel.clearError();
-            },
-            onSubmitted: (_) => _submit(),
-          ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: viewModel.isSubmitting
-                  ? null
-                  : () => _openForgotPassword(context),
-              child: const Text(
-                'Reset password',
-                style: TextStyle(
-                  color: brandBlueDark,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+      child: ValueListenableBuilder<int>(
+        valueListenable: viewModel.formState,
+        builder: (context, _, child) {
+          return Column(
+            children: [
+              RoundedInput(
+                controller: _emailController,
+                hint: 'Your Email Address',
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                autofillHints: const [AutofillHints.username, AutofillHints.email],
+                enableSuggestions: false,
+                autocorrect: false,
+                errorText: _emailError,
+                onChanged: (_) {
+                  if (_emailError != null) {
+                    setState(() => _emailError = null);
+                  }
+                  viewModel.clearError();
+                },
+              ),
+              const SizedBox(height: 16),
+              RoundedInput(
+                controller: _passwordController,
+                hint: 'Your Password',
+                obscureText: true,
+                textInputAction: TextInputAction.done,
+                autofillHints: const [AutofillHints.password],
+                enableSuggestions: false,
+                autocorrect: false,
+                errorText: _passwordError,
+                onChanged: (_) {
+                  if (_passwordError != null) {
+                    setState(() => _passwordError = null);
+                  }
+                  viewModel.clearError();
+                },
+                onSubmitted: (_) => _submit(),
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: viewModel.isSubmitting
+                      ? null
+                      : () => _openForgotPassword(context),
+                  child: const Text(
+                    'Reset password',
+                    style: TextStyle(
+                      color: brandBlueDark,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: PrimaryPillButton(
-              label: viewModel.isSubmitting ? 'Signing In...' : 'Login',
-              onPressed: viewModel.isSubmitting ? null : _submit,
-            ),
-          ),
-          FormMessage(message: viewModel.errorMessage),
-          const SizedBox(height: 12),
-          TextButton(
-            onPressed: viewModel.isSubmitting ? null : viewModel.showRegister,
-            child: const Text(
-              'Need an account? Register here.',
-              style: TextStyle(color: brandBlueDark),
-            ),
-          ),
-        ],
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: PrimaryPillButton(
+                  label: viewModel.isSubmitting ? 'Signing In...' : 'Login',
+                  onPressed: viewModel.isSubmitting ? null : _submit,
+                ),
+              ),
+              FormMessage(message: viewModel.errorMessage),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: viewModel.isSubmitting ? null : viewModel.showRegister,
+                child: const Text(
+                  'Need an account? Register here.',
+                  style: TextStyle(color: brandBlueDark),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

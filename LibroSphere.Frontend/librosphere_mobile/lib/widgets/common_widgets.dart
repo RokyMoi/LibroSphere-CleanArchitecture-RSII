@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 
 import '../core/app_constants.dart';
 import '../data/models/book_model.dart';
+import 'app_bottom_navigation.dart';
 
 class PrimaryPillButton extends StatelessWidget {
   const PrimaryPillButton({
@@ -150,7 +151,7 @@ class CenteredLoadingIndicator extends StatelessWidget {
   }
 }
 
-class LoadingSkeleton extends StatefulWidget {
+class LoadingSkeleton extends StatelessWidget {
   const LoadingSkeleton({
     super.key,
     required this.child,
@@ -159,33 +160,9 @@ class LoadingSkeleton extends StatefulWidget {
   final Widget child;
 
   @override
-  State<LoadingSkeleton> createState() => _LoadingSkeletonState();
-}
-
-class _LoadingSkeletonState extends State<LoadingSkeleton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1100),
-  )..repeat(reverse: true);
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        final opacity = 0.45 + (_controller.value * 0.25);
-        return Opacity(
-          opacity: opacity,
-          child: widget.child,
-        );
-      },
+    return RepaintBoundary(
+      child: child,
     );
   }
 }
@@ -424,6 +401,51 @@ class BookCover extends StatelessWidget {
   }
 }
 
+class NetworkAvatar extends StatelessWidget {
+  const NetworkAvatar({
+    super.key,
+    required this.imageUrl,
+    required this.radius,
+    required this.backgroundColor,
+    required this.fallback,
+  });
+
+  final String? imageUrl;
+  final double radius;
+  final Color backgroundColor;
+  final Widget fallback;
+
+  @override
+  Widget build(BuildContext context) {
+    final resolvedUrl = imageUrl?.trim();
+    final size = radius * 2;
+    if (resolvedUrl == null || resolvedUrl.isEmpty) {
+      return CircleAvatar(
+        radius: radius,
+        backgroundColor: backgroundColor,
+        child: fallback,
+      );
+    }
+
+    return ClipOval(
+      child: Container(
+        width: size,
+        height: size,
+        color: backgroundColor,
+        child: CachedNetworkImage(
+          imageUrl: resolvedUrl,
+          fit: BoxFit.cover,
+          fadeInDuration: Duration.zero,
+          fadeOutDuration: Duration.zero,
+          placeholderFadeInDuration: Duration.zero,
+          errorWidget: (context, url, error) => Center(child: fallback),
+          placeholder: (context, url) => const SizedBox.shrink(),
+        ),
+      ),
+    );
+  }
+}
+
 class StarRow extends StatelessWidget {
   const StarRow({super.key, required this.rating, this.size = 20});
 
@@ -460,69 +482,13 @@ class MobileBottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bar = Container(
-      margin: EdgeInsets.fromLTRB(18, embedded ? 0 : 0, 18, 18),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: brandBlue,
-        borderRadius: BorderRadius.circular(26),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _NavIcon(
-            icon: Icons.home_outlined,
-            active: currentIndex == 0,
-            onTap: () => onTap(0),
-          ),
-          _NavIcon(
-            icon: Icons.menu_book_outlined,
-            active: currentIndex == 1,
-            onTap: () => onTap(1),
-          ),
-          _NavIcon(
-            icon: Icons.shopping_cart_outlined,
-            active: currentIndex == 2,
-            onTap: () => onTap(2),
-          ),
-          _NavIcon(
-            icon: Icons.bookmark_border_rounded,
-            active: currentIndex == 3,
-            onTap: () => onTap(3),
-          ),
-          _NavIcon(
-            icon: Icons.settings_outlined,
-            active: currentIndex == 4,
-            onTap: () => onTap(4),
-          ),
-        ],
-      ),
-    );
-
-    return embedded ? bar : SafeArea(top: false, child: bar);
-  }
-}
-
-class _NavIcon extends StatelessWidget {
-  const _NavIcon({
-    required this.icon,
-    required this.active,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final bool active;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
+    return AppBottomNavigationBar(
+      currentIndex: currentIndex,
       onTap: onTap,
-      child: Icon(
-        icon,
-        color: active ? Colors.white : const Color(0xB4D3E6FF),
-        size: 31,
-      ),
+      embedded: embedded,
+      showNotifications: false,
+      unreadCount: 0,
+      onBellTap: null,
     );
   }
 }

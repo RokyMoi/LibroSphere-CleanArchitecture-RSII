@@ -13,13 +13,13 @@ class LibroSphereMobileApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'LibroSphere',
-      theme: buildAppTheme(),
-      home: SessionScope(
-        session: session,
-        child: const _SessionHome(),
+    return SessionScope(
+      session: session,
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'LibroSphere',
+        theme: buildAppTheme(),
+        home: const _SessionHome(),
       ),
     );
   }

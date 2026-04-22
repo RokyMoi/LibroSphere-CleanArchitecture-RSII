@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_theme.dart';
+import '../../../../core/utils/formatters.dart';
 import '../../../../shared/widgets/admin/admin_panel.dart';
 import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/loading_view.dart';
+import '../../data/models/admin_order_model.dart';
 import '../viewmodels/orders_viewmodel.dart';
 
 class OrdersPage extends StatefulWidget {
@@ -164,8 +166,8 @@ class _OrdersPageState extends State<OrdersPage> {
                 Expanded(flex: 2, child: Text('Buyer Email', style: TextStyle(fontWeight: FontWeight.w600))),
                 Expanded(flex: 1, child: Text('Status', style: TextStyle(fontWeight: FontWeight.w600))),
                 Expanded(flex: 1, child: Text('Total', style: TextStyle(fontWeight: FontWeight.w600))),
+                Expanded(flex: 1, child: Text('Items', style: TextStyle(fontWeight: FontWeight.w600))),
                 Expanded(flex: 2, child: Text('Date', style: TextStyle(fontWeight: FontWeight.w600))),
-                Expanded(flex: 1, child: Text('Actions', style: TextStyle(fontWeight: FontWeight.w600))),
               ],
             ),
           ),
@@ -176,11 +178,7 @@ class _OrdersPageState extends State<OrdersPage> {
               separatorBuilder: (_, index) => const Divider(height: 1),
               itemBuilder: (context, index) {
                 final order = viewModel.orders[index];
-                return _OrderRow(
-                  order: order,
-                  isRefunding: viewModel.refundingOrderId == order.id,
-                  onRefund: () => _showRefundDialog(context, viewModel, order.id),
-                );
+                return _OrderRow(order: order);
               },
             ),
           ),
@@ -217,51 +215,12 @@ class _OrdersPageState extends State<OrdersPage> {
       ),
     );
   }
-
-  Future<void> _showRefundDialog(BuildContext context, OrdersViewModel viewModel, String orderId) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Refund Order'),
-        content: const Text('Are you sure you want to refund this order?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Refund'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      final success = await viewModel.refundOrder(orderId);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(success ? 'Order refunded successfully' : 'Failed to refund order'),
-            backgroundColor: success ? Colors.green : Colors.red,
-          ),
-        );
-      }
-    }
-  }
 }
 
 class _OrderRow extends StatelessWidget {
-  const _OrderRow({
-    required this.order,
-    required this.isRefunding,
-    required this.onRefund,
-  });
+  const _OrderRow({required this.order});
 
-  final dynamic order;
-  final bool isRefunding;
-  final VoidCallback onRefund;
+  final AdminOrderModel order;
 
   @override
   Widget build(BuildContext context) {
@@ -277,34 +236,15 @@ class _OrderRow extends StatelessWidget {
           ),
           Expanded(
             flex: 1,
-            child: Text('${order.totalAmount.toStringAsFixed(2)} ${order.currency}'),
+            child: Text(formatCurrency(order.totalAmount, order.displayCurrency)),
+          ),
+          Expanded(
+            flex: 1,
+            child: Text(order.itemCount.toString()),
           ),
           Expanded(
             flex: 2,
             child: Text(_formatDate(order.createdOnUtc)),
-          ),
-          Expanded(
-            flex: 1,
-            child: order.status == 'PaymentReceived'
-                ? ElevatedButton(
-                    onPressed: isRefunding ? null : onRefund,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                    ),
-                    child: isRefunding
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text('Refund'),
-                  )
-                : const SizedBox.shrink(),
           ),
         ],
       ),
@@ -355,17 +295,20 @@ class _StatusBadge extends StatelessWidget {
   }
 
   Color _getStatusColor(String status) {
-    switch (status) {
-      case 'PaymentReceived':
+    switch (_normalizeStatus(status)) {
+      case 'paymentreceived':
         return Colors.green;
-      case 'Pending':
+      case 'pending':
         return Colors.orange;
-      case 'Refunded':
+      case 'refunded':
         return Colors.blue;
-      case 'PaymentFailed':
+      case 'paymentfailed':
         return Colors.red;
       default:
         return Colors.grey;
     }
   }
+
+  String _normalizeStatus(String status) =>
+      status.toLowerCase().replaceAll('_', '').replaceAll(' ', '');
 }

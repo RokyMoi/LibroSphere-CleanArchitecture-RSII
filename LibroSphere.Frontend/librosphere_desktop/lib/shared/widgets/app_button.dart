@@ -33,26 +33,27 @@ class AppButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(24),
           ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isLoading) ...[
-              const SizedBox(
+        child: isLoading
+            ? const SizedBox(
                 width: 16,
                 height: 16,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.2,
                   valueColor: AlwaysStoppedAnimation<Color>(desktopPrimary),
                 ),
+              )
+            : FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
               ),
-              const SizedBox(width: 10),
-            ],
-            Text(
-              label,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-            ),
-          ],
-        ),
       ),
     );
   }

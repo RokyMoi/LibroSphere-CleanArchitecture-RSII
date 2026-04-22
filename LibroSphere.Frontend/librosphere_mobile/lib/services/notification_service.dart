@@ -1,5 +1,5 @@
-import '../../core/network/api_client.dart';
-import '../../data/models/notification_model.dart';
+import '../core/network/api_client.dart';
+import '../data/models/notification_model.dart';
 
 class NotificationService {
   NotificationService(this._apiClient);

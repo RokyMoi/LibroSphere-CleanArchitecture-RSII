@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/network/api_client.dart';
 import '../../features/authors/data/repositories/authors_repository.dart';
@@ -16,9 +15,9 @@ import '../../features/dashboard/presentation/viewmodels/dashboard_viewmodel.dar
 import '../../features/genres/data/repositories/genres_repository.dart';
 import '../../features/genres/data/services/genres_api_service.dart';
 import '../../features/genres/presentation/viewmodels/genres_viewmodel.dart';
-import '../../features/news/data/repositories/news_repository.dart';
-import '../../features/news/data/services/news_api_service.dart';
-import '../../features/news/presentation/viewmodels/news_viewmodel.dart';
+import '../../features/admin_notes/data/repositories/admin_notes_repository.dart';
+import '../../features/admin_notes/data/services/admin_notes_api_service.dart';
+import '../../features/admin_notes/presentation/viewmodels/admin_notes_viewmodel.dart';
 import '../../features/orders/data/repositories/orders_repository.dart';
 import '../../features/orders/data/services/orders_api_service.dart';
 import '../../features/orders/presentation/viewmodels/orders_viewmodel.dart';
@@ -33,14 +32,16 @@ import '../../features/users/data/services/users_api_service.dart';
 import '../../features/users/presentation/viewmodels/users_viewmodel.dart';
 
 class AppInjection {
-  static ApiClient createApiClient() => ApiClient();
+  static final ApiClient _sharedApiClient = ApiClient();
 
-  static AdminSessionViewModel createSessionViewModel(SharedPreferences prefs) {
+  static ApiClient createApiClient() => _sharedApiClient;
+
+  static AdminSessionViewModel createSessionViewModel() {
     final apiClient = createApiClient();
 
     return AdminSessionViewModel(
       AuthRepository(AuthApiService(apiClient)),
-      SessionStorageService(prefs),
+      SessionStorageService(),
     );
   }
 
@@ -108,9 +109,9 @@ class AppInjection {
     );
   }
 
-  static NewsViewModel createNewsViewModel(String token) {
-    return NewsViewModel(
-      NewsRepository(NewsApiService(createApiClient())),
+  static AdminNotesViewModel createAdminNotesViewModel(String token) {
+    return AdminNotesViewModel(
+      AdminNotesRepository(AdminNotesApiService(createApiClient())),
       token,
     );
   }

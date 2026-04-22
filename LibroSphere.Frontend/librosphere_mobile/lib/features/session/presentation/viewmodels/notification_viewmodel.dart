@@ -15,6 +15,7 @@ class NotificationViewModel extends ChangeNotifier {
   List<NotificationModel> _notifications = const [];
   bool _loading = false;
   bool _isAppInForeground = true;
+  bool _isDisposed = false;
   Timer? _pollTimer;
   String? _accessToken;
 
@@ -40,11 +41,14 @@ class NotificationViewModel extends ChangeNotifier {
   }
 
   void stopPolling() {
+    if (_isDisposed) {
+      return;
+    }
     _pollTimer?.cancel();
     _pollTimer = null;
     _accessToken = null;
     _notifications = const [];
-    notifyListeners();
+    _notifySafely();
   }
 
   Future<void> refresh() => _fetch();
@@ -62,10 +66,16 @@ class NotificationViewModel extends ChangeNotifier {
   }
 
   Future<void> markRead(String notificationId) async {
+    if (_isDisposed) {
+      return;
+    }
     final token = _accessToken;
     if (token == null) return;
     try {
       await _services.notifications.markRead(token, notificationId);
+      if (_isDisposed) {
+        return;
+      }
       _notifications = _notifications.map((n) {
         return n.id == notificationId
             ? NotificationModel(
@@ -77,15 +87,21 @@ class NotificationViewModel extends ChangeNotifier {
               )
             : n;
       }).toList();
-      notifyListeners();
+      _notifySafely();
     } catch (_) {}
   }
 
   Future<void> markAllRead() async {
+    if (_isDisposed) {
+      return;
+    }
     final token = _accessToken;
     if (token == null) return;
     try {
       await _services.notifications.markAllRead(token);
+      if (_isDisposed) {
+        return;
+      }
       _notifications = _notifications.map((n) {
         return NotificationModel(
           id: n.id,
@@ -95,31 +111,50 @@ class NotificationViewModel extends ChangeNotifier {
           occurredOnUtc: n.occurredOnUtc,
         );
       }).toList();
-      notifyListeners();
+      _notifySafely();
     } catch (_) {}
   }
 
   Future<void> _fetch() async {
+    if (_isDisposed) {
+      return;
+    }
     final token = _accessToken;
     if (token == null || _loading) return;
     try {
       final shouldShowLoadingState = _notifications.isEmpty;
       _loading = true;
       if (shouldShowLoadingState) {
-        notifyListeners();
+        _notifySafely();
       }
       final items = await _services.notifications.getNotifications(token);
+      if (_isDisposed) {
+        return;
+      }
       _notifications = items;
     } catch (_) {
       // Silently ignore polling failures
     } finally {
       _loading = false;
-      notifyListeners();
+      _notifySafely();
     }
+  }
+
+  void _notifySafely() {
+    if (_isDisposed) {
+      return;
+    }
+
+    notifyListeners();
   }
 
   @override
   void dispose() {
+    if (_isDisposed) {
+      return;
+    }
+
+    _isDisposed = true;
     _pollTimer?.cancel();
     super.dispose();
   }

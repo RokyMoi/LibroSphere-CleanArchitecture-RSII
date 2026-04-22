@@ -3,6 +3,7 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../models/auth_session_model.dart';
 import '../models/auth_tokens_model.dart';
+import '../models/auth_user_model.dart';
 import '../models/login_request.dart';
 import '../models/register_request.dart';
 import '../services/auth_api_service.dart';
@@ -46,6 +47,14 @@ class AuthRepository {
       return ErrorResult(Failure.fromException(exception));
     } catch (exception) {
       return ErrorResult(Failure(message: exception.toString()));
+    }
+  }
+
+  AuthUserModel? tryDecodeUserFromAccessToken(String accessToken) {
+    try {
+      return _apiService.decodeUserFromAccessToken(accessToken);
+    } catch (_) {
+      return null;
     }
   }
 

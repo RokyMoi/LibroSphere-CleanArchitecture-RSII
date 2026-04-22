@@ -20,7 +20,6 @@ class OrdersViewModel extends ChangeNotifier {
   bool _hasLoaded = false;
 
   bool isLoading = true;
-  String? refundingOrderId;
   Failure? failure;
   String searchTerm = '';
   String? statusFilter;
@@ -77,30 +76,6 @@ class OrdersViewModel extends ChangeNotifier {
     if (page < 1 || page > totalPages) return;
     currentPage = page;
     load();
-  }
-
-  Future<bool> refundOrder(String orderId, {double? amount, String? reason}) async {
-    refundingOrderId = orderId;
-    notifyListeners();
-
-    final result = await _repository.refundOrder(
-      token: _token,
-      orderId: orderId,
-      amount: amount,
-      reason: reason,
-    );
-
-    refundingOrderId = null;
-
-    switch (result) {
-      case Success<void>():
-        await refresh();
-        return true;
-      case ErrorResult<void>(failure: final f):
-        failure = f is Failure ? f : Failure(message: f.toString());
-        notifyListeners();
-        return false;
-    }
   }
 
   void clearError() {

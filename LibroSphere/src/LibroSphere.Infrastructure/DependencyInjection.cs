@@ -123,7 +123,7 @@ namespace LibroSphere.Infrastructure
             services.AddScoped<LibroSphere.Application.Abstractions.Recommendations.IBookRecommendationService, BookRecommendationService>();
             services.AddScoped<IAnalyticsService, AnalyticsService>();
             services.AddSingleton<IAnalyticsActivityStore, RedisAnalyticsActivityStore>();
-            services.AddSingleton<LibroSphere.Application.Abstractions.Notifications.INewsService, LibroSphere.Infrastructure.Services.Notifications.RedisNewsService>();
+            services.AddSingleton<LibroSphere.Application.Abstractions.Notifications.IAdminNoteService, LibroSphere.Infrastructure.Services.Notifications.RedisAdminNoteService>();
             services.AddSingleton<LibroSphere.Application.Abstractions.Notifications.INotificationCenterService, LibroSphere.Infrastructure.Services.Notifications.RedisNotificationCenterService>();
           
             services.AddScoped<IOrderRepository, OrderRepository>();

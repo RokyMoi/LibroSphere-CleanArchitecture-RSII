@@ -1,5 +1,4 @@
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/network/api_client.dart';
 import '../features/auth/data/repositories/auth_repository.dart';
@@ -25,8 +24,8 @@ class AppServices {
     required this.wishlist,
   });
 
-  factory AppServices.fromPreferences(SharedPreferences prefs) {
-    final storage = SessionStorageService(prefs);
+  factory AppServices.create() {
+    final storage = SessionStorageService();
     final httpClient = http.Client();
     final apiClient = ApiClient(httpClient);
     final authApiService = AuthApiService(apiClient);

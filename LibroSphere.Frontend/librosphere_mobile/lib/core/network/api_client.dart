@@ -26,10 +26,22 @@ class ApiClient {
 
   static const _requestTimeout = Duration(seconds: 30);
   static const _maxGetRetries = 2;
-  static const _largePayloadThreshold = 20 * 1024;
+  static const _largePayloadThreshold = 8 * 1024;
 
   final http.Client _client;
   final String _baseUrl = resolveApiBaseUrl();
+
+  String _networkAccessHint() {
+    if (kIsWeb) {
+      return 'Open the API on http://localhost:8080 and verify Docker is running.';
+    }
+
+    if (Platform.isAndroid) {
+      return 'Docker is probably fine. Android emulators must reach the host via http://10.0.2.2:8080. If needed, run `adb reverse tcp:8080 tcp:8080` or start Flutter with `--dart-define=LIBROSPHERE_API_URL=http://10.0.2.2:8080`.';
+    }
+
+    return 'Check that Docker is running and the API is reachable on port 8080.';
+  }
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     final response = await _post(
@@ -136,7 +148,9 @@ class ApiClient {
     await _post(
       '/api/orders/$orderId/refund',
       token: accessToken,
-      body: const <String, dynamic>{},
+      body: const <String, dynamic>{
+        'reason': 'Requested by customer from mobile app',
+      },
     );
   }
 
@@ -534,14 +548,14 @@ class ApiClient {
         if (attempt >= retries) {
           throw AppException(
             message:
-                'Unable to reach LibroSphere API at $_baseUrl. Start Docker compose and make sure the emulator can access port 8080.',
+                'Unable to reach LibroSphere API at $_baseUrl. ${_networkAccessHint()}',
           );
         }
       } on TimeoutException {
         if (attempt >= retries) {
           throw AppException(
             message:
-                'LibroSphere API at $_baseUrl did not respond in time. Check that Docker is running on port 8080.',
+                'LibroSphere API at $_baseUrl did not respond in time. ${_networkAccessHint()}',
           );
         }
       }
@@ -566,16 +580,17 @@ class ApiClient {
   }
 
   Future<dynamic> _decodeBody(http.Response response) async {
-    if (response.body.isEmpty) {
+    final bodyBytes = response.bodyBytes;
+    if (bodyBytes.isEmpty) {
       return null;
     }
 
-    final body = response.body;
-    if (body.length < _largePayloadThreshold) {
+    if (bodyBytes.length < _largePayloadThreshold) {
+      final body = utf8.decode(bodyBytes);
       return jsonDecode(body);
     }
 
-    return compute(_decodeJsonBody, body);
+    return compute(_decodeJsonBytesBody, bodyBytes);
   }
 
   List<Map<String, dynamic>> _decodeItemsFromMap(Map<String, dynamic> json) {
@@ -675,6 +690,6 @@ class ApiClient {
   }
 }
 
-dynamic _decodeJsonBody(String body) {
-  return jsonDecode(body);
+dynamic _decodeJsonBytesBody(List<int> bodyBytes) {
+  return jsonDecode(utf8.decode(bodyBytes));
 }

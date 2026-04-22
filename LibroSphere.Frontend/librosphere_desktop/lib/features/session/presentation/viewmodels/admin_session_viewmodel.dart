@@ -22,7 +22,8 @@ class AdminSessionViewModel extends ChangeNotifier {
   String? get accessToken => tokens?.accessToken;
 
   Future<void> initialize() async {
-    tokens = _storageService.restoreTokens();
+    await _storageService.warmUp();
+    tokens = await _storageService.restoreTokens();
     isReady = true;
     notifyListeners();
   }
