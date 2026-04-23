@@ -191,6 +191,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           hint: 'Your email address',
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.done,
+          autofillHints: const [AutofillHints.email, AutofillHints.username],
+          enableSuggestions: false,
+          autocorrect: false,
           errorText: _emailError,
           onChanged: (_) {
             if (_emailError != null) {
@@ -238,6 +241,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           hint: '6-digit code',
           keyboardType: TextInputType.number,
           textInputAction: TextInputAction.next,
+          enableSuggestions: false,
+          autocorrect: false,
           errorText: _codeError,
           onChanged: (_) {
             if (_codeError != null) {
@@ -255,6 +260,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           hint: 'New password',
           obscureText: true,
           textInputAction: TextInputAction.next,
+          autofillHints: const [AutofillHints.newPassword],
+          enableSuggestions: false,
+          autocorrect: false,
           errorText: _passwordError,
           onChanged: (_) {
             if (_passwordError != null) {
@@ -268,6 +276,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           hint: 'Confirm new password',
           obscureText: true,
           textInputAction: TextInputAction.done,
+          autofillHints: const [AutofillHints.newPassword],
+          enableSuggestions: false,
+          autocorrect: false,
           errorText: _confirmError,
           onSubmitted: (_) => _resetPassword(),
           onChanged: (_) {
