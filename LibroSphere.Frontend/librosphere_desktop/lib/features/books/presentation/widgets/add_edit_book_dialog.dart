@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
+import '../../../../core/localization/admin_language_scope.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../data/models/admin_book_model.dart';
@@ -111,7 +112,12 @@ class _AddEditBookDialogState extends State<AddEditBookDialog> {
       setState(() {
         _imageFile = null;
         _imageError =
-            'Selected image is ${_formatFileSize(bytes.lengthInBytes)}. Maximum allowed size is 10 MB.';
+            context.tr(
+              english:
+                  'Selected image is ${_formatFileSize(bytes.lengthInBytes)}. Maximum allowed size is 10 MB.',
+              bosnian:
+                  'Izabrana slika je ${_formatFileSize(bytes.lengthInBytes)}. Maksimalna dozvoljena velicina je 10 MB.',
+            );
         _failure = null;
       });
       return;
@@ -142,7 +148,12 @@ class _AddEditBookDialogState extends State<AddEditBookDialog> {
       setState(() {
         _pdfFile = null;
         _pdfError =
-            'Selected PDF is ${_formatFileSize(bytes.lengthInBytes)}. Allowed range is 1 MB to 100 MB.';
+            context.tr(
+              english:
+                  'Selected PDF is ${_formatFileSize(bytes.lengthInBytes)}. Allowed range is 1 MB to 100 MB.',
+              bosnian:
+                  'Izabrani PDF je ${_formatFileSize(bytes.lengthInBytes)}. Dozvoljeni raspon je od 1 MB do 100 MB.',
+            );
         _failure = null;
       });
       return;
@@ -170,26 +181,61 @@ class _AddEditBookDialogState extends State<AddEditBookDialog> {
     final hasPdf = _pdfFile != null || _pdfLink.trim().isNotEmpty;
 
     setState(() {
-      _titleError = normalizedTitle.isEmpty ? 'Book name is required.' : null;
-      _authorError = _selectedAuthorId == null ? 'Author is required.' : null;
+      _titleError = normalizedTitle.isEmpty
+          ? context.tr(
+              english: 'Book name is required.',
+              bosnian: 'Naziv knjige je obavezan.',
+            )
+          : null;
+      _authorError = _selectedAuthorId == null
+          ? context.tr(
+              english: 'Author is required.',
+              bosnian: 'Autor je obavezan.',
+            )
+          : null;
       _genreError = _selectedGenreIds.isEmpty
-          ? 'Select at least one genre.'
+          ? context.tr(
+              english: 'Select at least one genre.',
+              bosnian: 'Izaberite barem jedan zanr.',
+            )
           : null;
       _descriptionError = normalizedDescription.isEmpty
-          ? 'Description is required.'
+          ? context.tr(
+              english: 'Description is required.',
+              bosnian: 'Opis je obavezan.',
+            )
           : null;
       _priceError = normalizedPrice == null || normalizedPrice <= 0
-          ? 'Enter a valid price.'
+          ? context.tr(
+              english: 'Enter a valid price.',
+              bosnian: 'Unesite ispravnu cijenu.',
+            )
           : null;
       _imageError = !hasImage
-          ? 'Book image is required.'
+          ? context.tr(
+              english: 'Book image is required.',
+              bosnian: 'Slika knjige je obavezna.',
+            )
           : imageTooLarge
-              ? 'Selected image is ${_formatFileSize(_imageFile!.bytes.lengthInBytes)}. Maximum allowed size is 10 MB.'
+              ? context.tr(
+                  english:
+                      'Selected image is ${_formatFileSize(_imageFile!.bytes.lengthInBytes)}. Maximum allowed size is 10 MB.',
+                  bosnian:
+                      'Izabrana slika je ${_formatFileSize(_imageFile!.bytes.lengthInBytes)}. Maksimalna dozvoljena velicina je 10 MB.',
+                )
               : null;
       _pdfError = !hasPdf
-          ? 'Book PDF is required.'
+          ? context.tr(
+              english: 'Book PDF is required.',
+              bosnian: 'PDF knjige je obavezan.',
+            )
           : pdfOutsideAllowedRange
-              ? 'Selected PDF is ${_formatFileSize(_pdfFile!.bytes.lengthInBytes)}. Allowed range is 1 MB to 100 MB.'
+              ? context.tr(
+                  english:
+                      'Selected PDF is ${_formatFileSize(_pdfFile!.bytes.lengthInBytes)}. Allowed range is 1 MB to 100 MB.',
+                  bosnian:
+                      'Izabrani PDF je ${_formatFileSize(_pdfFile!.bytes.lengthInBytes)}. Dozvoljeni raspon je od 1 MB do 100 MB.',
+                )
               : null;
       _failure = null;
     });
@@ -267,7 +313,14 @@ class _AddEditBookDialogState extends State<AddEditBookDialog> {
                       children: [
                         Expanded(
                           child: Text(
-                            widget.book == null ? 'ADD NEW BOOK' : 'EDIT BOOK',
+                            context.tr(
+                              english: widget.book == null
+                                  ? 'ADD NEW BOOK'
+                                  : 'EDIT BOOK',
+                              bosnian: widget.book == null
+                                  ? 'DODAJ NOVU KNJIGU'
+                                  : 'UREDI KNJIGU',
+                            ),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 20,
@@ -292,10 +345,15 @@ class _AddEditBookDialogState extends State<AddEditBookDialog> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _modalLabel('Book Name'),
+                          _modalLabel(
+                            context.tr(english: 'Book Name', bosnian: 'Naziv knjige'),
+                          ),
                           AppTextField(
                             controller: _titleController,
-                            hintText: 'Enter book name',
+                            hintText: context.tr(
+                              english: 'Enter book name',
+                              bosnian: 'Unesite naziv knjige',
+                            ),
                             errorText: _titleError,
                             onChanged: (_) {
                               if (_titleError != null || _failure != null) {
@@ -307,18 +365,27 @@ class _AddEditBookDialogState extends State<AddEditBookDialog> {
                             },
                           ),
                           const SizedBox(height: 10),
-                          _modalLabel('Author'),
+                          _modalLabel(
+                            context.tr(english: 'Author', bosnian: 'Autor'),
+                          ),
                           _authorDropdown(),
                           if (_authorError != null) _errorText(_authorError!),
                           const SizedBox(height: 12),
-                          _modalLabel('Genres'),
+                          _modalLabel(
+                            context.tr(english: 'Genres', bosnian: 'Zanrovi'),
+                          ),
                           _genreSelector(),
                           if (_genreError != null) _errorText(_genreError!),
                           const SizedBox(height: 10),
-                          _modalLabel('Description'),
+                          _modalLabel(
+                            context.tr(english: 'Description', bosnian: 'Opis'),
+                          ),
                           AppTextField(
                             controller: _descriptionController,
-                            hintText: 'Enter book description',
+                            hintText: context.tr(
+                              english: 'Enter book description',
+                              bosnian: 'Unesite opis knjige',
+                            ),
                             maxLines: 4,
                             errorText: _descriptionError,
                             onChanged: (_) {
@@ -332,7 +399,9 @@ class _AddEditBookDialogState extends State<AddEditBookDialog> {
                             },
                           ),
                           const SizedBox(height: 10),
-                          _modalLabel('Price'),
+                          _modalLabel(
+                            context.tr(english: 'Price', bosnian: 'Cijena'),
+                          ),
                           AppTextField(
                             controller: _priceController,
                             hintText: '0.00',
@@ -351,7 +420,9 @@ class _AddEditBookDialogState extends State<AddEditBookDialog> {
                             },
                           ),
                           const SizedBox(height: 18),
-                          _modalLabel('Photo'),
+                          _modalLabel(
+                            context.tr(english: 'Photo', bosnian: 'Fotografija'),
+                          ),
                           TextButton.icon(
                             onPressed: _pickImage,
                             icon: const Icon(
@@ -362,7 +433,10 @@ class _AddEditBookDialogState extends State<AddEditBookDialog> {
                             label: Text(
                               _imageFile?.name ??
                                   (_imageLink.isEmpty
-                                      ? 'Choose image file'
+                                      ? context.tr(
+                                          english: 'Choose image file',
+                                          bosnian: 'Izaberite sliku',
+                                        )
                                       : _imageLink),
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
@@ -371,7 +445,9 @@ class _AddEditBookDialogState extends State<AddEditBookDialog> {
                           ),
                           if (_imageError != null) _errorText(_imageError!),
                           const SizedBox(height: 12),
-                          _modalLabel('PDF file'),
+                          _modalLabel(
+                            context.tr(english: 'PDF file', bosnian: 'PDF fajl'),
+                          ),
                           TextButton.icon(
                             onPressed: _pickPdf,
                             icon: const Icon(
@@ -382,7 +458,10 @@ class _AddEditBookDialogState extends State<AddEditBookDialog> {
                             label: Text(
                               _pdfFile?.name ??
                                   (_pdfLink.isEmpty
-                                      ? 'Choose PDF file'
+                                      ? context.tr(
+                                          english: 'Choose PDF file',
+                                          bosnian: 'Izaberite PDF fajl',
+                                        )
                                       : _pdfLink),
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
@@ -392,8 +471,11 @@ class _AddEditBookDialogState extends State<AddEditBookDialog> {
                           if (_pdfError != null) _errorText(_pdfError!),
                           if (_loadingAssets) ...[
                             const SizedBox(height: 12),
-                            const Text(
-                              'Loading existing assets...',
+                            Text(
+                              context.tr(
+                                english: 'Loading existing assets...',
+                                bosnian: 'Ucitavanje postojecih fajlova...',
+                              ),
                               style: TextStyle(color: Colors.white),
                             ),
                           ],
@@ -445,7 +527,7 @@ class _AddEditBookDialogState extends State<AddEditBookDialog> {
                           const SizedBox(height: 18),
                           Align(
                             child: AppButton(
-                              label: 'SAVE',
+                              label: context.tr(english: 'SAVE', bosnian: 'SACUVAJ'),
                               onPressed:
                                   widget.viewModel.isSaving || _loadingAssets
                                   ? null
@@ -469,8 +551,11 @@ class _AddEditBookDialogState extends State<AddEditBookDialog> {
 
   Widget _authorDropdown() {
     if (widget.viewModel.authors.isEmpty) {
-      return const Text(
-        'No authors available. Create an author first.',
+      return Text(
+        context.tr(
+          english: 'No authors available. Create an author first.',
+          bosnian: 'Nema dostupnih autora. Prvo kreirajte autora.',
+        ),
         style: TextStyle(
           color: Color(0xFFFFD4D4),
           fontSize: 13,
@@ -482,7 +567,9 @@ class _AddEditBookDialogState extends State<AddEditBookDialog> {
     return DropdownButtonFormField<String>(
       initialValue: _selectedAuthorId,
       dropdownColor: desktopPrimaryLight,
-      decoration: _inputDecoration('Select author'),
+      decoration: _inputDecoration(
+        context.tr(english: 'Select author', bosnian: 'Izaberite autora'),
+      ),
       style: const TextStyle(
         color: Colors.white,
         fontSize: 16,
@@ -511,8 +598,11 @@ class _AddEditBookDialogState extends State<AddEditBookDialog> {
 
   Widget _genreSelector() {
     if (widget.viewModel.genres.isEmpty) {
-      return const Text(
-        'No genres available.',
+      return Text(
+        context.tr(
+          english: 'No genres available.',
+          bosnian: 'Nema dostupnih zanrova.',
+        ),
         style: TextStyle(
           color: Color(0xFFFFD4D4),
           fontSize: 13,

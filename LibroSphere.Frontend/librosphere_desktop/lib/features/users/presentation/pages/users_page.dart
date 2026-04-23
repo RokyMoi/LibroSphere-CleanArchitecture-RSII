@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/admin_language_scope.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../shared/widgets/admin/admin_empty_state.dart';
@@ -41,18 +42,21 @@ class _UsersPageState extends State<UsersPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete User'),
+          title: Text(context.tr(english: 'Delete User', bosnian: 'Obrisi korisnika')),
           content: Text(
-            'Are you sure you want to permanently delete "${user.name}"?',
+            context.tr(
+              english: 'Are you sure you want to permanently delete "${user.name}"?',
+              bosnian: 'Da li ste sigurni da zelite trajno obrisati "${user.name}"?',
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(context.tr(english: 'Cancel', bosnian: 'Odustani')),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Delete'),
+              child: Text(context.tr(english: 'Delete', bosnian: 'Obrisi')),
             ),
           ],
         );
@@ -75,7 +79,12 @@ class _UsersPageState extends State<UsersPage> {
       case Success<void>():
         messenger.showSnackBar(
           SnackBar(
-            content: Text('User "${user.name}" was deleted.'),
+            content: Text(
+              context.tr(
+                english: 'User "${user.name}" was deleted.',
+                bosnian: 'Korisnik "${user.name}" je obrisan.',
+              ),
+            ),
             backgroundColor: Color(0xFF1F8B4C),
           ),
         );
@@ -116,21 +125,24 @@ class _UsersPageState extends State<UsersPage> {
                   Expanded(
                     child: AppTextField(
                       controller: _searchController,
-                      hintText: 'Search users by name or email...',
+                      hintText: context.tr(
+                        english: 'Search users by name or email...',
+                        bosnian: 'Pretrazi korisnike po imenu ili emailu...',
+                      ),
                       textInputAction: TextInputAction.search,
                       onSubmitted: (v) => viewModel.search(v),
                     ),
                   ),
                   const SizedBox(width: 12),
                   AppButton(
-                    label: 'Search',
+                    label: context.tr(english: 'Search', bosnian: 'Pretrazi'),
                     onPressed: () => viewModel.search(_searchController.text),
                     width: 100,
                   ),
                   if (viewModel.searchTerm.isNotEmpty) ...[  
                     const SizedBox(width: 8),
                     AppButton(
-                      label: 'Clear',
+                      label: context.tr(english: 'Clear', bosnian: 'Ocisti'),
                       onPressed: () {
                         _searchController.clear();
                         viewModel.clearSearch();
@@ -145,18 +157,23 @@ class _UsersPageState extends State<UsersPage> {
                 child: AdminPanel(
                   child: Column(
                     children: [
-                      const TableHeader(
+                      TableHeader(
                         columns: [
-                          'Ime Prezime',
-                          'DatumReg',
-                          'Last Login',
-                          'Status',
-                          'Action',
+                          context.tr(english: 'Full Name', bosnian: 'Ime i prezime'),
+                          context.tr(english: 'Registered', bosnian: 'Datum registracije'),
+                          context.tr(english: 'Last Login', bosnian: 'Posljednja prijava'),
+                          context.tr(english: 'Status', bosnian: 'Status'),
+                          context.tr(english: 'Action', bosnian: 'Akcija'),
                         ],
                       ),
                       Expanded(
                         child: viewModel.users.isEmpty
-                            ? const AdminEmptyState('No users found.')
+                            ? AdminEmptyState(
+                                context.tr(
+                                  english: 'No users found.',
+                                  bosnian: 'Nema pronadjenih korisnika.',
+                                ),
+                              )
                             : ListView.separated(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 18,
@@ -216,19 +233,27 @@ class _UserRow extends StatelessWidget {
         Expanded(child: Text(user.name, style: _rowTextStyle)),
         Expanded(
           child: Text(
-            formatAdminDate(user.dateRegistered),
+            formatAdminDate(
+              user.dateRegistered,
+              language: context.adminLanguage,
+            ),
             style: _rowTextStyle,
           ),
         ),
         Expanded(
           child: Text(
-            formatAdminDateTime(user.lastLogin),
+            formatAdminDateTime(
+              user.lastLogin,
+              language: context.adminLanguage,
+            ),
             style: _rowTextStyle,
           ),
         ),
         Expanded(
           child: Text(
-            user.isActive ? 'Active' : 'Inactive',
+            user.isActive
+                ? context.tr(english: 'Active', bosnian: 'Aktivan')
+                : context.tr(english: 'Inactive', bosnian: 'Neaktivan'),
             style: TextStyle(
               color: user.isActive
                   ? const Color(0xFFD7FFE7)
@@ -242,7 +267,9 @@ class _UserRow extends StatelessWidget {
           child: Align(
             alignment: Alignment.centerLeft,
             child: AppButton(
-              label: isDeleting ? 'Deleting...' : 'Delete',
+              label: isDeleting
+                  ? context.tr(english: 'Deleting...', bosnian: 'Brisanje...')
+                  : context.tr(english: 'Delete', bosnian: 'Obrisi'),
               onPressed: isDeleting ? null : onDelete,
               width: 112,
               height: 38,
@@ -310,7 +337,10 @@ class _UsersFooter extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Total users: $totalCount',
+          context.tr(
+            english: 'Total users: $totalCount',
+            bosnian: 'Ukupno korisnika: $totalCount',
+          ),
           style: const TextStyle(
             color: Colors.white,
             fontSize: 14,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/admin_language_scope.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 
@@ -27,7 +28,7 @@ class LoginForm extends StatelessWidget {
         children: [
           AppTextField(
             controller: emailController,
-            hintText: 'Email',
+            hintText: context.tr(english: 'Email', bosnian: 'Email'),
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
             autofillHints: const [AutofillHints.username, AutofillHints.email],
@@ -37,7 +38,7 @@ class LoginForm extends StatelessWidget {
           const SizedBox(height: 18),
           AppTextField(
             controller: passwordController,
-            hintText: 'Password',
+            hintText: context.tr(english: 'Password', bosnian: 'Lozinka'),
             obscureText: true,
             textInputAction: TextInputAction.done,
             autofillHints: const [AutofillHints.password],
@@ -60,7 +61,7 @@ class LoginForm extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: AppButton(
-              label: 'LOGIN',
+              label: context.tr(english: 'LOGIN', bosnian: 'PRIJAVA'),
               onPressed: isSubmitting ? null : onSubmit,
               isLoading: isSubmitting,
             ),

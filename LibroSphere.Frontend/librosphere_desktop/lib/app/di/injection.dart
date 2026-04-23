@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../../core/localization/admin_language_controller.dart';
 import '../../core/network/api_client.dart';
 import '../../features/authors/data/repositories/authors_repository.dart';
 import '../../features/authors/data/services/authors_api_service.dart';
@@ -43,6 +44,10 @@ class AppInjection {
       AuthRepository(AuthApiService(apiClient)),
       SessionStorageService(),
     );
+  }
+
+  static AdminLanguageController createAdminLanguageController() {
+    return AdminLanguageController();
   }
 
   static DashboardViewModel createDashboardViewModel(String token) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_theme.dart';
+import '../../../../core/localization/admin_language_scope.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../shared/widgets/admin/admin_panel.dart';
 import '../../../../shared/widgets/error_view.dart';
@@ -18,6 +19,15 @@ class OrdersPage extends StatefulWidget {
 }
 
 class _OrdersPageState extends State<OrdersPage> {
+  static const _allStatusValue = 'All';
+  static const _statusValues = [
+    _allStatusValue,
+    'Pending',
+    'PaymentReceived',
+    'PaymentFailed',
+    'Refunded',
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -67,9 +77,12 @@ class _OrdersPageState extends State<OrdersPage> {
   Widget _buildHeader(OrdersViewModel viewModel) {
     return Row(
       children: [
-        const Text(
-          'Orders Management',
-          style: TextStyle(
+        Text(
+          context.tr(
+            english: 'Orders Management',
+            bosnian: 'Upravljanje narudzbama',
+          ),
+          style: const TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.w700,
             color: Colors.black87,
@@ -77,7 +90,10 @@ class _OrdersPageState extends State<OrdersPage> {
         ),
         const Spacer(),
         Text(
-          '${viewModel.totalCount} orders total',
+          context.tr(
+            english: '${viewModel.totalCount} orders total',
+            bosnian: 'Ukupno narudzbi: ${viewModel.totalCount}',
+          ),
           style: const TextStyle(
             fontSize: 14,
             color: desktopMutedForeground,
@@ -93,23 +109,32 @@ class _OrdersPageState extends State<OrdersPage> {
         SizedBox(
           width: 300,
           child: TextField(
-            decoration: const InputDecoration(
-              hintText: 'Search by buyer email...',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              hintText: context.tr(
+                english: 'Search by buyer email...',
+                bosnian: 'Pretrazi po emailu kupca...',
+              ),
+              prefixIcon: const Icon(Icons.search),
+              border: const OutlineInputBorder(),
               isDense: true,
             ),
+            onTapOutside: (_) => FocusScope.of(context).unfocus(),
             onSubmitted: (value) => viewModel.search(value),
           ),
         ),
         const SizedBox(width: 16),
         DropdownButton<String>(
-          value: viewModel.statusFilter ?? 'All',
-          hint: const Text('Filter by status'),
-          items: viewModel.availableStatuses
+          value: viewModel.statusFilter ?? _allStatusValue,
+          hint: Text(
+            context.tr(
+              english: 'Filter by status',
+              bosnian: 'Filtriraj po statusu',
+            ),
+          ),
+          items: _statusValues
               .map((status) => DropdownMenuItem(
                     value: status,
-                    child: Text(status),
+                    child: Text(_statusLabel(status)),
                   ))
               .toList(),
           onChanged: (value) => viewModel.filterByStatus(value),
@@ -126,15 +151,22 @@ class _OrdersPageState extends State<OrdersPage> {
   }
 
   Widget _buildEmptyState() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.receipt_long_outlined, size: 64, color: desktopMutedForeground),
-          SizedBox(height: 16),
+          const Icon(
+            Icons.receipt_long_outlined,
+            size: 64,
+            color: desktopMutedForeground,
+          ),
+          const SizedBox(height: 16),
           Text(
-            'No orders found',
-            style: TextStyle(
+            context.tr(
+              english: 'No orders found',
+              bosnian: 'Nema pronadjenih narudzbi',
+            ),
+            style: const TextStyle(
               fontSize: 18,
               color: desktopMutedForeground,
             ),
@@ -160,14 +192,43 @@ class _OrdersPageState extends State<OrdersPage> {
               color: desktopPrimaryLight.withValues(alpha: 0.5),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Expanded(flex: 2, child: Text('Order ID', style: TextStyle(fontWeight: FontWeight.w600))),
-                Expanded(flex: 2, child: Text('Buyer Email', style: TextStyle(fontWeight: FontWeight.w600))),
-                Expanded(flex: 1, child: Text('Status', style: TextStyle(fontWeight: FontWeight.w600))),
-                Expanded(flex: 1, child: Text('Total', style: TextStyle(fontWeight: FontWeight.w600))),
-                Expanded(flex: 1, child: Text('Items', style: TextStyle(fontWeight: FontWeight.w600))),
-                Expanded(flex: 2, child: Text('Date', style: TextStyle(fontWeight: FontWeight.w600))),
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    context.tr(english: 'Buyer Email', bosnian: 'Email kupca'),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    context.tr(english: 'Status', bosnian: 'Status'),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    context.tr(english: 'Total', bosnian: 'Ukupno'),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    context.tr(english: 'Items', bosnian: 'Stavke'),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    context.tr(english: 'Date', bosnian: 'Datum'),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
               ],
             ),
           ),
@@ -201,7 +262,10 @@ class _OrdersPageState extends State<OrdersPage> {
           ),
           const SizedBox(width: 16),
           Text(
-            'Page ${viewModel.currentPage} of ${viewModel.totalPages}',
+            context.tr(
+              english: 'Page ${viewModel.currentPage} of ${viewModel.totalPages}',
+              bosnian: 'Stranica ${viewModel.currentPage} od ${viewModel.totalPages}',
+            ),
             style: const TextStyle(fontWeight: FontWeight.w500),
           ),
           const SizedBox(width: 16),
@@ -214,6 +278,23 @@ class _OrdersPageState extends State<OrdersPage> {
         ],
       ),
     );
+  }
+
+  String _statusLabel(String status) {
+    return switch (status) {
+      _allStatusValue => context.tr(english: 'All', bosnian: 'Sve'),
+      'Pending' => context.tr(english: 'Pending', bosnian: 'Na cekanju'),
+      'PaymentReceived' => context.tr(
+          english: 'Payment Received',
+          bosnian: 'Uplata primljena',
+        ),
+      'PaymentFailed' => context.tr(
+          english: 'Payment Failed',
+          bosnian: 'Uplata neuspjesna',
+        ),
+      'Refunded' => context.tr(english: 'Refunded', bosnian: 'Refundirano'),
+      _ => status,
+    };
   }
 }
 
@@ -228,8 +309,7 @@ class _OrderRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          Expanded(flex: 2, child: Text(_shortId(order.id))),
-          Expanded(flex: 2, child: Text(order.buyerEmail)),
+          Expanded(flex: 3, child: Text(order.buyerEmail)),
           Expanded(
             flex: 1,
             child: _StatusBadge(status: order.status),
@@ -244,27 +324,16 @@ class _OrderRow extends StatelessWidget {
           ),
           Expanded(
             flex: 2,
-            child: Text(_formatDate(order.createdOnUtc)),
+            child: Text(
+              formatAdminDateTime(
+                order.createdOnUtc,
+                language: context.adminLanguage,
+              ),
+            ),
           ),
         ],
       ),
     );
-  }
-
-  String _shortId(String id) {
-    if (id.length <= 8) return id;
-    return id.substring(0, 8).toUpperCase();
-  }
-
-  String _formatDate(DateTime date) {
-    final local = date.toLocal();
-    final month = _monthName(local.month);
-    return '$month ${local.day}, ${local.year} ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
-  }
-
-  String _monthName(int month) {
-    const names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return names[month - 1];
   }
 }
 
@@ -284,7 +353,7 @@ class _StatusBadge extends StatelessWidget {
         border: Border.all(color: color),
       ),
       child: Text(
-        status,
+        _statusLabel(context),
         style: TextStyle(
           color: color,
           fontSize: 12,
@@ -311,4 +380,20 @@ class _StatusBadge extends StatelessWidget {
 
   String _normalizeStatus(String status) =>
       status.toLowerCase().replaceAll('_', '').replaceAll(' ', '');
+
+  String _statusLabel(BuildContext context) {
+    return switch (_normalizeStatus(status)) {
+      'paymentreceived' => context.tr(
+          english: 'Payment Received',
+          bosnian: 'Uplata primljena',
+        ),
+      'pending' => context.tr(english: 'Pending', bosnian: 'Na cekanju'),
+      'refunded' => context.tr(english: 'Refunded', bosnian: 'Refundirano'),
+      'paymentfailed' => context.tr(
+          english: 'Payment Failed',
+          bosnian: 'Uplata neuspjesna',
+        ),
+      _ => status,
+    };
+  }
 }

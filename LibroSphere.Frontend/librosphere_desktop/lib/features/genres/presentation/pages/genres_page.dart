@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/admin_language_scope.dart';
 import '../../../../core/error/result.dart';
 import '../../../../shared/widgets/admin/admin_empty_state.dart';
 import '../../../../shared/widgets/admin/admin_panel.dart';
@@ -51,16 +52,26 @@ class _GenresPageState extends State<GenresPage> {
     }
 
     final message = genre == null
-        ? 'Genre was added successfully.'
-        : 'Genre was updated successfully.';
+        ? context.tr(
+            english: 'Genre was added successfully.',
+            bosnian: 'Zanr je uspjesno dodan.',
+          )
+        : context.tr(
+            english: 'Genre was updated successfully.',
+            bosnian: 'Zanr je uspjesno azuriran.',
+          );
     _showSnackBar(message, isError: false);
   }
 
   Future<void> _deleteGenre(AdminGenreModel genre) async {
     final shouldDelete = await _confirmDeletion(
-      title: 'Delete Genre',
-      message:
-          'Are you sure you want to permanently delete "${genre.name}"?',
+      title: context.tr(english: 'Delete Genre', bosnian: 'Obrisi zanr'),
+      message: context.tr(
+        english:
+            'Are you sure you want to permanently delete "${genre.name}"?',
+        bosnian:
+            'Da li ste sigurni da zelite trajno obrisati "${genre.name}"?',
+      ),
     );
 
     if (!shouldDelete || !mounted) {
@@ -75,7 +86,10 @@ class _GenresPageState extends State<GenresPage> {
     switch (result) {
       case Success<void>():
         _showSnackBar(
-          'Genre "${genre.name}" was deleted successfully.',
+          context.tr(
+            english: 'Genre "${genre.name}" was deleted successfully.',
+            bosnian: 'Zanr "${genre.name}" je uspjesno obrisan.',
+          ),
           isError: false,
         );
       case ErrorResult<void>(failure: final error):
@@ -96,11 +110,11 @@ class _GenresPageState extends State<GenresPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(context.tr(english: 'Cancel', bosnian: 'Odustani')),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Delete'),
+              child: Text(context.tr(english: 'Delete', bosnian: 'Obrisi')),
             ),
           ],
         );
@@ -151,21 +165,24 @@ class _GenresPageState extends State<GenresPage> {
                   Expanded(
                     child: AppTextField(
                       controller: _searchController,
-                      hintText: 'Search genres by name...',
+                      hintText: context.tr(
+                        english: 'Search genres by name...',
+                        bosnian: 'Pretrazi zanrove po nazivu...',
+                      ),
                       textInputAction: TextInputAction.search,
                       onSubmitted: (v) => viewModel.search(v),
                     ),
                   ),
                   const SizedBox(width: 12),
                   AppButton(
-                    label: 'Search',
+                    label: context.tr(english: 'Search', bosnian: 'Pretrazi'),
                     onPressed: () => viewModel.search(_searchController.text),
                     width: 100,
                   ),
                   if (viewModel.searchTerm.isNotEmpty) ...[  
                     const SizedBox(width: 8),
                     AppButton(
-                      label: 'Clear',
+                      label: context.tr(english: 'Clear', bosnian: 'Ocisti'),
                       onPressed: () {
                         _searchController.clear();
                         viewModel.clearSearch();
@@ -180,12 +197,20 @@ class _GenresPageState extends State<GenresPage> {
                 child: AdminPanel(
                   child: Column(
                     children: [
-                      const TableHeader(
-                        columns: ['Genre Name', 'Action'],
+                      TableHeader(
+                        columns: [
+                          context.tr(english: 'Genre Name', bosnian: 'Naziv zanra'),
+                          context.tr(english: 'Action', bosnian: 'Akcija'),
+                        ],
                       ),
                       Expanded(
                         child: viewModel.genres.isEmpty
-                            ? const AdminEmptyState('No genres found.')
+                            ? AdminEmptyState(
+                                context.tr(
+                                  english: 'No genres found.',
+                                  bosnian: 'Nema pronadjenih zanrova.',
+                                ),
+                              )
                             : ListView.separated(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 18,
@@ -259,7 +284,7 @@ class _GenreRow extends StatelessWidget {
             children: [
               Expanded(
                 child: AppButton(
-                  label: 'EDIT',
+                  label: context.tr(english: 'EDIT', bosnian: 'UREDI'),
                   onPressed: onEdit,
                   height: 38,
                 ),
@@ -267,7 +292,7 @@ class _GenreRow extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: AppButton(
-                  label: 'DELETE',
+                  label: context.tr(english: 'DELETE', bosnian: 'OBRISI'),
                   onPressed: isDeleting ? null : onDelete,
                   height: 38,
                   isLoading: isDeleting,
@@ -323,13 +348,16 @@ class _GenresFooter extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             Text(
-              'Total genres: $totalCount',
+              context.tr(
+                english: 'Total genres: $totalCount',
+                bosnian: 'Ukupno zanrova: $totalCount',
+              ),
               style: _footerCountTextStyle,
             ),
           ],
         ),
         AppButton(
-          label: 'Add Genre',
+          label: context.tr(english: 'Add Genre', bosnian: 'Dodaj zanr'),
           onPressed: onAddGenre,
           width: 160,
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/localization/admin_language_scope.dart';
 import 'app_button.dart';
 
 class ErrorView extends StatelessWidget {
@@ -33,7 +34,7 @@ class ErrorView extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             AppButton(
-              label: 'Retry',
+              label: context.tr(english: 'Retry', bosnian: 'Pokusaj ponovo'),
               onPressed: () => onRetry(),
               width: 140,
             ),

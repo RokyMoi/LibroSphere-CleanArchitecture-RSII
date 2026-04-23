@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
 
 import '../../../../app/theme/app_theme.dart';
+import '../../../../core/localization/admin_language_scope.dart';
 import '../../../../shared/widgets/admin/admin_panel.dart';
 import '../../../../shared/widgets/loading_view.dart';
 import '../viewmodels/reports_viewmodel.dart';
@@ -41,18 +42,23 @@ class _ReportsPageState extends State<ReportsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header
-                const Text(
-                  'Reports',
-                  style: TextStyle(
+                Text(
+                  context.tr(english: 'Reports', bosnian: 'Izvjestaji'),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
-                  'Generate and download PDF reports for platform analysis.',
-                  style: TextStyle(
+                Text(
+                  context.tr(
+                    english:
+                        'Generate and download PDF reports for platform analysis.',
+                    bosnian:
+                        'Generisite i preuzmite PDF izvjestaje za analizu platforme.',
+                  ),
+                  style: const TextStyle(
                     color: desktopMutedForeground,
                     fontSize: 14,
                   ),
@@ -69,10 +75,16 @@ class _ReportsPageState extends State<ReportsPage> {
                     children: [
                       _ReportCard(
                         icon: Icons.analytics_outlined,
-                        title: 'Platform Overview',
-                        description:
-                            'Key metrics: total users, active users, books, '
-                            'authors, sales, revenue, and recent activity.',
+                        title: context.tr(
+                          english: 'Platform Overview',
+                          bosnian: 'Pregled platforme',
+                        ),
+                        description: context.tr(
+                          english:
+                              'Key metrics: total users, active users, books, authors, sales, revenue, and recent activity.',
+                          bosnian:
+                              'Ključne metrike: ukupan broj korisnika, aktivni korisnici, knjige, autori, prodaja, prihod i nedavna aktivnost.',
+                        ),
                         isGenerating: vm.isGeneratingPlatform,
                         error: vm.platformError,
                         onGenerate: () async {
@@ -87,10 +99,16 @@ class _ReportsPageState extends State<ReportsPage> {
                       ),
                       _ReportCard(
                         icon: Icons.menu_book_outlined,
-                        title: 'Book Catalogue',
-                        description:
-                            'Complete list of all books with authors, '
-                            'genres, and pricing information.',
+                        title: context.tr(
+                          english: 'Book Catalogue',
+                          bosnian: 'Katalog knjiga',
+                        ),
+                        description: context.tr(
+                          english:
+                              'Complete list of all books with authors, genres, and pricing information.',
+                          bosnian:
+                              'Kompletna lista svih knjiga sa autorima, zanrovima i cijenama.',
+                        ),
                         isGenerating: vm.isGeneratingCatalogue,
                         error: vm.catalogueError,
                         onGenerate: () async {
@@ -207,7 +225,7 @@ class _ReportCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 elevation: 0,
-              ),
+                ),
               icon: isGenerating
                   ? const SizedBox(
                       width: 16,
@@ -219,7 +237,9 @@ class _ReportCard extends StatelessWidget {
                     )
                   : const Icon(Icons.download_rounded, size: 18),
               label: Text(
-                isGenerating ? 'Generating...' : 'Generate PDF',
+                isGenerating
+                    ? context.tr(english: 'Generating...', bosnian: 'Generisanje...')
+                    : context.tr(english: 'Generate PDF', bosnian: 'Generisi PDF'),
                 style: const TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 13,

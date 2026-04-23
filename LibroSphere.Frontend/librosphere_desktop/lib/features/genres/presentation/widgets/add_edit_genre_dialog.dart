@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
+import '../../../../core/localization/admin_language_scope.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../data/models/admin_genre_model.dart';
@@ -45,7 +46,10 @@ class _AddEditGenreDialogState extends State<AddEditGenreDialog> {
 
     if (normalizedName.isEmpty) {
       setState(() {
-        _nameError = 'Genre name is required.';
+        _nameError = context.tr(
+          english: 'Genre name is required.',
+          bosnian: 'Naziv zanra je obavezan.',
+        );
         _failure = null;
       });
       return;
@@ -94,7 +98,12 @@ class _AddEditGenreDialogState extends State<AddEditGenreDialog> {
                 children: [
                   Expanded(
                     child: Text(
-                      widget.genre == null ? 'ADD GENRE' : 'EDIT GENRE',
+                      context.tr(
+                        english:
+                            widget.genre == null ? 'ADD GENRE' : 'EDIT GENRE',
+                        bosnian:
+                            widget.genre == null ? 'DODAJ ZANR' : 'UREDI ZANR',
+                      ),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -111,9 +120,9 @@ class _AddEditGenreDialogState extends State<AddEditGenreDialog> {
                 ],
               ),
               const SizedBox(height: 18),
-              const Text(
-                'Genre Name',
-                style: TextStyle(
+              Text(
+                context.tr(english: 'Genre Name', bosnian: 'Naziv zanra'),
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -122,7 +131,10 @@ class _AddEditGenreDialogState extends State<AddEditGenreDialog> {
               const SizedBox(height: 8),
               AppTextField(
                 controller: _nameController,
-                hintText: 'Enter genre name',
+                hintText: context.tr(
+                  english: 'Enter genre name',
+                  bosnian: 'Unesite naziv zanra',
+                ),
                 errorText: _nameError,
                 onChanged: (_) {
                   if (_nameError != null || _failure != null) {
@@ -148,7 +160,7 @@ class _AddEditGenreDialogState extends State<AddEditGenreDialog> {
               Align(
                 alignment: Alignment.center,
                 child: AppButton(
-                  label: 'SAVE',
+                  label: context.tr(english: 'SAVE', bosnian: 'SACUVAJ'),
                   onPressed: widget.viewModel.isSaving ? null : _submit,
                   width: 132,
                   isLoading: widget.viewModel.isSaving,

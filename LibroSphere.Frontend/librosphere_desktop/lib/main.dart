@@ -9,7 +9,14 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final session = AppInjection.createSessionViewModel();
+  final languageController = AppInjection.createAdminLanguageController();
   unawaited(session.initialize());
+  await languageController.initialize();
 
-  runApp(LibroSphereDesktopApp(session: session));
+  runApp(
+    LibroSphereDesktopApp(
+      session: session,
+      languageController: languageController,
+    ),
+  );
 }

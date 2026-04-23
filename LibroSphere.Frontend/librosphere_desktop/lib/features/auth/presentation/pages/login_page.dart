@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_theme.dart';
+import '../../../../core/localization/admin_language_scope.dart';
 import '../../../session/presentation/viewmodels/admin_session_viewmodel.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../widgets/login_form.dart';
@@ -125,7 +126,12 @@ class _WideLoginLayout extends StatelessWidget {
                   const _LoginHeader(),
                   const SizedBox(height: 14),
                   Text(
-                    'Sign in with your administrator account to manage the catalog, users, orders, and reporting.',
+                    context.tr(
+                      english:
+                          'Sign in with your administrator account to manage the catalog, users, orders, and reporting.',
+                      bosnian:
+                          'Prijavite se administratorskim nalogom da upravljate katalogom, korisnicima, narudzbama i izvjestajima.',
+                    ),
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.86),
                       fontSize: 15,
@@ -186,7 +192,12 @@ class _CompactLoginLayout extends StatelessWidget {
                   const _LoginHeader(compact: true),
                   const SizedBox(height: 12),
                   Text(
-                    'Sign in with your administrator account to continue.',
+                    context.tr(
+                      english:
+                          'Sign in with your administrator account to continue.',
+                      bosnian:
+                          'Prijavite se administratorskim nalogom za nastavak.',
+                    ),
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.86),
                       fontSize: 14,
@@ -265,7 +276,10 @@ class _BrandPanel extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'LibroSphere Admin Portal',
+            context.tr(
+              english: 'LibroSphere Admin Portal',
+              bosnian: 'LibroSphere Admin Portal',
+            ),
             textAlign: alignStart ? TextAlign.left : TextAlign.center,
             style: const TextStyle(
               color: Color(0xFF143A6B),
@@ -278,7 +292,12 @@ class _BrandPanel extends StatelessWidget {
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 460),
             child: Text(
-              'Manage books, genres, users, orders, and dashboard activity from one admin workspace.',
+              context.tr(
+                english:
+                    'Manage books, genres, users, orders, and dashboard activity from one admin workspace.',
+                bosnian:
+                    'Upravljajte knjigama, zanrovima, korisnicima, narudzbama i dashboard aktivnostima iz jednog admin prostora.',
+              ),
               textAlign: alignStart ? TextAlign.left : TextAlign.center,
               style: TextStyle(
                 color: Colors.black.withValues(alpha: 0.66),
@@ -293,9 +312,18 @@ class _BrandPanel extends StatelessWidget {
             runSpacing: 10,
             alignment: alignStart ? WrapAlignment.start : WrapAlignment.center,
             children: const [
-              _InfoChip(label: 'Catalog Management'),
-              _InfoChip(label: 'Order Monitoring'),
-              _InfoChip(label: 'Role-Based Access'),
+              _InfoChip(
+                englishLabel: 'Catalog Management',
+                bosnianLabel: 'Upravljanje katalogom',
+              ),
+              _InfoChip(
+                englishLabel: 'Order Monitoring',
+                bosnianLabel: 'Praćenje narudzbi',
+              ),
+              _InfoChip(
+                englishLabel: 'Role-Based Access',
+                bosnianLabel: 'Pristup po ulogama',
+              ),
             ],
           ),
         ],
@@ -337,9 +365,13 @@ class _FormLogoBadge extends StatelessWidget {
 }
 
 class _InfoChip extends StatelessWidget {
-  const _InfoChip({required this.label});
+  const _InfoChip({
+    required this.englishLabel,
+    required this.bosnianLabel,
+  });
 
-  final String label;
+  final String englishLabel;
+  final String bosnianLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -350,7 +382,7 @@ class _InfoChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        label,
+        context.tr(english: englishLabel, bosnian: bosnianLabel),
         style: const TextStyle(
           color: Color(0xFF143A6B),
           fontSize: 13,
@@ -371,7 +403,7 @@ class _LoginHeader extends StatelessWidget {
     final titleSize = compact ? 24.0 : 30.0;
 
     return Text(
-      'ADMIN LOGIN',
+      context.tr(english: 'ADMIN LOGIN', bosnian: 'ADMIN PRIJAVA'),
       style: TextStyle(
         color: Colors.white,
         fontSize: titleSize,

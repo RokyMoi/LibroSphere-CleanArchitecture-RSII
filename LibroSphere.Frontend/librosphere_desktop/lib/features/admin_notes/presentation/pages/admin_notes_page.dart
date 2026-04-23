@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_theme.dart';
+import '../../../../core/localization/admin_language_scope.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../shared/widgets/admin/admin_empty_state.dart';
@@ -38,23 +39,40 @@ class _AdminNotesPageState extends State<AdminNotesPage> {
       builder: (_) => _AddAdminNoteDialog(viewModel: widget.viewModel),
     );
     if (!mounted || result != true) return;
-    _showSnackBar('Admin note created successfully.', isError: false);
+    _showSnackBar(
+      context.tr(
+        english: 'Admin note created successfully.',
+        bosnian: 'Admin biljeska je uspjesno kreirana.',
+      ),
+      isError: false,
+    );
   }
 
   Future<void> _deleteAdminNote(AdminNoteModel adminNote) async {
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Admin Note'),
-        content: Text('Delete "${adminNote.title}"? This cannot be undone.'),
+        title: Text(
+          context.tr(
+            english: 'Delete Admin Note',
+            bosnian: 'Obrisi admin biljesku',
+          ),
+        ),
+        content: Text(
+          context.tr(
+            english: 'Delete "${adminNote.title}"? This cannot be undone.',
+            bosnian:
+                'Obrisi "${adminNote.title}"? Ova radnja se ne moze vratiti.',
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.tr(english: 'Cancel', bosnian: 'Odustani')),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Delete'),
+            child: Text(context.tr(english: 'Delete', bosnian: 'Obrisi')),
           ),
         ],
       ),
@@ -66,7 +84,13 @@ class _AdminNotesPageState extends State<AdminNotesPage> {
     if (!mounted) return;
     switch (result) {
       case Success<void>():
-        _showSnackBar('Admin note deleted.', isError: false);
+        _showSnackBar(
+          context.tr(
+            english: 'Admin note deleted.',
+            bosnian: 'Admin biljeska je obrisana.',
+          ),
+          isError: false,
+        );
       case ErrorResult<void>(failure: final err):
         _showSnackBar(err.toString(), isError: true);
     }
@@ -106,16 +130,22 @@ class _AdminNotesPageState extends State<AdminNotesPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Admin Notes',
-                    style: TextStyle(
+                  Text(
+                    context.tr(
+                      english: 'Admin Notes',
+                      bosnian: 'Admin biljeske',
+                    ),
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
                   AppButton(
-                    label: 'Add Note',
+                    label: context.tr(
+                      english: 'Add Note',
+                      bosnian: 'Dodaj biljesku',
+                    ),
                     onPressed: _openCreateDialog,
                     width: 140,
                   ),
@@ -125,7 +155,12 @@ class _AdminNotesPageState extends State<AdminNotesPage> {
               Expanded(
                 child: AdminPanel(
                   child: vm.adminNotes.isEmpty
-                      ? const AdminEmptyState('No admin notes found.')
+                      ? AdminEmptyState(
+                          context.tr(
+                            english: 'No admin notes found.',
+                            bosnian: 'Nema admin biljeski.',
+                          ),
+                        )
                       : ListView.separated(
                           padding: const EdgeInsets.all(16),
                           itemCount: vm.adminNotes.length,
@@ -221,7 +256,10 @@ class _AdminNoteRow extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
                     child: Text(
-                      formatAdminDateTime(adminNote.createdOnUtc),
+                      formatAdminDateTime(
+                        adminNote.createdOnUtc,
+                        language: context.adminLanguage,
+                      ),
                       style: const TextStyle(
                         color: desktopMutedForeground,
                         fontSize: 11,
@@ -236,7 +274,7 @@ class _AdminNoteRow extends StatelessWidget {
           SizedBox(
             width: 100,
             child: AppButton(
-              label: 'DELETE',
+              label: context.tr(english: 'DELETE', bosnian: 'OBRISI'),
               onPressed: isDeleting ? null : onDelete,
               height: 36,
               isLoading: isDeleting,
@@ -340,7 +378,12 @@ class _AddAdminNoteDialogState extends State<_AddAdminNoteDialog> {
         case Success<String>(value: final url):
           imageUrl = url;
         case ErrorResult<String>(failure: final err):
-          setState(() => _error = 'Image upload failed: ${err.toString()}');
+          setState(
+            () => _error = context.tr(
+              english: 'Image upload failed: ${err.toString()}',
+              bosnian: 'Upload slike nije uspio: ${err.toString()}',
+            ),
+          );
           return;
       }
     }
@@ -367,18 +410,26 @@ class _AddAdminNoteDialogState extends State<_AddAdminNoteDialog> {
     final isBusy = vm.isSaving || _isUploadingImage;
 
     return AlertDialog(
-      title: const Text('Add Admin Note'),
+      title: Text(
+        context.tr(
+          english: 'Add Admin Note',
+          bosnian: 'Dodaj admin biljesku',
+        ),
+      ),
       content: SizedBox(
         width: 480,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AppTextField(controller: _titleController, hintText: 'Title'),
+            AppTextField(
+              controller: _titleController,
+              hintText: context.tr(english: 'Title', bosnian: 'Naslov'),
+            ),
             const SizedBox(height: 12),
             AppTextField(
               controller: _textController,
-              hintText: 'Content',
+              hintText: context.tr(english: 'Content', bosnian: 'Sadrzaj'),
               maxLines: 4,
             ),
             const SizedBox(height: 12),
@@ -388,7 +439,12 @@ class _AddAdminNoteDialogState extends State<_AddAdminNoteDialog> {
                 ElevatedButton.icon(
                   onPressed: isBusy ? null : _pickImage,
                   icon: const Icon(Icons.image, size: 18),
-                  label: const Text('Choose Image'),
+                  label: Text(
+                    context.tr(
+                      english: 'Choose Image',
+                      bosnian: 'Izaberi sliku',
+                    ),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: desktopPrimaryLight,
                     foregroundColor: Colors.white,
@@ -397,7 +453,11 @@ class _AddAdminNoteDialogState extends State<_AddAdminNoteDialog> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _selectedImageName ?? 'No image selected (optional)',
+                    _selectedImageName ??
+                        context.tr(
+                          english: 'No image selected (optional)',
+                          bosnian: 'Slika nije izabrana (opcionalno)',
+                        ),
                     style: TextStyle(
                       color: _selectedImageName != null
                           ? Colors.white
@@ -436,7 +496,7 @@ class _AddAdminNoteDialogState extends State<_AddAdminNoteDialog> {
       actions: [
         TextButton(
           onPressed: isBusy ? null : () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
+          child: Text(context.tr(english: 'Cancel', bosnian: 'Odustani')),
         ),
         ElevatedButton(
           onPressed: isBusy ? null : _save,
@@ -449,7 +509,7 @@ class _AddAdminNoteDialogState extends State<_AddAdminNoteDialog> {
                     color: Colors.white,
                   ),
                 )
-              : const Text('Publish'),
+              : Text(context.tr(english: 'Publish', bosnian: 'Objavi')),
         ),
       ],
     );

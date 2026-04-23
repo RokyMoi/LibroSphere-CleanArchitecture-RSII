@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/admin_language_scope.dart';
 import '../../../../core/error/result.dart';
 import '../../../../shared/widgets/admin/admin_empty_state.dart';
 import '../../../../shared/widgets/admin/admin_panel.dart';
@@ -51,16 +52,26 @@ class _AuthorsPageState extends State<AuthorsPage> {
     }
 
     final message = author == null
-        ? 'Author was added successfully.'
-        : 'Author was updated successfully.';
+        ? context.tr(
+            english: 'Author was added successfully.',
+            bosnian: 'Autor je uspjesno dodan.',
+          )
+        : context.tr(
+            english: 'Author was updated successfully.',
+            bosnian: 'Autor je uspjesno azuriran.',
+          );
     _showSnackBar(message, isError: false);
   }
 
   Future<void> _deleteAuthor(AdminAuthorModel author) async {
     final shouldDelete = await _confirmDeletion(
-      title: 'Delete Author',
-      message:
-          'Are you sure you want to permanently delete "${author.name}"?\n\nThis will also delete all books by this author.',
+      title: context.tr(english: 'Delete Author', bosnian: 'Obrisi autora'),
+      message: context.tr(
+        english:
+            'Are you sure you want to permanently delete "${author.name}"?\n\nThis will also delete all books by this author.',
+        bosnian:
+            'Da li ste sigurni da zelite trajno obrisati "${author.name}"?\n\nOvo ce obrisati i sve knjige ovog autora.',
+      ),
     );
 
     if (!shouldDelete || !mounted) {
@@ -75,7 +86,10 @@ class _AuthorsPageState extends State<AuthorsPage> {
     switch (result) {
       case Success<void>():
         _showSnackBar(
-          'Author "${author.name}" and all related books were deleted.',
+          context.tr(
+            english: 'Author "${author.name}" and all related books were deleted.',
+            bosnian: 'Autor "${author.name}" i sve povezane knjige su obrisani.',
+          ),
           isError: false,
         );
       case ErrorResult<void>(failure: final error):
@@ -96,11 +110,11 @@ class _AuthorsPageState extends State<AuthorsPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(context.tr(english: 'Cancel', bosnian: 'Odustani')),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Delete'),
+              child: Text(context.tr(english: 'Delete', bosnian: 'Obrisi')),
             ),
           ],
         );
@@ -151,21 +165,24 @@ class _AuthorsPageState extends State<AuthorsPage> {
                   Expanded(
                     child: AppTextField(
                       controller: _searchController,
-                      hintText: 'Search authors by name...',
+                      hintText: context.tr(
+                        english: 'Search authors by name...',
+                        bosnian: 'Pretrazi autore po imenu...',
+                      ),
                       textInputAction: TextInputAction.search,
                       onSubmitted: (v) => viewModel.search(v),
                     ),
                   ),
                   const SizedBox(width: 12),
                   AppButton(
-                    label: 'Search',
+                    label: context.tr(english: 'Search', bosnian: 'Pretrazi'),
                     onPressed: () => viewModel.search(_searchController.text),
                     width: 100,
                   ),
                   if (viewModel.searchTerm.isNotEmpty) ...[  
                     const SizedBox(width: 8),
                     AppButton(
-                      label: 'Clear',
+                      label: context.tr(english: 'Clear', bosnian: 'Ocisti'),
                       onPressed: () {
                         _searchController.clear();
                         viewModel.clearSearch();
@@ -180,12 +197,21 @@ class _AuthorsPageState extends State<AuthorsPage> {
                 child: AdminPanel(
                   child: Column(
                     children: [
-                      const TableHeader(
-                        columns: ['Author', 'Biography', 'Action'],
+                      TableHeader(
+                        columns: [
+                          context.tr(english: 'Author', bosnian: 'Autor'),
+                          context.tr(english: 'Biography', bosnian: 'Biografija'),
+                          context.tr(english: 'Action', bosnian: 'Akcija'),
+                        ],
                       ),
                       Expanded(
                         child: viewModel.authors.isEmpty
-                            ? const AdminEmptyState('No authors found.')
+                            ? AdminEmptyState(
+                                context.tr(
+                                  english: 'No authors found.',
+                                  bosnian: 'Nema pronadjenih autora.',
+                                ),
+                              )
                             : ListView.separated(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 18,
@@ -255,7 +281,8 @@ class _AuthorRow extends StatelessWidget {
         Expanded(
           flex: 2,
           child: _EllipsisCell(
-            text: author.biography,
+            text: _biographyPreview(author.biography),
+            tooltip: author.biography,
             maxLines: 1,
             style: _secondaryRowTextStyle,
           ),
@@ -267,7 +294,7 @@ class _AuthorRow extends StatelessWidget {
             children: [
               Expanded(
                 child: AppButton(
-                  label: 'EDIT',
+                  label: context.tr(english: 'EDIT', bosnian: 'UREDI'),
                   onPressed: onEdit,
                   height: 38,
                 ),
@@ -275,7 +302,7 @@ class _AuthorRow extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: AppButton(
-                  label: 'DELETE',
+                  label: context.tr(english: 'DELETE', bosnian: 'OBRISI'),
                   onPressed: isDeleting ? null : onDelete,
                   height: 38,
                   isLoading: isDeleting,
@@ -293,17 +320,19 @@ class _EllipsisCell extends StatelessWidget {
   const _EllipsisCell({
     required this.text,
     required this.style,
+    this.tooltip,
     this.maxLines = 1,
   });
 
   final String text;
   final TextStyle style;
+  final String? tooltip;
   final int maxLines;
 
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: text,
+      message: tooltip ?? text,
       waitDuration: const Duration(milliseconds: 350),
       child: Text(
         text,
@@ -313,6 +342,15 @@ class _EllipsisCell extends StatelessWidget {
       ),
     );
   }
+}
+
+String _biographyPreview(String biography) {
+  final normalized = biography.trim();
+  if (normalized.length <= 10) {
+    return normalized;
+  }
+
+  return '${normalized.substring(0, 10)}...';
 }
 
 class _AuthorsFooter extends StatelessWidget {
@@ -357,13 +395,16 @@ class _AuthorsFooter extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             Text(
-              'Total authors: $totalCount',
+              context.tr(
+                english: 'Total authors: $totalCount',
+                bosnian: 'Ukupno autora: $totalCount',
+              ),
               style: _footerCountTextStyle,
             ),
           ],
         ),
         AppButton(
-          label: 'Add Author',
+          label: context.tr(english: 'Add Author', bosnian: 'Dodaj autora'),
           onPressed: onAddAuthor,
           width: 160,
         ),

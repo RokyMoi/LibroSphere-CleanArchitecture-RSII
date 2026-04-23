@@ -1,14 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:syncfusion_flutter_pdf/pdf.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 import '../core/app_constants.dart';
 import '../core/ui/app_feedback.dart';
@@ -61,20 +58,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
   Future<_PreparedReaderDocument> _prepareDocument({
     bool forceDownload = false,
   }) async {
-    final cachePaths = await _resolveCachePaths(widget.book.id);
+    final cachePath = await _resolveCachePath(widget.book.id);
+    final pdfFile = File(cachePath.pdfPath);
 
-    if (!forceDownload) {
-      final cachedDocument = await _readCachedDocument(cachePaths);
-      if (cachedDocument != null) {
-        return cachedDocument;
-      }
-    }
-
-    final pdfFile = File(cachePaths.pdfPath);
     if (!forceDownload && await pdfFile.exists()) {
       final fileLength = await pdfFile.length();
       if (fileLength > 0) {
-        return _parseAndPersistReader(cachePaths, pdfFile);
+        return _PreparedReaderDocument(pdfPath: cachePath.pdfPath);
       }
     }
 
@@ -82,79 +72,11 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final pdfUrl = await _resolvePdfUrl();
     _updateLoadingState('Downloading book to your device...', 0);
     final downloadedFile = await _downloadPdf(pdfUrl, pdfFile);
-    return _parseAndPersistReader(cachePaths, downloadedFile);
+
+    return _PreparedReaderDocument(pdfPath: downloadedFile.path);
   }
 
-  Future<_PreparedReaderDocument?> _readCachedDocument(
-    _ReaderCachePaths cachePaths,
-  ) async {
-    final pdfFile = File(cachePaths.pdfPath);
-    final parsedFile = File(cachePaths.parsedPath);
-    if (!await pdfFile.exists() || !await parsedFile.exists()) {
-      return null;
-    }
-
-    try {
-      final decoded = jsonDecode(await parsedFile.readAsString());
-      if (decoded is! Map<String, dynamic>) {
-        return null;
-      }
-
-      final pagesJson = decoded['pages'];
-      if (pagesJson is! List) {
-        return null;
-      }
-
-      final pages = pagesJson
-          .map((page) => (page as String).trim())
-          .where((page) => page.isNotEmpty)
-          .toList();
-      if (pages.isEmpty) {
-        return null;
-      }
-
-      return _PreparedReaderDocument(
-        pdfPath: cachePaths.pdfPath,
-        parsedPath: cachePaths.parsedPath,
-        pages: pages,
-      );
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Future<_PreparedReaderDocument> _parseAndPersistReader(
-    _ReaderCachePaths cachePaths,
-    File pdfFile,
-  ) async {
-    _updateLoadingState('Preparing pages for reading...', null);
-
-    final pdfBytes = await pdfFile.readAsBytes();
-    final pages = await compute(_extractPdfPages, pdfBytes);
-    if (pages.isEmpty) {
-      throw Exception(
-        'This PDF could not be converted into reader-friendly text.',
-      );
-    }
-
-    final parsedFile = File(cachePaths.parsedPath);
-    await parsedFile.writeAsString(
-      jsonEncode(<String, dynamic>{
-        'version': 1,
-        'pageCount': pages.length,
-        'pages': pages,
-      }),
-      flush: true,
-    );
-
-    return _PreparedReaderDocument(
-      pdfPath: cachePaths.pdfPath,
-      parsedPath: cachePaths.parsedPath,
-      pages: pages,
-    );
-  }
-
-  Future<_ReaderCachePaths> _resolveCachePaths(String bookId) async {
+  Future<_ReaderCachePath> _resolveCachePath(String bookId) async {
     final baseDirectory = await getApplicationSupportDirectory();
     final cacheDirectory = Directory(
       '${baseDirectory.path}${Platform.pathSeparator}reader_cache',
@@ -165,9 +87,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
     unawaited(_pruneCacheDirectory(cacheDirectory));
 
-    return _ReaderCachePaths(
+    return _ReaderCachePath(
       pdfPath: '${cacheDirectory.path}${Platform.pathSeparator}$bookId.pdf',
-      parsedPath: '${cacheDirectory.path}${Platform.pathSeparator}$bookId.json',
     );
   }
 
@@ -179,23 +100,19 @@ class _ReaderScreenState extends State<ReaderScreen> {
           .cast<File>()
           .toList();
 
-      final pairedEntries = <({File pdf, File parsed, DateTime modified, int length})>[];
-      for (final pdf in pdfFiles) {
-        final parsed = File(
-          pdf.path.replaceFirst(RegExp(r'\.pdf$'), '.json'),
-        );
-        final stat = await pdf.stat();
-        pairedEntries.add((
-          pdf: pdf,
-          parsed: parsed,
+      final entries = <({File file, DateTime modified, int length})>[];
+      for (final file in pdfFiles) {
+        final stat = await file.stat();
+        entries.add((
+          file: file,
           modified: stat.modified,
           length: stat.size,
         ));
       }
 
-      if (pairedEntries.length <= _maxCachedBooks) {
+      if (entries.length <= _maxCachedBooks) {
         var totalBytes = 0;
-        for (final item in pairedEntries) {
+        for (final item in entries) {
           totalBytes += item.length;
         }
         if (totalBytes <= _maxCacheBytes) {
@@ -203,25 +120,18 @@ class _ReaderScreenState extends State<ReaderScreen> {
         }
       }
 
-      pairedEntries.sort((a, b) => a.modified.compareTo(b.modified));
-      var totalBytes = pairedEntries.fold<int>(
-        0,
-        (sum, item) => sum + item.length,
-      );
+      entries.sort((a, b) => a.modified.compareTo(b.modified));
+      var totalBytes = entries.fold<int>(0, (sum, item) => sum + item.length);
 
-      while (
-          pairedEntries.length > _maxCachedBooks || totalBytes > _maxCacheBytes) {
-        final oldest = pairedEntries.removeAt(0);
+      while (entries.length > _maxCachedBooks || totalBytes > _maxCacheBytes) {
+        final oldest = entries.removeAt(0);
         totalBytes -= oldest.length;
-        if (await oldest.pdf.exists()) {
-          await oldest.pdf.delete();
-        }
-        if (await oldest.parsed.exists()) {
-          await oldest.parsed.delete();
+        if (await oldest.file.exists()) {
+          await oldest.file.delete();
         }
       }
     } catch (_) {
-      // Cache cleanup should not block reader startup.
+      // Cache cleanup should never block reader startup.
     }
   }
 
@@ -357,33 +267,7 @@ class _ReaderScaffold extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-              child: Row(
-                children: [
-                  InkWell(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: const Row(
-                      children: [
-                        Icon(
-                          Icons.chevron_left_rounded,
-                          color: brandBlue,
-                          size: 28,
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          'Reader',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            const _ReaderHeader(),
             Expanded(child: child),
             Container(
               color: Colors.white,
@@ -419,47 +303,40 @@ class _ReaderContentScreen extends StatefulWidget {
 }
 
 class _ReaderContentScreenState extends State<_ReaderContentScreen> {
-  static const _defaultFontSize = 18.0;
+  static const _defaultZoomLevel = 1.0;
+  static const _minZoomLevel = 1.0;
+  static const _maxZoomLevel = 3.0;
 
-  final ItemScrollController _itemScrollController = ItemScrollController();
-  final ItemPositionsListener _itemPositionsListener =
-      ItemPositionsListener.create();
+  final PdfViewerController _pdfViewerController = PdfViewerController();
   final ValueNotifier<int> _notificationPlaceholder = ValueNotifier<int>(0);
 
   NotificationViewModel? _notifications;
   SharedPreferences? _prefs;
-  Timer? _saveTimer;
 
-  double _fontSize = _defaultFontSize;
-  _ReaderThemeMode _themeMode = _ReaderThemeMode.light;
-  Set<int> _bookmarks = <int>{};
-  int _currentPage = 0;
+  int _currentPage = 1;
+  int _pageCount = 0;
+  int _restoredPage = 1;
   bool _didRestorePage = false;
+  double _zoomLevel = _defaultZoomLevel;
 
   String get _bookKey => widget.book.id;
   String get _lastPageKey => 'reader.lastPage.$_bookKey';
-  String get _bookmarkKey => 'reader.bookmarks.$_bookKey';
-  String get _fontSizeKey => 'reader.fontSize';
-  String get _themeModeKey => 'reader.themeMode';
+  String get _zoomLevelKey => 'reader.zoomLevel';
 
   @override
   void initState() {
     super.initState();
-    _itemPositionsListener.itemPositions.addListener(_handleVisibleItemsChanged);
     _initializeNotifications();
     unawaited(_restoreReaderState());
   }
 
   @override
   void dispose() {
-    _itemPositionsListener.itemPositions.removeListener(
-      _handleVisibleItemsChanged,
-    );
-    _saveTimer?.cancel();
     unawaited(_persistCurrentPage());
     _notifications?.stopPolling();
     _notifications?.dispose();
     _notificationPlaceholder.dispose();
+    _pdfViewerController.dispose();
     super.dispose();
   }
 
@@ -480,62 +357,15 @@ class _ReaderContentScreenState extends State<_ReaderContentScreen> {
       return;
     }
 
-    final savedBookmarks = _decodeBookmarks(prefs.getString(_bookmarkKey));
-    final savedFontSize = prefs.getDouble(_fontSizeKey) ?? _defaultFontSize;
-    final savedThemeMode = _ReaderThemeModeX.fromStorageValue(
-      prefs.getString(_themeModeKey),
-    );
-    final savedPage = prefs.getInt(_lastPageKey) ?? 0;
+    final savedPage = prefs.getInt(_lastPageKey) ?? 1;
+    final savedZoom = prefs.getDouble(_zoomLevelKey) ?? _defaultZoomLevel;
 
     setState(() {
       _prefs = prefs;
-      _fontSize = savedFontSize.clamp(14.0, 30.0);
-      _themeMode = savedThemeMode;
-      _bookmarks = savedBookmarks;
-      _currentPage = savedPage.clamp(0, widget.document.pages.length - 1);
+      _restoredPage = savedPage < 1 ? 1 : savedPage;
+      _currentPage = _restoredPage;
+      _zoomLevel = savedZoom.clamp(_minZoomLevel, _maxZoomLevel);
     });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _didRestorePage || !_itemScrollController.isAttached) {
-        return;
-      }
-
-      _didRestorePage = true;
-      _itemScrollController.jumpTo(index: _currentPage);
-    });
-  }
-
-  void _handleVisibleItemsChanged() {
-    final positions = _itemPositionsListener.itemPositions.value;
-    if (positions.isEmpty) {
-      return;
-    }
-
-    final visibleItems = positions
-        .where((position) => position.itemTrailingEdge > 0)
-        .toList()
-      ..sort((a, b) => a.itemLeadingEdge.compareTo(b.itemLeadingEdge));
-    if (visibleItems.isEmpty) {
-      return;
-    }
-
-    final nextPage = visibleItems.first.index.clamp(
-      0,
-      widget.document.pages.length - 1,
-    );
-    if (_currentPage != nextPage && mounted) {
-      setState(() => _currentPage = nextPage);
-    }
-
-    _schedulePositionPersist();
-  }
-
-  void _schedulePositionPersist() {
-    _saveTimer?.cancel();
-    _saveTimer = Timer(
-      const Duration(milliseconds: 350),
-      () => unawaited(_persistCurrentPage()),
-    );
   }
 
   Future<void> _persistCurrentPage() async {
@@ -544,208 +374,51 @@ class _ReaderContentScreenState extends State<_ReaderContentScreen> {
     await prefs.setInt(_lastPageKey, _currentPage);
   }
 
-  Future<void> _persistReaderSettings() async {
+  Future<void> _persistZoomLevel() async {
     final prefs = _prefs ?? await SharedPreferences.getInstance();
     _prefs ??= prefs;
-    await Future.wait([
-      prefs.setDouble(_fontSizeKey, _fontSize),
-      prefs.setString(_themeModeKey, _themeMode.storageValue),
-      prefs.setString(_bookmarkKey, jsonEncode(_bookmarks.toList()..sort())),
-    ]);
+    await prefs.setDouble(_zoomLevelKey, _zoomLevel);
   }
 
-  Set<int> _decodeBookmarks(String? rawBookmarks) {
-    if (rawBookmarks == null || rawBookmarks.isEmpty) {
-      return <int>{};
-    }
+  void _handleDocumentLoaded(PdfDocumentLoadedDetails details) {
+    final safePageCount = details.document.pages.count;
+    final targetPage = _restoredPage.clamp(1, safePageCount);
 
-    try {
-      final decoded = jsonDecode(rawBookmarks);
-      if (decoded is! List) {
-        return <int>{};
+    setState(() {
+      _pageCount = safePageCount;
+      _currentPage = targetPage;
+    });
+
+    if (!_didRestorePage) {
+      _didRestorePage = true;
+      if (targetPage > 1) {
+        _pdfViewerController.jumpToPage(targetPage);
       }
-
-      return decoded
-          .whereType<num>()
-          .map((page) => page.toInt())
-          .where((page) => page >= 0 && page < widget.document.pages.length)
-          .toSet();
-    } catch (_) {
-      return <int>{};
+      if (_zoomLevel != _defaultZoomLevel) {
+        _pdfViewerController.zoomLevel = _zoomLevel;
+      }
     }
   }
 
-  void _toggleBookmark() {
-    final nextBookmarks = Set<int>.from(_bookmarks);
-    if (!nextBookmarks.add(_currentPage)) {
-      nextBookmarks.remove(_currentPage);
-    }
-
-    setState(() => _bookmarks = nextBookmarks);
-    unawaited(_persistReaderSettings());
-  }
-
-  void _jumpToPage(int pageIndex) {
-    if (!_itemScrollController.isAttached) {
+  void _handlePageChanged(PdfPageChangedDetails details) {
+    if (_currentPage == details.newPageNumber) {
       return;
     }
 
-    _itemScrollController.scrollTo(
-      index: pageIndex,
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOut,
-    );
+    setState(() => _currentPage = details.newPageNumber);
+    unawaited(_persistCurrentPage());
   }
 
-  Future<void> _openSearchDialog() async {
-    final controller = TextEditingController();
-    final query = await showDialog<String>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Search in book'),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            textInputAction: TextInputAction.search,
-            decoration: const InputDecoration(
-              hintText: 'Enter a word or phrase',
-            ),
-            onSubmitted: (_) => Navigator.of(context).pop(controller.text),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(controller.text),
-              child: const Text('Search'),
-            ),
-          ],
-        );
-      },
-    );
-
-    final normalizedQuery = query?.trim().toLowerCase();
-    if (!mounted || normalizedQuery == null || normalizedQuery.isEmpty) {
+  void _changeZoom(double delta) {
+    final nextZoomLevel =
+        (_zoomLevel + delta).clamp(_minZoomLevel, _maxZoomLevel).toDouble();
+    if (nextZoomLevel == _zoomLevel) {
       return;
     }
 
-    final matchIndex = widget.document.pages.indexWhere(
-      (page) => page.toLowerCase().contains(normalizedQuery),
-    );
-
-    if (matchIndex < 0) {
-      showDestructiveSnackBar(
-        context,
-        'No match found for "$normalizedQuery".',
-      );
-      return;
-    }
-
-    _jumpToPage(matchIndex);
-    showSuccessSnackBar(
-      context,
-      'Jumped to page ${matchIndex + 1}.',
-    );
-  }
-
-  Future<void> _openReaderOptions() async {
-    final palette = _paletteFor(_themeMode);
-    await showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: palette.surface,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setSheetState) {
-            return SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 18, 20, 22),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Reader Options',
-                      style: TextStyle(
-                        color: palette.text,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    Text(
-                      'Font Size',
-                      style: TextStyle(
-                        color: palette.mutedText,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Slider(
-                      value: _fontSize,
-                      min: 14,
-                      max: 30,
-                      divisions: 8,
-                      label: _fontSize.toStringAsFixed(0),
-                      onChanged: (value) {
-                        setState(() => _fontSize = value);
-                        setSheetState(() {});
-                      },
-                      onChangeEnd: (_) => unawaited(_persistReaderSettings()),
-                    ),
-                    Text(
-                      'Theme',
-                      style: TextStyle(
-                        color: palette.mutedText,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 10,
-                      children: _ReaderThemeMode.values.map((mode) {
-                        final selected = mode == _themeMode;
-                        return ChoiceChip(
-                          label: Text(mode.label),
-                          selected: selected,
-                          onSelected: (_) {
-                            setState(() => _themeMode = mode);
-                            setSheetState(() {});
-                            unawaited(_persistReaderSettings());
-                          },
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          _toggleBookmark();
-                          setSheetState(() {});
-                        },
-                        icon: Icon(
-                          _bookmarks.contains(_currentPage)
-                              ? Icons.bookmark_remove_rounded
-                              : Icons.bookmark_add_rounded,
-                        ),
-                        label: Text(
-                          _bookmarks.contains(_currentPage)
-                              ? 'Remove bookmark for current page'
-                              : 'Bookmark current page',
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
+    _pdfViewerController.zoomLevel = nextZoomLevel;
+    setState(() => _zoomLevel = nextZoomLevel);
+    unawaited(_persistZoomLevel());
   }
 
   void _openNotifications() {
@@ -763,139 +436,87 @@ class _ReaderContentScreenState extends State<_ReaderContentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final palette = _paletteFor(_themeMode);
-    final titleStyle = TextStyle(
-      color: palette.text,
-      fontSize: 18,
-      fontWeight: FontWeight.w800,
-    );
+    final pageLabel = _pageCount == 0
+        ? 'PAGE $_currentPage'
+        : 'PAGE $_currentPage / $_pageCount';
 
     return Scaffold(
-      backgroundColor: palette.background,
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      InkWell(
-                        onTap: () => Navigator.of(context).pop(),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.chevron_left_rounded,
-                              color: brandBlue,
-                              size: 28,
+            const _ReaderHeader(),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEAEAEA),
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.06),
+                              blurRadius: 18,
+                              offset: const Offset(0, 8),
                             ),
-                            const SizedBox(width: 4),
-                            Text('Reader', style: titleStyle),
                           ],
                         ),
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        onPressed: _openSearchDialog,
-                        icon: Icon(Icons.search_rounded, color: palette.text),
-                        tooltip: 'Search',
-                      ),
-                      IconButton(
-                        onPressed: _toggleBookmark,
-                        icon: Icon(
-                          _bookmarks.contains(_currentPage)
-                              ? Icons.bookmark_rounded
-                              : Icons.bookmark_border_rounded,
-                          color: palette.text,
-                        ),
-                        tooltip: 'Bookmark',
-                      ),
-                      IconButton(
-                        onPressed: _openReaderOptions,
-                        icon: Icon(
-                          _themeMode == _ReaderThemeMode.dark
-                              ? Icons.dark_mode_rounded
-                              : Icons.tune_rounded,
-                          color: palette.text,
-                        ),
-                        tooltip: 'Reader options',
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      widget.book.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: palette.text,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Page ${_currentPage + 1} / ${widget.document.pages.length}',
-                      style: TextStyle(
-                        color: palette.mutedText,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  if (_bookmarks.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      height: 34,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: (_bookmarks.toList()..sort()).map((page) {
-                          final isActive = page == _currentPage;
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: ActionChip(
-                              backgroundColor: isActive
-                                  ? brandBlue
-                                  : palette.cardBackground,
-                              labelStyle: TextStyle(
-                                color: isActive ? Colors.white : palette.text,
-                                fontWeight: FontWeight.w700,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(18),
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+                                child: SfPdfViewer.file(
+                                  File(widget.document.pdfPath),
+                                  controller: _pdfViewerController,
+                                  canShowPaginationDialog: false,
+                                  enableDoubleTapZooming: true,
+                                  pageSpacing: 14,
+                                  onDocumentLoaded: _handleDocumentLoaded,
+                                  onPageChanged: _handlePageChanged,
+                                ),
                               ),
-                              label: Text('Page ${page + 1}'),
-                              onPressed: () => _jumpToPage(page),
-                            ),
-                          );
-                        }).toList(),
+                              Positioned(
+                                top: 14,
+                                left: 20,
+                                right: 20,
+                                child: IgnorePointer(
+                                  child: Center(
+                                    child: Text(
+                                      widget.book.title.toUpperCase(),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Color(0xFF7A7A7A),
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.4,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: 18,
+                      right: 18,
+                      bottom: 18,
+                      child: _ReaderOverlayBar(
+                        pageLabel: pageLabel,
+                        canZoomOut: _zoomLevel > _minZoomLevel,
+                        canZoomIn: _zoomLevel < _maxZoomLevel,
+                        onZoomOut: () => _changeZoom(-0.25),
+                        onZoomIn: () => _changeZoom(0.25),
                       ),
                     ),
                   ],
-                ],
-              ),
-            ),
-            Expanded(
-              child: Container(
-                color: palette.background,
-                child: ScrollablePositionedList.builder(
-                  itemScrollController: _itemScrollController,
-                  itemPositionsListener: _itemPositionsListener,
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
-                  itemCount: widget.document.pages.length,
-                  itemBuilder: (context, index) {
-                    return RepaintBoundary(
-                      child: _ReaderPageCard(
-                        pageNumber: index + 1,
-                        text: widget.document.pages[index],
-                        fontSize: _fontSize,
-                        palette: palette,
-                        bookmarked: _bookmarks.contains(index),
-                      ),
-                    );
-                  },
                 ),
               ),
             ),
@@ -922,72 +543,125 @@ class _ReaderContentScreenState extends State<_ReaderContentScreen> {
   }
 }
 
-class _ReaderPageCard extends StatelessWidget {
-  const _ReaderPageCard({
-    required this.pageNumber,
-    required this.text,
-    required this.fontSize,
-    required this.palette,
-    required this.bookmarked,
-  });
-
-  final int pageNumber;
-  final String text;
-  final double fontSize;
-  final _ReaderPalette palette;
-  final bool bookmarked;
+class _ReaderHeader extends StatelessWidget {
+  const _ReaderHeader();
 
   @override
   Widget build(BuildContext context) {
-    final displayText = text.trim().isEmpty
-        ? '[This page does not contain extractable text.]'
-        : text;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
-      decoration: BoxDecoration(
-        color: palette.cardBackground,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: palette.shadowOpacity),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+      child: Row(
         children: [
-          Row(
-            children: [
-              Text(
-                'Page $pageNumber',
-                style: TextStyle(
-                  color: palette.mutedText,
-                  fontWeight: FontWeight.w800,
+          InkWell(
+            onTap: () => Navigator.of(context).pop(),
+            child: const Row(
+              children: [
+                Icon(
+                  Icons.chevron_left_rounded,
+                  color: brandBlue,
+                  size: 28,
                 ),
-              ),
-              const SizedBox(width: 8),
-              if (bookmarked)
-                const Icon(
-                  Icons.bookmark_rounded,
-                  color: brandBlueDark,
-                  size: 18,
+                SizedBox(width: 4),
+                Text(
+                  'Reader',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Text(
-            displayText,
-            style: TextStyle(
-              color: palette.text,
-              fontSize: fontSize,
-              height: 1.7,
+              ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ReaderOverlayBar extends StatelessWidget {
+  const _ReaderOverlayBar({
+    required this.pageLabel,
+    required this.canZoomOut,
+    required this.canZoomIn,
+    required this.onZoomOut,
+    required this.onZoomIn,
+  });
+
+  final String pageLabel;
+  final bool canZoomOut;
+  final bool canZoomIn;
+  final VoidCallback onZoomOut;
+  final VoidCallback onZoomIn;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.96),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          _ReaderOverlayButton(
+            icon: Icons.zoom_in_rounded,
+            enabled: canZoomIn,
+            onTap: onZoomIn,
+          ),
+          const SizedBox(width: 10),
+          _ReaderOverlayButton(
+            icon: Icons.zoom_out_rounded,
+            enabled: canZoomOut,
+            onTap: onZoomOut,
+          ),
+          const Spacer(),
+          Text(
+            pageLabel,
+            style: const TextStyle(
+              color: brandBlueDark,
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.4,
+            ),
+          ),
+          const Spacer(),
+          const SizedBox(width: 94),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReaderOverlayButton extends StatelessWidget {
+  const _ReaderOverlayButton({
+    required this.icon,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: enabled ? onTap : null,
+      borderRadius: BorderRadius.circular(999),
+      child: Padding(
+        padding: const EdgeInsets.all(2),
+        child: Icon(
+          icon,
+          size: 32,
+          color: enabled ? brandBlue : const Color(0xFF8FC5FF),
+        ),
       ),
     );
   }
@@ -1096,101 +770,15 @@ class _ReaderErrorState extends StatelessWidget {
 class _PreparedReaderDocument {
   const _PreparedReaderDocument({
     required this.pdfPath,
-    required this.parsedPath,
-    required this.pages,
   });
 
   final String pdfPath;
-  final String parsedPath;
-  final List<String> pages;
 }
 
-class _ReaderCachePaths {
-  const _ReaderCachePaths({
+class _ReaderCachePath {
+  const _ReaderCachePath({
     required this.pdfPath,
-    required this.parsedPath,
   });
 
   final String pdfPath;
-  final String parsedPath;
-}
-
-enum _ReaderThemeMode { light, dark }
-
-extension _ReaderThemeModeX on _ReaderThemeMode {
-  String get label => this == _ReaderThemeMode.dark ? 'Dark' : 'Light';
-
-  String get storageValue => switch (this) {
-    _ReaderThemeMode.light => 'light',
-    _ReaderThemeMode.dark => 'dark',
-  };
-
-  static _ReaderThemeMode fromStorageValue(String? value) {
-    return value == 'dark' ? _ReaderThemeMode.dark : _ReaderThemeMode.light;
-  }
-}
-
-class _ReaderPalette {
-  const _ReaderPalette({
-    required this.background,
-    required this.surface,
-    required this.cardBackground,
-    required this.text,
-    required this.mutedText,
-    required this.shadowOpacity,
-  });
-
-  final Color background;
-  final Color surface;
-  final Color cardBackground;
-  final Color text;
-  final Color mutedText;
-  final double shadowOpacity;
-}
-
-_ReaderPalette _paletteFor(_ReaderThemeMode themeMode) {
-  return switch (themeMode) {
-    _ReaderThemeMode.light => const _ReaderPalette(
-      background: Color(0xFFF4F7FB),
-      surface: Colors.white,
-      cardBackground: Colors.white,
-      text: Color(0xFF17212E),
-      mutedText: Color(0xFF5E6B7B),
-      shadowOpacity: 0.06,
-    ),
-    _ReaderThemeMode.dark => const _ReaderPalette(
-      background: Color(0xFF0F1720),
-      surface: Color(0xFF17212E),
-      cardBackground: Color(0xFF17212E),
-      text: Color(0xFFF3F6FA),
-      mutedText: Color(0xFF9FB0C4),
-      shadowOpacity: 0.16,
-    ),
-  };
-}
-
-List<String> _extractPdfPages(Uint8List bytes) {
-  final document = PdfDocument(inputBytes: bytes);
-  try {
-    final extractor = PdfTextExtractor(document);
-    final pages = <String>[];
-
-    for (var pageIndex = 0; pageIndex < document.pages.count; pageIndex++) {
-      final text = extractor.extractText(
-        startPageIndex: pageIndex,
-        endPageIndex: pageIndex,
-        layoutText: true,
-      );
-      final normalized = text
-          .replaceAll('\r\n', '\n')
-          .replaceAll('\r', '\n')
-          .replaceAll(RegExp(r'\n{3,}'), '\n\n')
-          .trim();
-      pages.add(normalized);
-    }
-
-    return pages;
-  } finally {
-    document.dispose();
-  }
 }

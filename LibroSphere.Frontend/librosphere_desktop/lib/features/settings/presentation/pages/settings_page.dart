@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_theme.dart';
+import '../../../../core/localization/admin_language_controller.dart';
+import '../../../../core/localization/admin_language_scope.dart';
 import '../../../../features/session/presentation/viewmodels/admin_session_viewmodel.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_text_field.dart';
@@ -11,10 +13,12 @@ class SettingsPage extends StatefulWidget {
     super.key,
     required this.viewModel,
     required this.session,
+    required this.languageController,
   });
 
   final SettingsViewModel viewModel;
   final AdminSessionViewModel session;
+  final AdminLanguageController languageController;
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -57,7 +61,14 @@ class _SettingsPageState extends State<SettingsPage> {
       _newPasswordController.clear();
       _confirmPasswordController.clear();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(widget.viewModel.successMessage ?? 'Success!')),
+        SnackBar(
+          content: Text(
+            context.tr(
+              english: 'Password changed successfully.',
+              bosnian: 'Lozinka je uspjesno promijenjena.',
+            ),
+          ),
+        ),
       );
     } else if (!success && mounted && widget.viewModel.error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -87,8 +98,10 @@ class _SettingsPageState extends State<SettingsPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            widget.viewModel.createAdminSuccess ??
-                'Admin nalog je uspjesno kreiran.',
+            context.tr(
+              english: 'Admin account created successfully.',
+              bosnian: 'Admin nalog je uspjesno kreiran.',
+            ),
           ),
           backgroundColor: const Color(0xFF1F8B4C),
         ),
@@ -107,16 +120,24 @@ class _SettingsPageState extends State<SettingsPage> {
     final shouldLogout = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Da li ste sigurni da zelite da se odjavite?'),
+        title: Text(widget.languageController.language.isEnglish ? 'Log out' : 'Odjava'),
+        content: Text(
+          widget.languageController.language.isEnglish
+              ? 'Are you sure you want to log out?'
+              : 'Da li ste sigurni da zelite da se odjavite?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(
+              widget.languageController.language.isEnglish ? 'Cancel' : 'Odustani',
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Logout'),
+            child: Text(
+              widget.languageController.language.isEnglish ? 'Log out' : 'Odjava',
+            ),
           ),
         ],
       ),
@@ -130,8 +151,12 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: widget.viewModel,
+      listenable: Listenable.merge([
+        widget.viewModel,
+        widget.languageController,
+      ]),
       builder: (context, _) {
+        final language = widget.languageController.language;
         return SingleChildScrollView(
           padding: const EdgeInsets.all(32),
           child: Column(
@@ -140,9 +165,12 @@ class _SettingsPageState extends State<SettingsPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Settings',
-                    style: TextStyle(
+                  const SizedBox(
+                    width: 120,
+                  ),
+                  Text(
+                    language.isEnglish ? 'Settings' : 'Postavke',
+                    style: const TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -151,9 +179,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   OutlinedButton.icon(
                     onPressed: _confirmLogout,
                     icon: const Icon(Icons.logout, color: Colors.white),
-                    label: const Text(
-                      'Logout',
-                      style: TextStyle(color: Colors.white),
+                    label: Text(
+                      language.isEnglish ? 'Log out' : 'Odjava',
+                      style: const TextStyle(color: Colors.white),
                     ),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Colors.white54),
@@ -170,8 +198,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 spacing: 24,
                 runSpacing: 24,
                 children: [
-                  _buildChangePasswordCard(),
-                  _buildCreateAdminCard(),
+                  _buildChangePasswordCard(language),
+                  _buildCreateAdminCard(language),
+                  _buildLanguageCard(language),
                 ],
               ),
             ],
@@ -181,7 +210,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildChangePasswordCard() {
+  Widget _buildChangePasswordCard(AdminLanguage language) {
     return Container(
       width: 400,
       padding: const EdgeInsets.all(24),
@@ -195,9 +224,9 @@ class _SettingsPageState extends State<SettingsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Change Password',
-              style: TextStyle(
+            Text(
+              language.isEnglish ? 'Change Password' : 'Promjena lozinke',
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -206,26 +235,28 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 24),
             AppTextField(
               controller: _currentPasswordController,
-              hintText: 'Current Password',
+              hintText: language.isEnglish ? 'Current Password' : 'Trenutna lozinka',
               obscureText: true,
             ),
             const SizedBox(height: 16),
             AppTextField(
               controller: _newPasswordController,
-              hintText: 'New Password',
+              hintText: language.isEnglish ? 'New Password' : 'Nova lozinka',
               obscureText: true,
             ),
             const SizedBox(height: 16),
             AppTextField(
               controller: _confirmPasswordController,
-              hintText: 'Confirm New Password',
+              hintText: language.isEnglish
+                  ? 'Confirm New Password'
+                  : 'Potvrdite novu lozinku',
               obscureText: true,
             ),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
               child: AppButton(
-                label: 'Change Password',
+                label: language.isEnglish ? 'Change Password' : 'Promijeni lozinku',
                 onPressed: widget.viewModel.isLoading ? null : _submit,
                 isLoading: widget.viewModel.isLoading,
               ),
@@ -236,7 +267,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildCreateAdminCard() {
+  Widget _buildCreateAdminCard(AdminLanguage language) {
     return Container(
       width: 400,
       padding: const EdgeInsets.all(24),
@@ -248,9 +279,9 @@ class _SettingsPageState extends State<SettingsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
-            'Create New Admin',
-            style: TextStyle(
+          Text(
+            language.isEnglish ? 'Create New Admin' : 'Kreiraj novog admina',
+            style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -259,12 +290,12 @@ class _SettingsPageState extends State<SettingsPage> {
           const SizedBox(height: 24),
           AppTextField(
             controller: _adminFirstNameController,
-            hintText: 'First Name',
+            hintText: language.isEnglish ? 'First Name' : 'Ime',
           ),
           const SizedBox(height: 16),
           AppTextField(
             controller: _adminLastNameController,
-            hintText: 'Last Name',
+            hintText: language.isEnglish ? 'Last Name' : 'Prezime',
           ),
           const SizedBox(height: 16),
           AppTextField(
@@ -275,18 +306,86 @@ class _SettingsPageState extends State<SettingsPage> {
           const SizedBox(height: 16),
           AppTextField(
             controller: _adminPasswordController,
-            hintText: 'Password',
+            hintText: language.isEnglish ? 'Password' : 'Lozinka',
             obscureText: true,
           ),
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
             child: AppButton(
-              label: 'Create Admin',
+              label: language.isEnglish ? 'Create Admin' : 'Kreiraj admina',
               onPressed:
                   widget.viewModel.isCreatingAdmin ? null : _createAdmin,
               isLoading: widget.viewModel.isCreatingAdmin,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLanguageCard(AdminLanguage language) {
+    return Container(
+      width: 400,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: desktopPrimaryLight.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            language.isEnglish ? 'Language' : 'Jezik',
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            language.isEnglish
+                ? 'Choose the admin interface language.'
+                : 'Izaberite jezik admin interfejsa.',
+            style: const TextStyle(
+              color: Colors.white70,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: AdminLanguage.values.map((option) {
+              final selected = option == language;
+              return Padding(
+                padding: EdgeInsets.only(
+                  right: option == AdminLanguage.bosnian ? 12 : 0,
+                ),
+                child: OutlinedButton(
+                  onPressed: () => widget.languageController.setLanguage(option),
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: selected
+                        ? Colors.white
+                        : Colors.white.withValues(alpha: 0.08),
+                    side: BorderSide(
+                      color: selected ? Colors.white : Colors.white54,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: Text(
+                    option.label,
+                    style: TextStyle(
+                      color: selected ? desktopPrimary : Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
           ),
         ],
       ),

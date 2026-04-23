@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/admin_language_controller.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../shared/widgets/admin/admin_panel.dart';
 import '../../../../shared/widgets/error_view.dart';
@@ -9,9 +10,14 @@ import '../widgets/analytics_tile.dart';
 import '../widgets/recent_activity_list.dart';
 
 class DashboardPage extends StatefulWidget {
-  const DashboardPage({super.key, required this.viewModel});
+  const DashboardPage({
+    super.key,
+    required this.viewModel,
+    required this.languageController,
+  });
 
   final DashboardViewModel viewModel;
+  final AdminLanguageController languageController;
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
@@ -27,9 +33,13 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: widget.viewModel,
+      listenable: Listenable.merge([
+        widget.viewModel,
+        widget.languageController,
+      ]),
       builder: (context, _) {
         final viewModel = widget.viewModel;
+        final language = widget.languageController.language;
 
         if (viewModel.isLoading) {
           return const LoadingView();
@@ -52,15 +62,21 @@ class _DashboardPageState extends State<DashboardPage> {
                 _DashboardRow(
                   items: [
                     _DashboardTileData(
-                      label: 'Number of Users:',
+                      label: language.isEnglish
+                          ? 'Number of Users:'
+                          : 'Broj korisnika:',
                       value: stats.totalUsers.toString(),
                     ),
                     _DashboardTileData(
-                      label: 'Total Sales:',
+                      label: language.isEnglish
+                          ? 'Total Sales:'
+                          : 'Ukupna prodaja:',
                       value: stats.totalSales.toString(),
                     ),
                     _DashboardTileData(
-                      label: 'Total Profit:',
+                      label: language.isEnglish
+                          ? 'Total Profit:'
+                          : 'Ukupan profit:',
                       value: formatCurrency(stats.totalProfit, 'USD'),
                     ),
                   ],
@@ -69,15 +85,21 @@ class _DashboardPageState extends State<DashboardPage> {
                 _DashboardRow(
                   items: [
                     _DashboardTileData(
-                      label: 'Active Users:',
+                      label: language.isEnglish
+                          ? 'Active Users:'
+                          : 'Aktivni korisnici:',
                       value: stats.activeUsers.toString(),
                     ),
                     _DashboardTileData(
-                      label: 'Books / Authors:',
+                      label: language.isEnglish
+                          ? 'Books / Authors:'
+                          : 'Knjige / Autori:',
                       value: '${stats.totalBooks} / ${stats.totalAuthors}',
                     ),
                     _DashboardTileData(
-                      label: '30d Revenue:',
+                      label: language.isEnglish
+                          ? '30d Revenue:'
+                          : 'Prihod 30d:',
                       value: formatCurrency(stats.revenueLast30Days, 'USD'),
                     ),
                   ],
@@ -86,24 +108,30 @@ class _DashboardPageState extends State<DashboardPage> {
                 _DashboardRow(
                   items: [
                     _DashboardTileData(
-                      label: 'Reviews:',
+                      label: language.isEnglish
+                          ? 'Reviews:'
+                          : 'Recenzije:',
                       value: stats.totalReviews.toString(),
                     ),
                     _DashboardTileData(
-                      label: 'Wishlist Items:',
+                      label: language.isEnglish
+                          ? 'Wishlist Items:'
+                          : 'Wishlist stavke:',
                       value: stats.totalWishlistItems.toString(),
                     ),
                     _DashboardTileData(
-                      label: 'Avg Book Price:',
+                      label: language.isEnglish
+                          ? 'Avg Book Price:'
+                          : 'Prosjecna cijena knjige:',
                       value: formatCurrency(stats.averageBookPrice, 'USD'),
                     ),
                   ],
                 ),
                 const SizedBox(height: 28),
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Recent Activity',
+                    language.isEnglish ? 'Recent Activity' : 'Nedavna aktivnost',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -114,7 +142,10 @@ class _DashboardPageState extends State<DashboardPage> {
                 const SizedBox(height: 14),
                 Expanded(
                   child: SingleChildScrollView(
-                    child: RecentActivityList(items: stats.recentActivity),
+                    child: RecentActivityList(
+                      items: stats.recentActivity,
+                      language: language,
+                    ),
                   ),
                 ),
               ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/admin_language_scope.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../shared/widgets/admin/admin_empty_state.dart';
@@ -51,16 +52,26 @@ class _BooksPageState extends State<BooksPage> {
     }
 
     final message = book == null
-        ? 'Book was added successfully.'
-        : 'Book was updated successfully.';
+        ? context.tr(
+            english: 'Book was added successfully.',
+            bosnian: 'Knjiga je uspjesno dodana.',
+          )
+        : context.tr(
+            english: 'Book was updated successfully.',
+            bosnian: 'Knjiga je uspjesno azurirana.',
+          );
     _showSnackBar(message, isError: false);
   }
 
   Future<void> _deleteBook(AdminBookModel book) async {
     final shouldDelete = await _confirmDeletion(
-      title: 'Delete Book',
-      message:
-          'Are you sure you want to permanently delete "${book.title}"?',
+      title: context.tr(english: 'Delete Book', bosnian: 'Obrisi knjigu'),
+      message: context.tr(
+        english:
+            'Are you sure you want to permanently delete "${book.title}"?',
+        bosnian:
+            'Da li ste sigurni da zelite trajno obrisati "${book.title}"?',
+      ),
     );
 
     if (!shouldDelete || !mounted) {
@@ -75,7 +86,10 @@ class _BooksPageState extends State<BooksPage> {
     switch (result) {
       case Success<void>():
         _showSnackBar(
-          'Book "${book.title}" was deleted successfully.',
+          context.tr(
+            english: 'Book "${book.title}" was deleted successfully.',
+            bosnian: 'Knjiga "${book.title}" je uspjesno obrisana.',
+          ),
           isError: false,
         );
       case ErrorResult<void>(failure: final error):
@@ -96,11 +110,11 @@ class _BooksPageState extends State<BooksPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(context.tr(english: 'Cancel', bosnian: 'Odustani')),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Delete'),
+              child: Text(context.tr(english: 'Delete', bosnian: 'Obrisi')),
             ),
           ],
         );
@@ -152,21 +166,24 @@ class _BooksPageState extends State<BooksPage> {
                   Expanded(
                     child: AppTextField(
                       controller: _searchController,
-                      hintText: 'Search books by title, author...',
+                      hintText: context.tr(
+                        english: 'Search books by title, author...',
+                        bosnian: 'Pretrazi knjige po nazivu ili autoru...',
+                      ),
                       textInputAction: TextInputAction.search,
                       onSubmitted: (v) => viewModel.search(v),
                     ),
                   ),
                   const SizedBox(width: 12),
                   AppButton(
-                    label: 'Search',
+                    label: context.tr(english: 'Search', bosnian: 'Pretrazi'),
                     onPressed: () => viewModel.search(_searchController.text),
                     width: 100,
                   ),
                   if (viewModel.searchTerm.isNotEmpty) ...[  
                     const SizedBox(width: 8),
                     AppButton(
-                      label: 'Clear',
+                      label: context.tr(english: 'Clear', bosnian: 'Ocisti'),
                       onPressed: () {
                         _searchController.clear();
                         viewModel.clearSearch();
@@ -181,12 +198,22 @@ class _BooksPageState extends State<BooksPage> {
                 child: AdminPanel(
                   child: Column(
                     children: [
-                      const TableHeader(
-                        columns: ['Author', 'Name of Book', 'Book Price', ''],
+                      TableHeader(
+                        columns: [
+                          context.tr(english: 'Author', bosnian: 'Autor'),
+                          context.tr(english: 'Book Title', bosnian: 'Naziv knjige'),
+                          context.tr(english: 'Price', bosnian: 'Cijena'),
+                          '',
+                        ],
                       ),
                       Expanded(
                         child: viewModel.books.isEmpty
-                            ? const AdminEmptyState('No books found.')
+                            ? AdminEmptyState(
+                                context.tr(
+                                  english: 'No books found.',
+                                  bosnian: 'Nema pronadjenih knjiga.',
+                                ),
+                              )
                             : ListView.separated(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 18,
@@ -270,7 +297,7 @@ class _BookRow extends StatelessWidget {
             children: [
               Expanded(
                 child: AppButton(
-                  label: 'EDIT',
+                  label: context.tr(english: 'EDIT', bosnian: 'UREDI'),
                   onPressed: onEdit,
                   height: 38,
                 ),
@@ -278,7 +305,7 @@ class _BookRow extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: AppButton(
-                  label: 'DELETE',
+                  label: context.tr(english: 'DELETE', bosnian: 'OBRISI'),
                   onPressed: isDeleting ? null : onDelete,
                   height: 38,
                   isLoading: isDeleting,
@@ -360,7 +387,10 @@ class _BooksFooter extends StatelessWidget {
               ),
               const SizedBox(width: 18),
               AppButton(
-                label: 'Add New Book',
+                label: context.tr(
+                  english: 'Add New Book',
+                  bosnian: 'Dodaj novu knjigu',
+                ),
                 onPressed: onAddBook,
                 width: 172,
               ),
@@ -371,7 +401,10 @@ class _BooksFooter extends StatelessWidget {
         Align(
           alignment: Alignment.centerRight,
           child: Text(
-            'Total books: $totalCount',
+            context.tr(
+              english: 'Total books: $totalCount',
+              bosnian: 'Ukupno knjiga: $totalCount',
+            ),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 14,

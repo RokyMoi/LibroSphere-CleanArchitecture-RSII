@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/di/injection.dart';
 import '../../../../app/theme/app_theme.dart';
+import '../../../../core/localization/admin_language_controller.dart';
 import '../../../authors/presentation/pages/authors_page.dart';
 import '../../../authors/presentation/viewmodels/authors_viewmodel.dart';
 import '../../../books/presentation/pages/books_page.dart';
@@ -24,9 +25,14 @@ import '../../../users/presentation/viewmodels/users_viewmodel.dart';
 import '../widgets/shell_side_nav.dart';
 
 class AdminShellPage extends StatefulWidget {
-  const AdminShellPage({super.key, required this.session});
+  const AdminShellPage({
+    super.key,
+    required this.session,
+    required this.languageController,
+  });
 
   final AdminSessionViewModel session;
+  final AdminLanguageController languageController;
 
   @override
   State<AdminShellPage> createState() => _AdminShellPageState();
@@ -121,7 +127,10 @@ class _AdminShellPageState extends State<AdminShellPage> {
     }
 
     final createdPage = switch (index) {
-      0 => DashboardPage(viewModel: _dashboardVm),
+      0 => DashboardPage(
+          viewModel: _dashboardVm,
+          languageController: widget.languageController,
+        ),
       1 => UsersPage(viewModel: _usersVm),
       2 => BooksPage(viewModel: _booksVm),
       3 => GenresPage(viewModel: _genresVm),
@@ -132,6 +141,7 @@ class _AdminShellPageState extends State<AdminShellPage> {
       8 => SettingsPage(
         viewModel: _settingsVm,
         session: widget.session,
+        languageController: widget.languageController,
       ),
       _ => const SizedBox.shrink(),
     };

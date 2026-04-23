@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
+import '../../../../core/localization/admin_language_scope.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../../books/data/models/admin_author_model.dart';
@@ -51,9 +52,17 @@ class _AddEditAuthorDialogState extends State<AddEditAuthorDialog> {
     final normalizedBiography = _biographyController.text.trim();
 
     setState(() {
-      _nameError = normalizedName.isEmpty ? 'Author name is required.' : null;
+      _nameError = normalizedName.isEmpty
+          ? context.tr(
+              english: 'Author name is required.',
+              bosnian: 'Ime autora je obavezno.',
+            )
+          : null;
       _biographyError = normalizedBiography.isEmpty
-          ? 'Biography is required.'
+          ? context.tr(
+              english: 'Biography is required.',
+              bosnian: 'Biografija je obavezna.',
+            )
           : null;
       _failure = null;
     });
@@ -110,7 +119,12 @@ class _AddEditAuthorDialogState extends State<AddEditAuthorDialog> {
                 children: [
                   Expanded(
                     child: Text(
-                      widget.author == null ? 'ADD AUTHOR' : 'EDIT AUTHOR',
+                      context.tr(
+                        english:
+                            widget.author == null ? 'ADD AUTHOR' : 'EDIT AUTHOR',
+                        bosnian:
+                            widget.author == null ? 'DODAJ AUTORA' : 'UREDI AUTORA',
+                      ),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -125,10 +139,15 @@ class _AddEditAuthorDialogState extends State<AddEditAuthorDialog> {
                 ],
               ),
               const SizedBox(height: 18),
-              _modalLabel('Author Name'),
+              _modalLabel(
+                context.tr(english: 'Author Name', bosnian: 'Ime autora'),
+              ),
               AppTextField(
                 controller: _nameController,
-                hintText: 'Enter author name',
+                hintText: context.tr(
+                  english: 'Enter author name',
+                  bosnian: 'Unesite ime autora',
+                ),
                 errorText: _nameError,
                 onChanged: (_) {
                   if (_nameError != null || _failure != null) {
@@ -140,10 +159,15 @@ class _AddEditAuthorDialogState extends State<AddEditAuthorDialog> {
                 },
               ),
               const SizedBox(height: 12),
-              _modalLabel('Biography'),
+              _modalLabel(
+                context.tr(english: 'Biography', bosnian: 'Biografija'),
+              ),
               AppTextField(
                 controller: _biographyController,
-                hintText: 'Enter biography',
+                hintText: context.tr(
+                  english: 'Enter biography',
+                  bosnian: 'Unesite biografiju',
+                ),
                 maxLines: 6,
                 errorText: _biographyError,
                 onChanged: (_) {
@@ -169,7 +193,7 @@ class _AddEditAuthorDialogState extends State<AddEditAuthorDialog> {
               const SizedBox(height: 18),
               Align(
                 child: AppButton(
-                  label: 'SAVE',
+                  label: context.tr(english: 'SAVE', bosnian: 'SACUVAJ'),
                   onPressed: widget.viewModel.isSaving ? null : _submit,
                   width: 132,
                   isLoading: widget.viewModel.isSaving,

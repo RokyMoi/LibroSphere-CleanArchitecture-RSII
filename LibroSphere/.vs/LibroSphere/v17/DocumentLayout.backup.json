@@ -84,7 +84,7 @@
               "RelativeDocumentMoniker": "docker-compose.yml",
               "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\docker-compose.yml",
               "RelativeToolTip": "docker-compose.yml",
-              "ViewState": "AgIAACQAAAAAAAAAAAAAAB8AAAAmAAAAAAAAAA==",
+              "ViewState": "AgIAAD4AAAAAAAAAAAAkwFoAAAAQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003775|",
               "WhenOpened": "2026-04-20T22:17:00.101Z",
               "EditorCaption": ""
@@ -99,8 +99,7 @@
               "RelativeToolTip": "src\\LibroSphere.WebApi\\Dockerfile",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2026-04-20T22:16:51.14Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-20T22:16:51.14Z"
             },
             {
               "$type": "Document",
@@ -124,8 +123,7 @@
               "RelativeToolTip": "src\\LibroSphere.Application\\Events\\Books\\BookIntegrationEvents.cs",
               "ViewState": "AgIAABwAAAAAAAAAAADwvygAAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-19T21:57:11.882Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-19T21:57:11.882Z"
             },
             {
               "$type": "Document",
