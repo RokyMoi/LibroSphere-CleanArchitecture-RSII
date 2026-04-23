@@ -21,13 +21,13 @@ class LibroSphereDesktopApp extends StatelessWidget {
     return ListenableBuilder(
       listenable: Listenable.merge([session, languageController]),
       builder: (context, _) {
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          title: 'LibroSphere Desktop',
-          theme: buildDesktopAppTheme(),
-          home: AdminLanguageScope(
-            controller: languageController,
-            child: AppRouter.resolveHome(session, languageController),
+        return AdminLanguageScope(
+          controller: languageController,
+          child: MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'LibroSphere Desktop',
+            theme: buildDesktopAppTheme(),
+            home: AppRouter.resolveHome(session, languageController),
           ),
         );
       },
