@@ -122,8 +122,12 @@ This starts:
 - SQL Server
 - Redis
 - RabbitMQ
+### 2. Ngrok - For testing stripe
+```ngrok
+run: ngrok http --domain=domainGivenInZip 8080 
+```
 
-### 2. Backend URLs
+### 3. Backend URLs
 
 After startup, the main local endpoints are:
 But you can change in Env file port of Api!
@@ -137,7 +141,7 @@ Default RabbitMQ credentials:
 - Username: `guest`
 - Password: `guest`
 
-### 3. Seed catalog data
+### 4. Seed catalog data
 
 Default admin and user accounts are created automatically, but catalog/demo content is exposed through seed endpoints.
 
@@ -163,7 +167,7 @@ flutter pub get
 Run on Android emulator:
 
 ```powershell
-flutter run -d android
+flutter run -d android 
 ```
 
 By default, the mobile app uses:
