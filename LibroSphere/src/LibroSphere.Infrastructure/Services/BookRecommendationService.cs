@@ -51,19 +51,13 @@ namespace LibroSphere.Infrastructure.Services
 
             var profile = UserPreferenceProfile.Build(interactionRows);
             var rankedBookIds = RankCandidates(candidateRows, profile, normalizedTake);
+            var books = await _bookRepository.GetByIdsWithDetailsAsync(rankedBookIds, cancellationToken);
+            var booksById = books.ToDictionary(book => book.Id);
 
-            var recommendedBooks = new List<Book>(rankedBookIds.Count);
-
-            foreach (var bookId in rankedBookIds)
-            {
-                var book = await _bookRepository.GetByIdWithDetailsAsync(bookId, cancellationToken);
-                if (book is not null)
-                {
-                    recommendedBooks.Add(book);
-                }
-            }
-
-            return recommendedBooks;
+            return rankedBookIds
+                .Where(booksById.ContainsKey)
+                .Select(bookId => booksById[bookId])
+                .ToList();
         }
 
         private static List<Guid> RankCandidates(
@@ -71,41 +65,49 @@ namespace LibroSphere.Infrastructure.Services
             UserPreferenceProfile profile,
             int take)
         {
-            var candidates = candidateRows
-                .GroupBy(row => new
+            var candidateLookup = new Dictionary<Guid, CandidateAccumulator>();
+
+            foreach (var row in candidateRows)
+            {
+                if (!candidateLookup.TryGetValue(row.BookId, out var candidate))
                 {
-                    row.BookId,
-                    row.AuthorId,
-                    row.AverageRating,
-                    row.ReviewCount,
-                    row.PurchaseCount,
-                    row.WishlistCount,
-                    row.CartCount
-                })
-                .Select(group =>
+                    candidate = new CandidateAccumulator(
+                        row.BookId,
+                        row.AuthorId,
+                        row.AverageRating,
+                        row.ReviewCount,
+                        row.PurchaseCount,
+                        row.WishlistCount,
+                        row.CartCount);
+
+                    candidateLookup[row.BookId] = candidate;
+                }
+
+                if (row.GenreId.HasValue)
                 {
-                    var genreIds = group
-                        .Where(row => row.GenreId.HasValue)
-                        .Select(row => row.GenreId!.Value)
-                        .Distinct()
-                        .ToList();
+                    candidate.GenreIds.Add(row.GenreId.Value);
+                }
+            }
+
+            var candidates = candidateLookup.Values
+                .Select(candidate =>
+                {
+                    var genreIds = candidate.GenreIds.ToList();
 
                     return new CandidateScore(
-                        group.Key.BookId,
-                        group.Key.AuthorId,
+                        candidate.BookId,
+                        candidate.AuthorId,
                         genreIds,
                         ComputeBaseScore(
-                            group.Key.AuthorId,
+                            candidate.AuthorId,
                             genreIds,
-                            group.Key.AverageRating,
-                            group.Key.ReviewCount,
-                            group.Key.PurchaseCount,
-                            group.Key.WishlistCount,
-                            group.Key.CartCount,
+                            candidate.AverageRating,
+                            candidate.ReviewCount,
+                            candidate.PurchaseCount,
+                            candidate.WishlistCount,
+                            candidate.CartCount,
                             profile));
                 })
-                .OrderByDescending(candidate => candidate.BaseScore)
-                .Take(CandidatePoolSize)
                 .ToList();
 
             return profile.HasSignals
@@ -155,104 +157,141 @@ namespace LibroSphere.Infrastructure.Services
             UserPreferenceProfile profile,
             int take)
         {
-            var selected = new List<Guid>(take);
-            var remaining = candidates.ToList();
-            var selectedGenreCounts = new Dictionary<Guid, int>();
-            var selectedAuthorCounts = new Dictionary<Guid, int>();
+            var orderedCandidates = candidates
+                .OrderByDescending(candidate => candidate.BaseScore + CandidateDiversityBonus(candidate, profile))
+                .ThenBy(candidate => candidate.AuthorId)
+                .ToList();
 
-            while (selected.Count < take && remaining.Count > 0)
-            {
-                var next = remaining
-                    .OrderByDescending(candidate =>
-                        candidate.BaseScore +
-                        CandidateDiversityBonus(candidate, selectedGenreCounts, profile) -
-                        CandidateRepetitionPenalty(candidate, selectedGenreCounts, selectedAuthorCounts))
-                    .First();
-
-                selected.Add(next.BookId);
-                remaining.Remove(next);
-
-                foreach (var genreId in next.GenreIds)
-                {
-                    selectedGenreCounts[genreId] = selectedGenreCounts.GetValueOrDefault(genreId) + 1;
-                }
-
-                selectedAuthorCounts[next.AuthorId] = selectedAuthorCounts.GetValueOrDefault(next.AuthorId) + 1;
-            }
-
-            return selected;
+            return SelectWithDiversityGuardrails(
+                orderedCandidates,
+                take,
+                candidate => candidate.GenreIds.Any(genreId => !profile.PositiveGenres.Contains(genreId)));
         }
 
         private static List<Guid> SelectColdStartBooks(
             IReadOnlyCollection<CandidateScore> candidates,
             int take)
         {
-            var selected = new List<Guid>(take);
-            var remaining = candidates.ToList();
-            var selectedGenreCounts = new Dictionary<Guid, int>();
+            var orderedCandidates = candidates
+                .OrderByDescending(candidate => candidate.BaseScore + ColdStartDiversityBonus(candidate))
+                .ThenBy(candidate => candidate.AuthorId)
+                .ToList();
 
-            while (selected.Count < take && remaining.Count > 0)
-            {
-                var next = remaining
-                    .OrderByDescending(candidate =>
-                        candidate.BaseScore +
-                        ColdStartDiversityBonus(candidate, selectedGenreCounts))
-                    .First();
-
-                selected.Add(next.BookId);
-                remaining.Remove(next);
-
-                foreach (var genreId in next.GenreIds)
-                {
-                    selectedGenreCounts[genreId] = selectedGenreCounts.GetValueOrDefault(genreId) + 1;
-                }
-            }
-
-            return selected;
+            return SelectWithDiversityGuardrails(
+                orderedCandidates,
+                take,
+                candidate => candidate.GenreIds.Count > 0);
         }
 
         private static double CandidateDiversityBonus(
             CandidateScore candidate,
-            IReadOnlyDictionary<Guid, int> selectedGenreCounts,
             UserPreferenceProfile profile)
         {
-            var unseenInRecommendationList = candidate.GenreIds.Any(genreId => !selectedGenreCounts.ContainsKey(genreId))
-                ? 0.8
-                : 0;
-
             var outsideTopComfortZone = candidate.GenreIds.Any(genreId => !profile.PositiveGenres.Contains(genreId))
-                ? 0.25
+                ? 0.55
                 : 0;
 
-            return unseenInRecommendationList + outsideTopComfortZone;
-        }
+            var multiGenreBonus = Math.Min(candidate.GenreIds.Count, 3) * 0.1;
 
-        private static double CandidateRepetitionPenalty(
-            CandidateScore candidate,
-            IReadOnlyDictionary<Guid, int> selectedGenreCounts,
-            IReadOnlyDictionary<Guid, int> selectedAuthorCounts)
-        {
-            var repeatedGenrePenalty = candidate.GenreIds.Sum(genreId => selectedGenreCounts.GetValueOrDefault(genreId) * 0.4);
-            var repeatedAuthorPenalty = selectedAuthorCounts.GetValueOrDefault(candidate.AuthorId) * 0.45;
-            return repeatedGenrePenalty + repeatedAuthorPenalty;
+            return outsideTopComfortZone + multiGenreBonus;
         }
 
         private static double ColdStartDiversityBonus(
-            CandidateScore candidate,
-            IReadOnlyDictionary<Guid, int> selectedGenreCounts)
+            CandidateScore candidate)
         {
             if (candidate.GenreIds.Count == 0)
             {
                 return 0;
             }
 
-            var unseenGenreBonus = candidate.GenreIds.Any(genreId => !selectedGenreCounts.ContainsKey(genreId))
-                ? 1.15
-                : 0;
+            return 1.15 + Math.Min(candidate.GenreIds.Count, 3) * 0.1;
+        }
 
-            var repetitionPenalty = candidate.GenreIds.Sum(genreId => selectedGenreCounts.GetValueOrDefault(genreId) * 0.55);
+        private static List<Guid> SelectWithDiversityGuardrails(
+            IReadOnlyList<CandidateScore> orderedCandidates,
+            int take,
+            Func<CandidateScore, bool> priorityPredicate)
+        {
+            var selected = new List<Guid>(take);
+            var selectedBookIds = new HashSet<Guid>();
+            var selectedGenreCounts = new Dictionary<Guid, int>();
+            var selectedAuthorCounts = new Dictionary<Guid, int>();
 
-            return unseenGenreBonus - repetitionPenalty;
+            SelectCandidates(
+                orderedCandidates,
+                take,
+                selected,
+                selectedBookIds,
+                selectedGenreCounts,
+                selectedAuthorCounts,
+                candidate =>
+                    selectedAuthorCounts.GetValueOrDefault(candidate.AuthorId) == 0 &&
+                    candidate.GenreIds.Any(genreId => !selectedGenreCounts.ContainsKey(genreId)) &&
+                    priorityPredicate(candidate));
+
+            SelectCandidates(
+                orderedCandidates,
+                take,
+                selected,
+                selectedBookIds,
+                selectedGenreCounts,
+                selectedAuthorCounts,
+                candidate =>
+                    selectedAuthorCounts.GetValueOrDefault(candidate.AuthorId) == 0 &&
+                    candidate.GenreIds.Any(genreId => !selectedGenreCounts.ContainsKey(genreId)));
+
+            SelectCandidates(
+                orderedCandidates,
+                take,
+                selected,
+                selectedBookIds,
+                selectedGenreCounts,
+                selectedAuthorCounts,
+                candidate => selectedAuthorCounts.GetValueOrDefault(candidate.AuthorId) == 0);
+
+            SelectCandidates(
+                orderedCandidates,
+                take,
+                selected,
+                selectedBookIds,
+                selectedGenreCounts,
+                selectedAuthorCounts,
+                _ => true);
+
+            return selected;
+        }
+
+        private static void SelectCandidates(
+            IReadOnlyList<CandidateScore> orderedCandidates,
+            int take,
+            List<Guid> selected,
+            HashSet<Guid> selectedBookIds,
+            Dictionary<Guid, int> selectedGenreCounts,
+            Dictionary<Guid, int> selectedAuthorCounts,
+            Func<CandidateScore, bool> predicate)
+        {
+            foreach (var candidate in orderedCandidates)
+            {
+                if (selected.Count >= take)
+                {
+                    return;
+                }
+
+                if (selectedBookIds.Contains(candidate.BookId) || !predicate(candidate))
+                {
+                    continue;
+                }
+
+                selectedBookIds.Add(candidate.BookId);
+                selected.Add(candidate.BookId);
+
+                foreach (var genreId in candidate.GenreIds)
+                {
+                    selectedGenreCounts[genreId] = selectedGenreCounts.GetValueOrDefault(genreId) + 1;
+                }
+
+                selectedAuthorCounts[candidate.AuthorId] = selectedAuthorCounts.GetValueOrDefault(candidate.AuthorId) + 1;
+            }
         }
 
         private static double Log1p(int value) => Math.Log(1 + Math.Max(0, value));
@@ -279,6 +318,36 @@ namespace LibroSphere.Infrastructure.Services
             Guid AuthorId,
             IReadOnlyList<Guid> GenreIds,
             double BaseScore);
+
+        private sealed class CandidateAccumulator
+        {
+            public CandidateAccumulator(
+                Guid bookId,
+                Guid authorId,
+                double averageRating,
+                int reviewCount,
+                int purchaseCount,
+                int wishlistCount,
+                int cartCount)
+            {
+                BookId = bookId;
+                AuthorId = authorId;
+                AverageRating = averageRating;
+                ReviewCount = reviewCount;
+                PurchaseCount = purchaseCount;
+                WishlistCount = wishlistCount;
+                CartCount = cartCount;
+            }
+
+            public Guid BookId { get; }
+            public Guid AuthorId { get; }
+            public double AverageRating { get; }
+            public int ReviewCount { get; }
+            public int PurchaseCount { get; }
+            public int WishlistCount { get; }
+            public int CartCount { get; }
+            public HashSet<Guid> GenreIds { get; } = new();
+        }
 
         private sealed class UserPreferenceProfile
         {

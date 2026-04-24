@@ -3,16 +3,44 @@
   "WorkspaceRootPath": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{97EF54E3-7E65-CDAD-6688-6E0C1ADEDE47}|src\\LibroSphere.Infrastructure\\LibroSphere.Infrastructure.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\src\\librosphere.infrastructure\\services\\bookrecommendationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{97EF54E3-7E65-CDAD-6688-6E0C1ADEDE47}|src\\LibroSphere.Infrastructure\\LibroSphere.Infrastructure.csproj|solutionrelative:src\\librosphere.infrastructure\\services\\bookrecommendationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{46344DAB-BF59-7CCB-620B-1639542ABAF4}|src\\LibroSphere.WebApi\\LibroSphere.WebApi.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\src\\librosphere.webapi\\controllers\\book\\bookcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{46344DAB-BF59-7CCB-620B-1639542ABAF4}|src\\LibroSphere.WebApi\\LibroSphere.WebApi.csproj|solutionrelative:src\\librosphere.webapi\\controllers\\book\\bookcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C3842D31-DE69-BA72-3BD5-2B8461EDFA86}|src\\LibroSphere.Application\\LibroSphere.Application.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\src\\librosphere.application\\books\\query\\getallbooks\\getallbooksquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C3842D31-DE69-BA72-3BD5-2B8461EDFA86}|src\\LibroSphere.Application\\LibroSphere.Application.csproj|solutionrelative:src\\librosphere.application\\books\\query\\getallbooks\\getallbooksquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C3842D31-DE69-BA72-3BD5-2B8461EDFA86}|src\\LibroSphere.Application\\LibroSphere.Application.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\src\\librosphere.application\\books\\query\\getallbooks\\getallbooksqueryhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C3842D31-DE69-BA72-3BD5-2B8461EDFA86}|src\\LibroSphere.Application\\LibroSphere.Application.csproj|solutionrelative:src\\librosphere.application\\books\\query\\getallbooks\\getallbooksqueryhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{46344DAB-BF59-7CCB-620B-1639542ABAF4}|src\\LibroSphere.WebApi\\LibroSphere.WebApi.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\src\\librosphere.webapi\\controllers\\recommendations\\recommendationscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{46344DAB-BF59-7CCB-620B-1639542ABAF4}|src\\LibroSphere.WebApi\\LibroSphere.WebApi.csproj|solutionrelative:src\\librosphere.webapi\\controllers\\recommendations\\recommendationscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{97EF54E3-7E65-CDAD-6688-6E0C1ADEDE47}|src\\LibroSphere.Infrastructure\\LibroSphere.Infrastructure.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\src\\librosphere.infrastructure\\services\\bookrecommendationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{97EF54E3-7E65-CDAD-6688-6E0C1ADEDE47}|src\\LibroSphere.Infrastructure\\LibroSphere.Infrastructure.csproj|solutionrelative:src\\librosphere.infrastructure\\services\\bookrecommendationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{C3842D31-DE69-BA72-3BD5-2B8461EDFA86}|src\\LibroSphere.Application\\LibroSphere.Application.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\src\\librosphere.application\\recommendations\\query\\getrecommendedbooks\\getrecommendedbooksqueryhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{C3842D31-DE69-BA72-3BD5-2B8461EDFA86}|src\\LibroSphere.Application\\LibroSphere.Application.csproj|solutionrelative:src\\librosphere.application\\recommendations\\query\\getrecommendedbooks\\getrecommendedbooksqueryhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C3842D31-DE69-BA72-3BD5-2B8461EDFA86}|src\\LibroSphere.Application\\LibroSphere.Application.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\src\\librosphere.application\\recommendations\\query\\getrecommendedbooks\\recommendedbookresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C3842D31-DE69-BA72-3BD5-2B8461EDFA86}|src\\LibroSphere.Application\\LibroSphere.Application.csproj|solutionrelative:src\\librosphere.application\\recommendations\\query\\getrecommendedbooks\\recommendedbookresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C3842D31-DE69-BA72-3BD5-2B8461EDFA86}|src\\LibroSphere.Application\\LibroSphere.Application.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\src\\librosphere.application\\recommendations\\query\\getrecommendedbooks\\getrecommendedbooksqueryvalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C3842D31-DE69-BA72-3BD5-2B8461EDFA86}|src\\LibroSphere.Application\\LibroSphere.Application.csproj|solutionrelative:src\\librosphere.application\\recommendations\\query\\getrecommendedbooks\\getrecommendedbooksqueryvalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C3842D31-DE69-BA72-3BD5-2B8461EDFA86}|src\\LibroSphere.Application\\LibroSphere.Application.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\src\\librosphere.application\\recommendations\\query\\getrecommendedbooks\\getrecommendedbooksquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C3842D31-DE69-BA72-3BD5-2B8461EDFA86}|src\\LibroSphere.Application\\LibroSphere.Application.csproj|solutionrelative:src\\librosphere.application\\recommendations\\query\\getrecommendedbooks\\getrecommendedbooksquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C3842D31-DE69-BA72-3BD5-2B8461EDFA86}|src\\LibroSphere.Application\\LibroSphere.Application.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\src\\librosphere.application\\abstractions\\recommendations\\ibookrecommendationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C3842D31-DE69-BA72-3BD5-2B8461EDFA86}|src\\LibroSphere.Application\\LibroSphere.Application.csproj|solutionrelative:src\\librosphere.application\\abstractions\\recommendations\\ibookrecommendationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{81DDED9D-158B-E303-5F62-77A2896D2A5A}|docker-compose.dcproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\docker-compose.yml||{8B382828-6202-11D1-8870-0000F87579D2}",
@@ -29,10 +57,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{C3842D31-DE69-BA72-3BD5-2B8461EDFA86}|src\\LibroSphere.Application\\LibroSphere.Application.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\src\\librosphere.application\\books\\eventhandlers\\bookdomaineventhandlers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{C3842D31-DE69-BA72-3BD5-2B8461EDFA86}|src\\LibroSphere.Application\\LibroSphere.Application.csproj|solutionrelative:src\\librosphere.application\\books\\eventhandlers\\bookdomaineventhandlers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{C3842D31-DE69-BA72-3BD5-2B8461EDFA86}|src\\LibroSphere.Application\\LibroSphere.Application.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\src\\librosphere.application\\recommendations\\query\\getrecommendedbooks\\getrecommendedbooksqueryvalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{C3842D31-DE69-BA72-3BD5-2B8461EDFA86}|src\\LibroSphere.Application\\LibroSphere.Application.csproj|solutionrelative:src\\librosphere.application\\recommendations\\query\\getrecommendedbooks\\getrecommendedbooksqueryvalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{55FA55E6-7CCB-F1FE-D442-4AE75EFA48B8}|src\\LibroSphere.Worker\\LibroSphere.Worker.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\src\\librosphere.worker\\consumers\\orderpaidintegrationeventconsumer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -53,10 +77,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{C3842D31-DE69-BA72-3BD5-2B8461EDFA86}|src\\LibroSphere.Application\\LibroSphere.Application.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\src\\librosphere.application\\library\\eventhandlers\\userbookdomaineventhandlers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{C3842D31-DE69-BA72-3BD5-2B8461EDFA86}|src\\LibroSphere.Application\\LibroSphere.Application.csproj|solutionrelative:src\\librosphere.application\\library\\eventhandlers\\userbookdomaineventhandlers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{46344DAB-BF59-7CCB-620B-1639542ABAF4}|src\\LibroSphere.WebApi\\LibroSphere.WebApi.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\src\\librosphere.webapi\\controllers\\book\\bookcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{46344DAB-BF59-7CCB-620B-1639542ABAF4}|src\\LibroSphere.WebApi\\LibroSphere.WebApi.csproj|solutionrelative:src\\librosphere.webapi\\controllers\\book\\bookcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{9FE03ADF-10AE-D323-29B8-DD2367746022}|src\\LibroSphere.Domain\\LibroSphere.Domain.csproj|c:\\users\\dusko\\desktop\\librosphere\\librosphere\\src\\librosphere.domain\\entities\\books\\books\\book.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -82,80 +102,43 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "BookRecommendationService.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Infrastructure\\Services\\BookRecommendationService.cs",
-              "RelativeDocumentMoniker": "src\\LibroSphere.Infrastructure\\Services\\BookRecommendationService.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Infrastructure\\Services\\BookRecommendationService.cs",
-              "RelativeToolTip": "src\\LibroSphere.Infrastructure\\Services\\BookRecommendationService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACEAAAAmAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-22T18:04:17.498Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "RecommendationsController.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.WebApi\\Controllers\\Recommendations\\RecommendationsController.cs",
-              "RelativeDocumentMoniker": "src\\LibroSphere.WebApi\\Controllers\\Recommendations\\RecommendationsController.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.WebApi\\Controllers\\Recommendations\\RecommendationsController.cs",
-              "RelativeToolTip": "src\\LibroSphere.WebApi\\Controllers\\Recommendations\\RecommendationsController.cs",
-              "ViewState": "AgIAAAsAAAAAAAAAAAAxwBgAAABIAAAAAAAAAA==",
+              "Title": "GetAllBooksQuery.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Books\\Query\\GetAllBooks\\GetAllBooksQuery.cs",
+              "RelativeDocumentMoniker": "src\\LibroSphere.Application\\Books\\Query\\GetAllBooks\\GetAllBooksQuery.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Books\\Query\\GetAllBooks\\GetAllBooksQuery.cs",
+              "RelativeToolTip": "src\\LibroSphere.Application\\Books\\Query\\GetAllBooks\\GetAllBooksQuery.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAuwAUAAAAZAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-22T18:03:39.549Z",
+              "WhenOpened": "2026-04-23T23:21:10.449Z",
               "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "docker-compose.yml",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\docker-compose.yml",
-              "RelativeDocumentMoniker": "docker-compose.yml",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\docker-compose.yml",
-              "RelativeToolTip": "docker-compose.yml",
-              "ViewState": "AgIAAEAAAAAAAAAAAAAcwFoAAAAQAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003775|",
-              "WhenOpened": "2026-04-20T22:17:00.101Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "BookDomainEventHandlers.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Books\\EventHandlers\\BookDomainEventHandlers.cs",
-              "RelativeDocumentMoniker": "src\\LibroSphere.Application\\Books\\EventHandlers\\BookDomainEventHandlers.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Books\\EventHandlers\\BookDomainEventHandlers.cs",
-              "RelativeToolTip": "src\\LibroSphere.Application\\Books\\EventHandlers\\BookDomainEventHandlers.cs",
-              "ViewState": "AgIAABIAAAAAAAAAAAAYwCEAAAAtAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-19T21:57:59.624Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "BookIntegrationEvents.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Events\\Books\\BookIntegrationEvents.cs",
-              "RelativeDocumentMoniker": "src\\LibroSphere.Application\\Events\\Books\\BookIntegrationEvents.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Events\\Books\\BookIntegrationEvents.cs",
-              "RelativeToolTip": "src\\LibroSphere.Application\\Events\\Books\\BookIntegrationEvents.cs",
-              "ViewState": "AgIAABwAAAAAAAAAAADwvygAAAAgAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-19T21:57:11.882Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
+              "Title": "GetAllBooksQueryHandler.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Books\\Query\\GetAllBooks\\GetAllBooksQueryHandler.cs",
+              "RelativeDocumentMoniker": "src\\LibroSphere.Application\\Books\\Query\\GetAllBooks\\GetAllBooksQueryHandler.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Books\\Query\\GetAllBooks\\GetAllBooksQueryHandler.cs",
+              "RelativeToolTip": "src\\LibroSphere.Application\\Books\\Query\\GetAllBooks\\GetAllBooksQueryHandler.cs",
+              "ViewState": "AgIAACoAAAAAAAAAAAAYwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-23T23:25:08.843Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
               "Title": "GetRecommendedBooksQueryHandler.cs",
               "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Recommendations\\Query\\GetRecommendedBooks\\GetRecommendedBooksQueryHandler.cs",
               "RelativeDocumentMoniker": "src\\LibroSphere.Application\\Recommendations\\Query\\GetRecommendedBooks\\GetRecommendedBooksQueryHandler.cs",
               "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Recommendations\\Query\\GetRecommendedBooks\\GetRecommendedBooksQueryHandler.cs",
               "RelativeToolTip": "src\\LibroSphere.Application\\Recommendations\\Query\\GetRecommendedBooks\\GetRecommendedBooksQueryHandler.cs",
-              "ViewState": "AgIAABAAAAAAAAAAAAAQwAkAAAAxAAAAAAAAAA==",
+              "ViewState": "AgIAABUAAAAAAAAAAAAYwAkAAAAxAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-04-19T21:56:13.236Z",
               "EditorCaption": ""
@@ -163,14 +146,92 @@
             {
               "$type": "Document",
               "DocumentIndex": 4,
-              "Title": "Dockerfile",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.WebApi\\Dockerfile",
-              "RelativeDocumentMoniker": "src\\LibroSphere.WebApi\\Dockerfile",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.WebApi\\Dockerfile",
-              "RelativeToolTip": "src\\LibroSphere.WebApi\\Dockerfile",
+              "Title": "BookRecommendationService.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Infrastructure\\Services\\BookRecommendationService.cs",
+              "RelativeDocumentMoniker": "src\\LibroSphere.Infrastructure\\Services\\BookRecommendationService.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Infrastructure\\Services\\BookRecommendationService.cs",
+              "RelativeToolTip": "src\\LibroSphere.Infrastructure\\Services\\BookRecommendationService.cs",
+              "ViewState": "AgIAAMsBAAAAAAAAAAAAACEAAAAmAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T18:04:17.498Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "BookController.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.WebApi\\Controllers\\Book\\BookController.cs",
+              "RelativeDocumentMoniker": "src\\LibroSphere.WebApi\\Controllers\\Book\\BookController.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.WebApi\\Controllers\\Book\\BookController.cs",
+              "RelativeToolTip": "src\\LibroSphere.WebApi\\Controllers\\Book\\BookController.cs",
+              "ViewState": "AgIAAEsAAAAAAAAAAAAuwF8AAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-15T17:30:57.253Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "RecommendedBookResponse.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Recommendations\\Query\\GetRecommendedBooks\\RecommendedBookResponse.cs",
+              "RelativeDocumentMoniker": "src\\LibroSphere.Application\\Recommendations\\Query\\GetRecommendedBooks\\RecommendedBookResponse.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Recommendations\\Query\\GetRecommendedBooks\\RecommendedBookResponse.cs",
+              "RelativeToolTip": "src\\LibroSphere.Application\\Recommendations\\Query\\GetRecommendedBooks\\RecommendedBookResponse.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2026-04-20T22:16:51.14Z"
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-23T22:44:13.115Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "RecommendationsController.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.WebApi\\Controllers\\Recommendations\\RecommendationsController.cs",
+              "RelativeDocumentMoniker": "src\\LibroSphere.WebApi\\Controllers\\Recommendations\\RecommendationsController.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.WebApi\\Controllers\\Recommendations\\RecommendationsController.cs",
+              "RelativeToolTip": "src\\LibroSphere.WebApi\\Controllers\\Recommendations\\RecommendationsController.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAuwBgAAABIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T18:03:39.549Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "GetRecommendedBooksQuery.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Recommendations\\Query\\GetRecommendedBooks\\GetRecommendedBooksQuery.cs",
+              "RelativeDocumentMoniker": "src\\LibroSphere.Application\\Recommendations\\Query\\GetRecommendedBooks\\GetRecommendedBooksQuery.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Recommendations\\Query\\GetRecommendedBooks\\GetRecommendedBooksQuery.cs",
+              "RelativeToolTip": "src\\LibroSphere.Application\\Recommendations\\Query\\GetRecommendedBooks\\GetRecommendedBooksQuery.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-23T22:41:28.872Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "IBookRecommendationService.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Abstractions\\Recommendations\\IBookRecommendationService.cs",
+              "RelativeDocumentMoniker": "src\\LibroSphere.Application\\Abstractions\\Recommendations\\IBookRecommendationService.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Abstractions\\Recommendations\\IBookRecommendationService.cs",
+              "RelativeToolTip": "src\\LibroSphere.Application\\Abstractions\\Recommendations\\IBookRecommendationService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-23T22:40:26.777Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "docker-compose.yml",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\docker-compose.yml",
+              "RelativeDocumentMoniker": "docker-compose.yml",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\docker-compose.yml",
+              "RelativeToolTip": "docker-compose.yml",
+              "ViewState": "AgIAAEAAAAAAAAAAAAAcwFoAAAAQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003775|",
+              "WhenOpened": "2026-04-20T22:17:00.101Z"
             },
             {
               "$type": "Document",
@@ -182,11 +243,48 @@
               "RelativeToolTip": "src\\LibroSphere.Application\\Recommendations\\Query\\GetRecommendedBooks\\GetRecommendedBooksQueryValidator.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-19T21:56:10.172Z"
+              "WhenOpened": "2026-04-19T21:56:10.172Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 13,
+              "Title": "BookDomainEventHandlers.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Books\\EventHandlers\\BookDomainEventHandlers.cs",
+              "RelativeDocumentMoniker": "src\\LibroSphere.Application\\Books\\EventHandlers\\BookDomainEventHandlers.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Books\\EventHandlers\\BookDomainEventHandlers.cs",
+              "RelativeToolTip": "src\\LibroSphere.Application\\Books\\EventHandlers\\BookDomainEventHandlers.cs",
+              "ViewState": "AgIAABIAAAAAAAAAAAAYwCEAAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-19T21:57:59.624Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "BookIntegrationEvents.cs",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Events\\Books\\BookIntegrationEvents.cs",
+              "RelativeDocumentMoniker": "src\\LibroSphere.Application\\Events\\Books\\BookIntegrationEvents.cs",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Events\\Books\\BookIntegrationEvents.cs",
+              "RelativeToolTip": "src\\LibroSphere.Application\\Events\\Books\\BookIntegrationEvents.cs",
+              "ViewState": "AgIAABwAAAAAAAAAAADwvygAAAAgAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-19T21:57:11.882Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "Dockerfile",
+              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.WebApi\\Dockerfile",
+              "RelativeDocumentMoniker": "src\\LibroSphere.WebApi\\Dockerfile",
+              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.WebApi\\Dockerfile",
+              "RelativeToolTip": "src\\LibroSphere.WebApi\\Dockerfile",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-04-20T22:16:51.14Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
               "Title": "OrderPaidIntegrationEventConsumer.cs",
               "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Worker\\Consumers\\OrderPaidIntegrationEventConsumer.cs",
               "RelativeDocumentMoniker": "src\\LibroSphere.Worker\\Consumers\\OrderPaidIntegrationEventConsumer.cs",
@@ -198,7 +296,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 16,
               "Title": "GetBookReadLinkQueryValidator.cs",
               "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Library\\Query\\GetBookReadLink\\GetBookReadLinkQueryValidator.cs",
               "RelativeDocumentMoniker": "src\\LibroSphere.Application\\Library\\Query\\GetBookReadLink\\GetBookReadLinkQueryValidator.cs",
@@ -210,7 +308,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 17,
               "Title": "GetBookReadLinkQuery.cs",
               "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Library\\Query\\GetBookReadLink\\GetBookReadLinkQuery.cs",
               "RelativeDocumentMoniker": "src\\LibroSphere.Application\\Library\\Query\\GetBookReadLink\\GetBookReadLinkQuery.cs",
@@ -222,7 +320,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 15,
               "Title": "GetBookReadLinkQueryHandler.cs",
               "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Library\\Query\\GetBookReadLink\\GetBookReadLinkQueryHandler.cs",
               "RelativeDocumentMoniker": "src\\LibroSphere.Application\\Library\\Query\\GetBookReadLink\\GetBookReadLinkQueryHandler.cs",
@@ -234,7 +332,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 18,
               "Title": "UserBookDomainEventHandlers.cs",
               "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Application\\Library\\EventHandlers\\UserBookDomainEventHandlers.cs",
               "RelativeDocumentMoniker": "src\\LibroSphere.Application\\Library\\EventHandlers\\UserBookDomainEventHandlers.cs",
@@ -246,19 +344,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
-              "Title": "BookController.cs",
-              "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.WebApi\\Controllers\\Book\\BookController.cs",
-              "RelativeDocumentMoniker": "src\\LibroSphere.WebApi\\Controllers\\Book\\BookController.cs",
-              "ToolTip": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.WebApi\\Controllers\\Book\\BookController.cs",
-              "RelativeToolTip": "src\\LibroSphere.WebApi\\Controllers\\Book\\BookController.cs",
-              "ViewState": "AgIAACAAAAAAAAAAAAAAwCoAAABQAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-15T17:30:57.253Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 19,
               "Title": "Book.cs",
               "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Domain\\Entities\\Books\\Books\\Book.cs",
               "RelativeDocumentMoniker": "src\\LibroSphere.Domain\\Entities\\Books\\Books\\Book.cs",
@@ -270,7 +356,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 20,
               "Title": "Money.cs",
               "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Domain\\Entities\\Shared\\Money.cs",
               "RelativeDocumentMoniker": "src\\LibroSphere.Domain\\Entities\\Shared\\Money.cs",
@@ -282,7 +368,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 21,
               "Title": "Order.cs",
               "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Domain\\Entities\\Orders\\Order.cs",
               "RelativeDocumentMoniker": "src\\LibroSphere.Domain\\Entities\\Orders\\Order.cs",
@@ -294,7 +380,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 22,
               "Title": "IOrderRepository.cs",
               "DocumentMoniker": "C:\\Users\\dusko\\Desktop\\LibroSphere\\LibroSphere\\src\\LibroSphere.Domain\\Entities\\Orders\\IOrderRepository.cs",
               "RelativeDocumentMoniker": "src\\LibroSphere.Domain\\Entities\\Orders\\IOrderRepository.cs",

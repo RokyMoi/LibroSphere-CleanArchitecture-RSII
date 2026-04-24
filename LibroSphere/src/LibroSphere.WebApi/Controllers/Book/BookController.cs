@@ -1,6 +1,7 @@
 using LibroSphere.Application.Books.Command.CreateNewBook;
 using LibroSphere.Application.Books.Command.DeleteBook;
 using LibroSphere.Application.Books.Command.UpdateBook;
+using LibroSphere.Application.Common.Models;
 using LibroSphere.Application.Authors.Query.GetAuthorById;
 using LibroSphere.Application.Authors.Query.GetAllAuthors;
 using LibroSphere.Application.Books.Query.GetAllBooks;
@@ -86,75 +87,55 @@ namespace LibroSphere.WebApi.Controllers.Book
             [FromQuery] int takeRecommendations = 5,
             CancellationToken cancellationToken = default)
         {
-            var booksResult = await _sender.Send(
+            var booksTask = _sender.Send(
                 new GetAllBooksQuery(searchTerm, null, null, null, null, page, pageSize),
                 cancellationToken);
+
+            if (User.Identity?.IsAuthenticated != true)
+            {
+                var anonymousBooksResult = await booksTask;
+
+                if (!anonymousBooksResult.IsSuccess)
+                {
+                    return BadRequest(anonymousBooksResult.Error);
+                }
+
+                return Ok(CreateHomeFeedResponse(anonymousBooksResult.Value));
+            }
+
+            var userId = User.GetRequiredUserId();
+            var recommendationsTask = _sender.Send(
+                new GetRecommendedBooksQuery(userId, takeRecommendations),
+                cancellationToken);
+
+            var booksResult = await booksTask;
 
             if (!booksResult.IsSuccess)
             {
                 return BadRequest(booksResult.Error);
             }
 
-            if (User.Identity?.IsAuthenticated != true)
-            {
-                return Ok(new HomeFeedResponse(
-                    booksResult.Value.Items,
-                    booksResult.Value.Page,
-                    booksResult.Value.PageSize,
-                    booksResult.Value.TotalCount,
-                    booksResult.Value.TotalPages,
-                    booksResult.Value.HasPreviousPage,
-                    booksResult.Value.HasNextPage,
-                    new List<RecommendedBookResponse>()));
-            }
-
             try
             {
-                var recommendationsResult = await _sender.Send(
-                    new GetRecommendedBooksQuery(User.GetRequiredUserId(), takeRecommendations),
-                    cancellationToken);
+                var recommendationsResult = await recommendationsTask;
 
                 if (!recommendationsResult.IsSuccess)
                 {
                     _logger.LogWarning(
                         "Home feed recommendations failed for user {UserId}. Error: {ErrorCode}",
-                        User.GetRequiredUserId(),
+                        userId,
                         recommendationsResult.Error.Code);
-                    return Ok(new HomeFeedResponse(
-                        booksResult.Value.Items,
-                        booksResult.Value.Page,
-                        booksResult.Value.PageSize,
-                        booksResult.Value.TotalCount,
-                        booksResult.Value.TotalPages,
-                        booksResult.Value.HasPreviousPage,
-                        booksResult.Value.HasNextPage,
-                        new List<RecommendedBookResponse>()));
+                    return Ok(CreateHomeFeedResponse(booksResult.Value));
                 }
 
-                return Ok(new HomeFeedResponse(
-                    booksResult.Value.Items,
-                    booksResult.Value.Page,
-                    booksResult.Value.PageSize,
-                    booksResult.Value.TotalCount,
-                    booksResult.Value.TotalPages,
-                    booksResult.Value.HasPreviousPage,
-                    booksResult.Value.HasNextPage,
-                    recommendationsResult.Value));
+                return Ok(CreateHomeFeedResponse(booksResult.Value, recommendationsResult.Value));
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
                 _logger.LogWarning(
                     "Home feed recommendations timed out for user {UserId}. Returning books without recommendations.",
-                    User.GetRequiredUserId());
-                return Ok(new HomeFeedResponse(
-                    booksResult.Value.Items,
-                    booksResult.Value.Page,
-                    booksResult.Value.PageSize,
-                    booksResult.Value.TotalCount,
-                    booksResult.Value.TotalPages,
-                    booksResult.Value.HasPreviousPage,
-                    booksResult.Value.HasNextPage,
-                    new List<RecommendedBookResponse>()));
+                    userId);
+                return Ok(CreateHomeFeedResponse(booksResult.Value));
             }
         }
 
@@ -348,6 +329,19 @@ namespace LibroSphere.WebApi.Controllers.Book
             return string.Equals(pdfFile.ContentType, "application/octet-stream", StringComparison.OrdinalIgnoreCase)
                 && string.Equals(Path.GetExtension(pdfFile.FileName), ".pdf", StringComparison.OrdinalIgnoreCase);
         }
+
+        private static HomeFeedResponse CreateHomeFeedResponse(
+            PagedResponse<BookResponse> books,
+            IReadOnlyList<RecommendedBookResponse>? recommendations = null) =>
+            new(
+                books.Items,
+                books.Page,
+                books.PageSize,
+                books.TotalCount,
+                books.TotalPages,
+                books.HasPreviousPage,
+                books.HasNextPage,
+                recommendations ?? Array.Empty<RecommendedBookResponse>());
     }
 
     public sealed record HomeFeedResponse(
