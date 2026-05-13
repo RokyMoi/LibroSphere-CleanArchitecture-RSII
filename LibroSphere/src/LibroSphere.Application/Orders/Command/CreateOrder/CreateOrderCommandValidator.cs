@@ -9,6 +9,7 @@ namespace LibroSphere.Application.Orders.Command.CreateOrder
             RuleFor(x => x.BuyerEmail).NotEmpty().EmailAddress();
             RuleFor(x => x.UserId).NotEmpty();
             RuleFor(x => x.CartId).NotEmpty();
+            RuleFor(x => x.PaymentIntentId).NotEmpty();
         }
     }
 }

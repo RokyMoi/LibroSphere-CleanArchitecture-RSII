@@ -41,7 +41,9 @@ namespace LibroSphere.WebApi.Controllers.Orders
         {
             var email = User.GetRequiredEmail();
             var userId = User.GetRequiredUserId();
-            var result = await _sender.Send(new CreateOrderCommand(email, userId, dto.CartId), cancellationToken);
+            var result = await _sender.Send(
+                new CreateOrderCommand(email, userId, dto.CartId, dto.PaymentIntentId),
+                cancellationToken);
             return result.IsSuccess
                 ? CreatedAtAction(nameof(GetOrder), new { id = result.Value.Id }, result.Value)
                 : result.Error.Code switch

@@ -665,14 +665,13 @@ class SessionViewModel extends ChangeNotifier {
     _setCart(paymentCart);
     _cartCachedAt = DateTime.now();
 
-    final order = await _services.orders.createOrder(
-      accessToken!,
-      paymentCart.id,
-    );
+    final clientSecret = paymentCart.clientSecret;
+    if (clientSecret == null || clientSecret.isEmpty) {
+      throw Exception('Payment could not be initialized.');
+    }
 
     final confirmedPaymentIntent = await Stripe.instance.confirmPayment(
-      paymentIntentClientSecret:
-          paymentCart.clientSecret ?? order.clientSecret ?? '',
+      paymentIntentClientSecret: clientSecret,
       data: PaymentMethodParams.card(
         paymentMethodData: PaymentMethodData(billingDetails: billingDetails),
       ),
@@ -683,27 +682,29 @@ class SessionViewModel extends ChangeNotifier {
         confirmedPaymentIntent.status == PaymentIntentsStatus.Processing ||
         confirmedPaymentIntent.status == PaymentIntentsStatus.RequiresCapture;
     if (!paymentWasConfirmed) {
-      return await _services.orders.waitForPaidOrder(
-        accessToken!,
-        order.id,
-        maxAttempts: 2,
-      );
+      throw Exception('Payment was not confirmed.');
     }
 
-    unawaited(_finalizeOrderSettlement(order.id));
+    final order = await _services.orders.createOrder(
+      accessToken!,
+      paymentCart.id,
+      confirmedPaymentIntent.id,
+    );
 
-    try {
-      await _services.cart.deleteCart(accessToken!, paymentCart.id);
-    } catch (_) {
-      // Order flow can already consume the cart.
+    final latestOrder = await _services.orders.waitForPaidOrder(
+      accessToken!,
+      order.id,
+    );
+
+    if (latestOrder.status == OrderStatus.paymentReceived) {
+      await _clearPaidCart(paymentCart.id);
+      _invalidateLibraryCache();
+      _markLibraryChanged();
+      return latestOrder;
     }
 
-    _setCart(null);
-    _cartCachedAt = DateTime.now();
-    await _services.storage.clearCart();
-    _invalidateLibraryCache();
-    _markLibraryChanged();
-    return order;
+    unawaited(_finalizeOrderSettlement(order.id, paymentCart.id));
+    return latestOrder;
   }
 
   Future<List<LibraryEntry>> getLibraryEntries({
@@ -729,7 +730,7 @@ class SessionViewModel extends ChangeNotifier {
     return entries.any((entry) => entry.bookId == bookId);
   }
 
-  Future<void> _finalizeOrderSettlement(String orderId) async {
+  Future<void> _finalizeOrderSettlement(String orderId, String cartId) async {
     final token = accessToken;
     if (token == null) {
       return;
@@ -741,11 +742,23 @@ class SessionViewModel extends ChangeNotifier {
         orderId,
       );
       if (latestOrder.status == OrderStatus.paymentReceived) {
+        await _clearPaidCart(cartId);
         _invalidateLibraryCache();
         _markLibraryChanged();
       }
     } catch (_) {
       // Checkout already succeeded from the user's perspective.
+    }
+  }
+
+  Future<void> _clearPaidCart(String cartId) async {
+    if (cart?.id == cartId) {
+      _setCart(null);
+      _cartCachedAt = DateTime.now();
+    }
+
+    if (_services.storage.cachedCartId == cartId) {
+      await _services.storage.clearCart();
     }
   }
 

@@ -24,8 +24,20 @@ namespace LibroSphere.Infrastructure.Services
             _bookRepo = bookRepo;
         }
 
-        public async Task<Result<Order>> CreateOrderAsync(string buyerEmail, Guid userId, string cartId)
+        public async Task<Result<Order>> CreateOrderAsync(
+            string buyerEmail,
+            Guid userId,
+            string cartId,
+            string paymentIntentId)
         {
+            var existingOrder = await _orderRepo.GetByPaymentIntentIdAsync(paymentIntentId);
+            if (existingOrder is not null)
+            {
+                return string.Equals(existingOrder.BuyerEmail, buyerEmail, StringComparison.OrdinalIgnoreCase)
+                    ? Result.Success(existingOrder)
+                    : Result.Failure<Order>(new Error("Order.Cart.Forbidden", "You do not have access to this order."));
+            }
+
             var cart = await _cartService.GetCartASync(cartId);
             if (cart == null)
             {
@@ -40,6 +52,11 @@ namespace LibroSphere.Infrastructure.Services
             if (string.IsNullOrEmpty(cart.PaymentIntentId))
             {
                 return Result.Failure<Order>(new Error("Order.PaymentIntent.Missing", "No payment intent. Call /api/payment/{cartId} first."));
+            }
+
+            if (!string.Equals(cart.PaymentIntentId, paymentIntentId, StringComparison.Ordinal))
+            {
+                return Result.Failure<Order>(new Error("Order.PaymentIntent.Mismatch", "Payment intent does not match the cart."));
             }
 
             var orderItems = new List<OrderItem>();
@@ -68,7 +85,6 @@ namespace LibroSphere.Infrastructure.Services
 
             await _orderRepo.AddAsync(order);
             await _orderRepo.SaveChangesAsync();
-            await _cartService.DeleteCartAsync(cartId);
 
             return Result.Success(order);
         }

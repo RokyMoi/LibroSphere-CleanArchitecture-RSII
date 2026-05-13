@@ -49,7 +49,12 @@ namespace LibroSphere.WebApi.Controllers.Payment
                 }
             }
 
-            var result = await _sender.Send(new CreateOrUpdatePaymentIntentCommand(cartId), cancellationToken);
+            var result = await _sender.Send(
+                new CreateOrUpdatePaymentIntentCommand(
+                    cartId,
+                    User.GetRequiredUserId(),
+                    User.GetRequiredEmail()),
+                cancellationToken);
 
             return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
         }

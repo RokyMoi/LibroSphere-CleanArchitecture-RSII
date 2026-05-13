@@ -1,4 +1,4 @@
 ﻿namespace LibroSphere.WebApi.Controllers.Orders
 {
-    public record CreateOrderRequest(string CartId);
+    public record CreateOrderRequest(string CartId, string PaymentIntentId);
 }

@@ -2,9 +2,11 @@ using LibroSphere.Application.Abstractions;
 using LibroSphere.Application.Abstractions.ShoppingServices;
 using LibroSphere.Application.Events.Order;
 using LibroSphere.Domain.Abstraction;
+using LibroSphere.Domain.Entities.Books;
 using LibroSphere.Domain.Entities.ManyToMany;
 using LibroSphere.Domain.Entities.ManyToMany.IRepositories;
 using LibroSphere.Domain.Entities.Orders;
+using LibroSphere.Domain.Entities.ShopCart;
 using MassTransit;
 using Stripe;
 
@@ -14,17 +16,23 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IUserBookRepository _userBookRepository;
+    private readonly ICartService _cartService;
+    private readonly IBookRepository _bookRepository;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IUnitOfWork _unitOfWork;
 
     public PaymentWebhookProcessor(
         IOrderRepository orderRepository,
         IUserBookRepository userBookRepository,
+        ICartService cartService,
+        IBookRepository bookRepository,
         IPublishEndpoint publishEndpoint,
         IUnitOfWork unitOfWork)
     {
         _orderRepository = orderRepository;
         _userBookRepository = userBookRepository;
+        _cartService = cartService;
+        _bookRepository = bookRepository;
         _publishEndpoint = publishEndpoint;
         _unitOfWork = unitOfWork;
     }
@@ -61,10 +69,15 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
             return;
         }
 
+        intent.Metadata.TryGetValue("cartId", out var cartId);
         var order = await _orderRepository.GetByPaymentIntentIdAsync(intent.Id);
         if (order is null)
         {
-            return;
+            order = await CreateOrderFromPaymentIntentAsync(intent, cartId, cancellationToken);
+            if (order is null)
+            {
+                return;
+            }
         }
 
         order.UpdateStatus(OrderStatus.PaymentReceived);
@@ -79,6 +92,10 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
         }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+        if (!string.IsNullOrWhiteSpace(cartId))
+        {
+            await _cartService.DeleteCartAsync(cartId);
+        }
 
         await _publishEndpoint.Publish(new OrderPaidIntegrationEvent(
             order.Id,
@@ -92,6 +109,51 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
                     item.Price.Currency.Code,
                     item.Quantity))
                 .ToList()), cancellationToken);
+    }
+
+    private async Task<Order?> CreateOrderFromPaymentIntentAsync(
+        PaymentIntent intent,
+        string? cartId,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(cartId) ||
+            !intent.Metadata.TryGetValue("buyerEmail", out var buyerEmail) ||
+            string.IsNullOrWhiteSpace(buyerEmail))
+        {
+            return null;
+        }
+
+        var cart = await _cartService.GetCartASync(cartId);
+        if (cart is null)
+        {
+            return null;
+        }
+
+        var orderItems = new List<OrderItem>();
+        foreach (var item in cart.Items)
+        {
+            var book = await _bookRepository.GetAsyncById(item.BookId, cancellationToken);
+            if (book is null)
+            {
+                return null;
+            }
+
+            orderItems.Add(OrderItem.Create(
+                book.Id,
+                book.Title.Value,
+                book.BookLinkovi.imageLink,
+                book.Price,
+                quantity: 1));
+        }
+
+        var order = Order.Create(
+            buyerEmail,
+            orderItems,
+            intent.Id,
+            cart.ClientSecret ?? string.Empty);
+
+        await _orderRepository.AddAsync(order);
+        return order;
     }
 
     private async Task HandleFailed(PaymentIntent? intent)

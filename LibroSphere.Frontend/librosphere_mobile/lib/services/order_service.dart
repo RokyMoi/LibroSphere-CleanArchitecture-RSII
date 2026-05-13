@@ -6,8 +6,12 @@ class OrderService {
 
   final ApiClient _apiClient;
 
-  Future<OrderModel> createOrder(String accessToken, String cartId) {
-    return _apiClient.createOrder(accessToken, cartId);
+  Future<OrderModel> createOrder(
+    String accessToken,
+    String cartId,
+    String paymentIntentId,
+  ) {
+    return _apiClient.createOrder(accessToken, cartId, paymentIntentId);
   }
 
   Future<OrderModel> waitForPaidOrder(

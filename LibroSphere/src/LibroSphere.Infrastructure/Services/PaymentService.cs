@@ -20,12 +20,23 @@ namespace LibroSphere.Infrastructure.Services
             _bookRepository = bookRepo;
         }
 
-        public async Task<ShoppingCart?> CreateOrUpdatePaymentIntent(string cartId)
+        public async Task<ShoppingCart?> CreateOrUpdatePaymentIntent(
+            string cartId,
+            Guid userId,
+            string buyerEmail)
         {
             StripeConfiguration.ApiKey = _config["StripeSettings:SecretKey"];
 
             var cart = await _cartService.GetCartASync(cartId);
             if (cart == null) return null;
+            if (cart.UserId != userId) return null;
+
+            var metadata = new Dictionary<string, string>
+            {
+                { "cartId", cartId },
+                { "userId", userId.ToString() },
+                { "buyerEmail", buyerEmail }
+            };
 
             foreach (var item in cart.Items)
             {
@@ -50,10 +61,7 @@ namespace LibroSphere.Infrastructure.Services
                     Amount = amountInCents,
                     Currency = "usd",
                     PaymentMethodTypes = new List<string> { "card" },
-                    Metadata = new Dictionary<string, string>
-                    {
-                        { "cartId", cartId }
-                    }
+                    Metadata = metadata
                 };
 
                 intent = await service.CreateAsync(options);
@@ -64,7 +72,8 @@ namespace LibroSphere.Infrastructure.Services
             {
                 var options = new PaymentIntentUpdateOptions
                 {
-                    Amount = amountInCents
+                    Amount = amountInCents,
+                    Metadata = metadata
                 };
                 intent = await service.UpdateAsync(cart.PaymentIntentId, options);
 

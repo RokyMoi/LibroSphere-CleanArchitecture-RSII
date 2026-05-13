@@ -16,7 +16,10 @@ internal sealed class CreateOrUpdatePaymentIntentCommandHandler : ICommandHandle
 
     public async Task<Result<ShoppingCart>> Handle(CreateOrUpdatePaymentIntentCommand request, CancellationToken cancellationToken)
     {
-        var cart = await _paymentService.CreateOrUpdatePaymentIntent(request.CartId);
+        var cart = await _paymentService.CreateOrUpdatePaymentIntent(
+            request.CartId,
+            request.UserId,
+            request.BuyerEmail);
 
         return cart is not null
             ? Result.Success(cart)

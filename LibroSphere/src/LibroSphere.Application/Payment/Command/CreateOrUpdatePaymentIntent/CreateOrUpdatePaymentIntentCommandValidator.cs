@@ -7,5 +7,7 @@ public sealed class CreateOrUpdatePaymentIntentCommandValidator : AbstractValida
     public CreateOrUpdatePaymentIntentCommandValidator()
     {
         RuleFor(x => x.CartId).NotEmpty();
+        RuleFor(x => x.UserId).NotEmpty();
+        RuleFor(x => x.BuyerEmail).NotEmpty().EmailAddress();
     }
 }

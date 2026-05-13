@@ -418,11 +418,15 @@ class ApiClient {
     return ShoppingCartModel.fromJson(await _decodeMap(response));
   }
 
-  Future<OrderModel> createOrder(String accessToken, String cartId) async {
+  Future<OrderModel> createOrder(
+    String accessToken,
+    String cartId,
+    String paymentIntentId,
+  ) async {
     final response = await _post(
       '/api/orders',
       token: accessToken,
-      body: {'cartId': cartId},
+      body: {'cartId': cartId, 'paymentIntentId': paymentIntentId},
     );
     return OrderModel.fromJson(await _decodeMap(response));
   }
