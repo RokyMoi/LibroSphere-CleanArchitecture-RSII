@@ -42,7 +42,6 @@ internal sealed class GetCartDetailsQueryHandler : IQueryHandler<GetCartDetailsQ
         foreach (var book in books)
         {
             var imageLink = await _bookAssetStorageService.GetImageUrlAsync(book.BookLinkovi.imageLink, cancellationToken);
-            var pdfLink = await _bookAssetStorageService.GetPdfReadUrlAsync(book.BookLinkovi.PdfLink, cancellationToken);
             var reviewCount = book.Reviews.Count;
             var averageRating = reviewCount == 0
                 ? 0
@@ -55,7 +54,6 @@ internal sealed class GetCartDetailsQueryHandler : IQueryHandler<GetCartDetailsQ
                 Description = book.Description.Value,
                 amount = book.Price.amount,
                 currency = book.Price.Currency.Code,
-                pdfLink = pdfLink,
                 imageLink = imageLink,
                 AverageRating = averageRating,
                 ReviewCount = reviewCount,

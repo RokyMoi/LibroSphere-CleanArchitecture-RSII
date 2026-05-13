@@ -15,7 +15,6 @@ namespace LibroSphere.Application.Books.Query.GetBookByIdQuery
         public string Description { get; init; } = string.Empty;
         public decimal amount { get; init; }
         public string currency { get; init; } = string.Empty;
-        public string? pdfLink { get; init; }
         public string? imageLink { get; init; }
         public double AverageRating { get; init; }
         public int ReviewCount { get; init; }

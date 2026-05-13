@@ -35,8 +35,7 @@ namespace LibroSphere.Application.Books.Query.GetAllBooks
             var response = await Task.WhenAll(pageBooks.Select(async book =>
             {
                 var imageLinkTask = _bookAssetStorageService.GetImageUrlAsync(book.BookLinkovi.imageLink, cancellationToken);
-                var pdfLinkTask = _bookAssetStorageService.GetPdfReadUrlAsync(book.BookLinkovi.PdfLink, cancellationToken);
-                await Task.WhenAll((Task)imageLinkTask, pdfLinkTask);
+                await imageLinkTask;
 
                 var reviewCount = book.Reviews.Count;
                 var averageRating = reviewCount == 0
@@ -50,7 +49,6 @@ namespace LibroSphere.Application.Books.Query.GetAllBooks
                     Description = book.Description.Value,
                     amount = book.Price.amount,
                     currency = book.Price.Currency.Code,
-                    pdfLink = await pdfLinkTask,
                     imageLink = await imageLinkTask,
                     AverageRating = averageRating,
                     ReviewCount = reviewCount,
