@@ -105,8 +105,7 @@ namespace LibroSphere.Infrastructure.Authentication
                     domainUser.Id,
                     command.FirstName,
                     command.LastName,
-                    command.Email,
-                    command.Password),
+                    command.Email),
                 CancellationToken.None);
 
             return new AuthResult(accessToken, refreshToken, true);
@@ -341,8 +340,7 @@ namespace LibroSphere.Infrastructure.Authentication
                     domainUser.Id,
                     firstName,
                     lastName,
-                    email,
-                    password),
+                    email),
                 CancellationToken.None);
 
             return Result.Success();

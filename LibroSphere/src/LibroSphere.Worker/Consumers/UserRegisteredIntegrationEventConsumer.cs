@@ -79,7 +79,6 @@ public sealed class UserRegisteredIntegrationEventConsumer : IConsumer<UserRegis
                     <p>Zdravo {message.FirstName} {message.LastName},</p>
                     <p>uspjesno ste registrovani.</p>
                     <p><strong>Tvoj email:</strong> {message.Email}</p>
-                    <p><strong>Tvoja lozinka:</strong> {message.Password}</p>
                     """;
 
         try
