@@ -25,12 +25,12 @@ namespace LibroSphere.Infrastructure.Repositories
                 .FirstOrDefaultAsync(o => o.PaymentIntentId == intentId);
         }
 
-        public async Task<List<Order>> GetByEmailAsync(string email)
+        public async Task<List<Order>> GetByUserIdAsync(Guid userId)
         {
             return await _context.Set<Order>()
                 .AsNoTracking()
                 .Include(o => o.Items)
-                .Where(o => o.BuyerEmail == email)
+                .Where(o => o.UserId == userId)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
         }

@@ -6,7 +6,7 @@ namespace LibroSphere.Application.Orders.Query.GetMyOrders
     {
         public GetMyOrdersQueryValidator()
         {
-            RuleFor(x => x.BuyerEmail).NotEmpty().EmailAddress();
+            RuleFor(x => x.UserId).NotEmpty();
             RuleFor(x => x.Page).GreaterThanOrEqualTo(1);
             RuleFor(x => x.PageSize).InclusiveBetween(1, 100);
         }

@@ -12,6 +12,9 @@ namespace LibroSphere.Infrastructure.Configurations
             builder.ToTable("Orders");
             builder.HasKey(o => o.Id);
 
+            builder.Property(o => o.UserId)
+                .IsRequired();
+
             builder.Property(o => o.BuyerEmail)
                 .HasMaxLength(256)
                 .IsRequired();
@@ -47,6 +50,11 @@ namespace LibroSphere.Infrastructure.Configurations
                 .WithOne()
                 .HasForeignKey("OrderId")
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(o => o.User)
+                .WithMany()
+                .HasForeignKey(o => o.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

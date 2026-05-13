@@ -84,10 +84,10 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
 
         foreach (var item in order.Items)
         {
-            var alreadyHas = await _userBookRepository.HasAccessAsync(order.BuyerEmail, item.BookId);
+            var alreadyHas = await _userBookRepository.HasAccessAsync(order.UserId, item.BookId);
             if (!alreadyHas)
             {
-                await _userBookRepository.AddAsync(UserBook.Create(order.BuyerEmail, item.BookId));
+                await _userBookRepository.AddAsync(UserBook.Create(order.UserId, order.BuyerEmail, item.BookId));
             }
         }
 
@@ -117,6 +117,8 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(cartId) ||
+            !intent.Metadata.TryGetValue("userId", out var userIdValue) ||
+            !Guid.TryParse(userIdValue, out var userId) ||
             !intent.Metadata.TryGetValue("buyerEmail", out var buyerEmail) ||
             string.IsNullOrWhiteSpace(buyerEmail))
         {
@@ -125,6 +127,11 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
 
         var cart = await _cartService.GetCartASync(cartId);
         if (cart is null)
+        {
+            return null;
+        }
+
+        if (cart.UserId != userId)
         {
             return null;
         }
@@ -147,6 +154,7 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
         }
 
         var order = Order.Create(
+            userId,
             buyerEmail,
             orderItems,
             intent.Id,

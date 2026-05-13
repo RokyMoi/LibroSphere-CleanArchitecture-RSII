@@ -6,7 +6,7 @@ namespace LibroSphere.Application.Library.Query.GetBookReadLink
     {
         public GetBookReadLinkQueryValidator()
         {
-            RuleFor(x => x.Email).NotEmpty().EmailAddress();
+            RuleFor(x => x.UserId).NotEmpty();
             RuleFor(x => x.BookId).NotEmpty();
         }
     }

@@ -6,7 +6,7 @@ namespace LibroSphere.Application.Abstractions
     {
         Task<Order?> GetByIdAsync(Guid id);
         Task<Order?> GetByPaymentIntentIdAsync(string paymentIntentId);
-        Task<List<Order>> GetByEmailAsync(string email);
+        Task<List<Order>> GetByUserIdAsync(Guid userId);
         Task<List<Order>> GetAllAsync(CancellationToken cancellationToken = default);
         Task AddAsync(Order order);
         Task SaveChangesAsync();

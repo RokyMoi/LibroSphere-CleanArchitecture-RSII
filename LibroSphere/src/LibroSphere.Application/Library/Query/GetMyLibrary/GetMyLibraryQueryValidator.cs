@@ -6,7 +6,7 @@ namespace LibroSphere.Application.Library.Query.GetMyLibrary
     {
         public GetMyLibraryQueryValidator()
         {
-            RuleFor(x => x.Email).NotEmpty().EmailAddress();
+            RuleFor(x => x.UserId).NotEmpty();
             RuleFor(x => x.SearchTerm)
                 .MaximumLength(200)
                 .When(x => !string.IsNullOrWhiteSpace(x.SearchTerm));

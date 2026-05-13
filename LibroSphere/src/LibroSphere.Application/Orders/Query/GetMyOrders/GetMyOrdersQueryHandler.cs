@@ -16,7 +16,7 @@ namespace LibroSphere.Application.Orders.Query.GetMyOrders
 
         public async Task<Result<PagedResponse<Order>>> Handle(GetMyOrdersQuery request, CancellationToken cancellationToken)
         {
-            var orders = await _orderService.GetOrdersForUserAsync(request.BuyerEmail);
+            var orders = await _orderService.GetOrdersForUserAsync(request.UserId);
             var filteredOrders = orders
                 .Where(order => !request.Status.HasValue || order.Status == request.Status.Value)
                 .ToList();

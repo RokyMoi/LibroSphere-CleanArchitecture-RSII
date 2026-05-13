@@ -419,7 +419,7 @@ namespace LibroSphere.Infrastructure.Services
                     bg.GenreId,
                     CAST(4.5 AS float) AS Weight
                 FROM Users u
-                INNER JOIN UserBooks ub ON ub.UserEmail = u.UserEmail
+                INNER JOIN UserBooks ub ON ub.UserId = u.Id
                 INNER JOIN Books b ON b.Id = ub.BookId
                 LEFT JOIN BookGenres bg ON bg.BookId = b.Id
                 WHERE u.Id = @UserId
@@ -481,9 +481,8 @@ namespace LibroSphere.Infrastructure.Services
         private const string CandidateBooksSql = """
             WITH ExcludedBooks AS (
                 SELECT ub.BookId
-                FROM Users u
-                INNER JOIN UserBooks ub ON ub.UserEmail = u.UserEmail
-                WHERE u.Id = @UserId
+                FROM UserBooks ub
+                WHERE ub.UserId = @UserId
                 UNION
                 SELECT r.BookId
                 FROM Reviews r

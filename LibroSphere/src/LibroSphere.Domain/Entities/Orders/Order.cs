@@ -1,6 +1,7 @@
 using LibroSphere.Domain.Abstraction;
 using LibroSphere.Domain.Entities.Orders.Events;
 using LibroSphere.Domain.Entities.Shared;
+using LibroSphere.Domain.Entities.Users;
 
 namespace LibroSphere.Domain.Entities.Orders
 {
@@ -8,6 +9,7 @@ namespace LibroSphere.Domain.Entities.Orders
     {
         private Order(
             Guid id,
+            Guid userId,
             string buyerEmail,
             List<OrderItem> items,
             string paymentIntentId,
@@ -15,6 +17,7 @@ namespace LibroSphere.Domain.Entities.Orders
             string clientSecret)
             : base(id)
         {
+            UserId = userId;
             BuyerEmail = buyerEmail;
             Items = items;
             PaymentIntentId = paymentIntentId;
@@ -28,6 +31,8 @@ namespace LibroSphere.Domain.Entities.Orders
         {
         }
 
+        public Guid UserId { get; private set; }
+        public User User { get; private set; } = null!;
         public string BuyerEmail { get; private set; } = string.Empty;
         public DateTime OrderDate { get; private set; }
         public List<OrderItem> Items { get; private set; } = new();
@@ -37,6 +42,7 @@ namespace LibroSphere.Domain.Entities.Orders
         public string? ClientSecret { get; private set; }
 
         public static Order Create(
+            Guid userId,
             string buyerEmail,
             List<OrderItem> items,
             string paymentIntentId,
@@ -48,7 +54,7 @@ namespace LibroSphere.Domain.Entities.Orders
                     .Select(item => new Money(item.Price.amount * item.Quantity, item.Price.Currency))
                     .Aggregate((sum, item) => sum + item);
 
-            var order = new Order(Guid.NewGuid(), buyerEmail, items, paymentIntentId, total, clientSecret);
+            var order = new Order(Guid.NewGuid(), userId, buyerEmail, items, paymentIntentId, total, clientSecret);
             order.RaiseDomainEvent(
                 new OrderCreatedDomainEvent(
                     order.Id,

@@ -33,7 +33,7 @@ namespace LibroSphere.Infrastructure.Services
             var existingOrder = await _orderRepo.GetByPaymentIntentIdAsync(paymentIntentId);
             if (existingOrder is not null)
             {
-                return string.Equals(existingOrder.BuyerEmail, buyerEmail, StringComparison.OrdinalIgnoreCase)
+                return existingOrder.UserId == userId
                     ? Result.Success(existingOrder)
                     : Result.Failure<Order>(new Error("Order.Cart.Forbidden", "You do not have access to this order."));
             }
@@ -78,6 +78,7 @@ namespace LibroSphere.Infrastructure.Services
             }
 
             var order = Order.Create(
+                userId,
                 buyerEmail,
                 orderItems,
                 cart.PaymentIntentId,
@@ -89,8 +90,8 @@ namespace LibroSphere.Infrastructure.Services
             return Result.Success(order);
         }
 
-        public async Task<List<Order>> GetOrdersForUserAsync(string email)
-            => await _orderRepo.GetByEmailAsync(email);
+        public async Task<List<Order>> GetOrdersForUserAsync(Guid userId)
+            => await _orderRepo.GetByUserIdAsync(userId);
 
         public async Task<List<Order>> GetAllOrdersAsync(CancellationToken cancellationToken = default)
             => await _orderRepo.GetAllAsync();

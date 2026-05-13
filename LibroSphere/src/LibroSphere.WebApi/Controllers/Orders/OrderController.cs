@@ -61,8 +61,8 @@ namespace LibroSphere.WebApi.Controllers.Orders
             [FromQuery] int pageSize = 10,
             CancellationToken cancellationToken = default)
         {
-            var email = User.GetRequiredEmail();
-            var result = await _sender.Send(new GetMyOrdersQuery(email, status, page, pageSize), cancellationToken);
+            var userId = User.GetRequiredUserId();
+            var result = await _sender.Send(new GetMyOrdersQuery(userId, status, page, pageSize), cancellationToken);
             return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
         }
 
@@ -88,7 +88,7 @@ namespace LibroSphere.WebApi.Controllers.Orders
                 return NotFound(result.Error);
             }
 
-            if (!User.IsAdmin() && !string.Equals(result.Value.BuyerEmail, User.GetRequiredEmail(), StringComparison.OrdinalIgnoreCase))
+            if (!User.IsAdmin() && result.Value.UserId != User.GetRequiredUserId())
             {
                 return Forbid();
             }
@@ -108,7 +108,7 @@ namespace LibroSphere.WebApi.Controllers.Orders
                 return NotFound(new { code = "Order.NotFound", message = "Order was not found." });
             }
 
-            if (!User.IsAdmin() && !string.Equals(order.BuyerEmail, User.GetRequiredEmail(), StringComparison.OrdinalIgnoreCase))
+            if (!User.IsAdmin() && order.UserId != User.GetRequiredUserId())
             {
                 return Forbid();
             }
@@ -142,7 +142,7 @@ namespace LibroSphere.WebApi.Controllers.Orders
             order.UpdateStatus(OrderStatus.Refunded);
 
             // Remove books from user's library when order is refunded
-            var userLibrary = await _userBookRepository.GetByEmailAsync(order.BuyerEmail, cancellationToken);
+            var userLibrary = await _userBookRepository.GetByUserIdAsync(order.UserId, cancellationToken);
             foreach (var item in order.Items)
             {
                 var userBook = userLibrary.FirstOrDefault(ub => ub.BookId == item.BookId);

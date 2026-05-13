@@ -24,7 +24,7 @@ namespace LibroSphere.Application.Library.Query.GetBookReadLink
 
         public async Task<Result<string>> Handle(GetBookReadLinkQuery request, CancellationToken cancellationToken)
         {
-            var hasAccess = await _userBookRepository.HasAccessAsync(request.Email, request.BookId);
+            var hasAccess = await _userBookRepository.HasAccessAsync(request.UserId, request.BookId);
             if (!hasAccess)
             {
                 return Result.Failure<string>(Error.NullValue);

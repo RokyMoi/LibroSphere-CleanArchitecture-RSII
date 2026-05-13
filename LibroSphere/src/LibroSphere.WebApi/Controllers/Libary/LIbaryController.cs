@@ -26,16 +26,16 @@ namespace LibroSphere.WebApi.Controllers.Library
             [FromQuery] int pageSize = 12,
             CancellationToken cancellationToken = default)
         {
-            var email = User.GetRequiredEmail();
-            var result = await _sender.Send(new GetMyLibraryQuery(email, searchTerm, page, pageSize), cancellationToken);
+            var userId = User.GetRequiredUserId();
+            var result = await _sender.Send(new GetMyLibraryQuery(userId, searchTerm, page, pageSize), cancellationToken);
             return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
         }
 
         [HttpGet("{bookId:guid}/read")]
         public async Task<IActionResult> GetPdfLink(Guid bookId, CancellationToken cancellationToken)
         {
-            var email = User.GetRequiredEmail();
-            var result = await _sender.Send(new GetBookReadLinkQuery(email, bookId), cancellationToken);
+            var userId = User.GetRequiredUserId();
+            var result = await _sender.Send(new GetBookReadLinkQuery(userId, bookId), cancellationToken);
             return result.IsSuccess ? Ok(new { pdfUrl = result.Value }) : Forbid();
         }
     }

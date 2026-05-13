@@ -2,8 +2,8 @@
 {
     public interface IUserBookRepository
     {
-        Task<List<UserBook>> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
-        Task<bool> HasAccessAsync(string email, Guid bookId);
+        Task<List<UserBook>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
+        Task<bool> HasAccessAsync(Guid userId, Guid bookId);
         Task AddAsync(UserBook userBook);
         Task RemoveAsync(UserBook userBook);
         Task SaveChangesAsync();
