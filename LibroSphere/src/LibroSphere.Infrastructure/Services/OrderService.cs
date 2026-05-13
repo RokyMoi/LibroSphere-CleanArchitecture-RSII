@@ -24,12 +24,17 @@ namespace LibroSphere.Infrastructure.Services
             _bookRepo = bookRepo;
         }
 
-        public async Task<Result<Order>> CreateOrderAsync(string buyerEmail, string cartId)
+        public async Task<Result<Order>> CreateOrderAsync(string buyerEmail, Guid userId, string cartId)
         {
             var cart = await _cartService.GetCartASync(cartId);
             if (cart == null)
             {
                 return Result.Failure<Order>(new Error("Order.Cart.NotFound", "Cart not found."));
+            }
+
+            if (cart.UserId != userId)
+            {
+                return Result.Failure<Order>(new Error("Order.Cart.Forbidden", "You do not have access to this cart."));
             }
 
             if (string.IsNullOrEmpty(cart.PaymentIntentId))

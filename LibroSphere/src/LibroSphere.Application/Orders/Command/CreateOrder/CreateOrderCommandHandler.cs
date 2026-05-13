@@ -15,7 +15,7 @@ namespace LibroSphere.Application.Orders.Command.CreateOrder
 
         public async Task<Result<Order>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
         {
-            return await _orderService.CreateOrderAsync(request.BuyerEmail, request.CartId);
+            return await _orderService.CreateOrderAsync(request.BuyerEmail, request.UserId, request.CartId);
         }
     }
 }

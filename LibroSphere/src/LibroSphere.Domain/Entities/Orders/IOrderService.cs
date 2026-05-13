@@ -5,7 +5,7 @@ namespace LibroSphere.Application.Abstractions
 {
     public interface IOrderService
     {
-        Task<Result<Order>> CreateOrderAsync(string buyerEmail, string cartId);
+        Task<Result<Order>> CreateOrderAsync(string buyerEmail, Guid userId, string cartId);
         Task<List<Order>> GetOrdersForUserAsync(string email);
         Task<List<Order>> GetAllOrdersAsync(CancellationToken cancellationToken = default);
         Task<Order?> GetOrderByIdAsync(Guid id);

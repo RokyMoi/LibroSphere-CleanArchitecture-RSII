@@ -7,6 +7,7 @@ namespace LibroSphere.Application.Orders.Command.CreateOrder
         public CreateOrderCommandValidator()
         {
             RuleFor(x => x.BuyerEmail).NotEmpty().EmailAddress();
+            RuleFor(x => x.UserId).NotEmpty();
             RuleFor(x => x.CartId).NotEmpty();
         }
     }

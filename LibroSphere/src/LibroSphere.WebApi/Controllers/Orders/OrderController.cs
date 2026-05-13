@@ -40,10 +40,16 @@ namespace LibroSphere.WebApi.Controllers.Orders
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest dto, CancellationToken cancellationToken)
         {
             var email = User.GetRequiredEmail();
-            var result = await _sender.Send(new CreateOrderCommand(email, dto.CartId), cancellationToken);
+            var userId = User.GetRequiredUserId();
+            var result = await _sender.Send(new CreateOrderCommand(email, userId, dto.CartId), cancellationToken);
             return result.IsSuccess
                 ? CreatedAtAction(nameof(GetOrder), new { id = result.Value.Id }, result.Value)
-                : BadRequest(result.Error);
+                : result.Error.Code switch
+                {
+                    "Order.Cart.Forbidden" => Forbid(),
+                    "Order.Cart.NotFound" => NotFound(result.Error),
+                    _ => BadRequest(result.Error)
+                };
         }
 
         [HttpGet]
