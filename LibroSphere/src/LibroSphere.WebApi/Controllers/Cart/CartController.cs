@@ -45,9 +45,7 @@ namespace LibroSphere.WebApi.Controllers.Cart
             var command = new UpdateCartCommand(
                 request.Id,
                 currentUserId,
-                request.ClientSecret,
-                request.PaymentIntentId,
-                request.Items.Select(item => new UpdateCartItemModel(item.BookId, item.Price.Amount, item.Price.CurrencyCode)).ToList());
+                request.Items.Select(item => new UpdateCartItemModel(item.BookId)).ToList());
 
             var result = await _sender.Send(command, cancellationToken);
             return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);

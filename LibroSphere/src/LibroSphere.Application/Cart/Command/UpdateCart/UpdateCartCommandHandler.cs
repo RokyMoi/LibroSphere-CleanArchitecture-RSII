@@ -1,7 +1,7 @@
 using LibroSphere.Application.Abstractions.Messaging;
 using LibroSphere.Domain.Abstraction;
+using LibroSphere.Domain.Entities.Books;
 using LibroSphere.Domain.Entities.ManyToMany;
-using LibroSphere.Domain.Entities.Shared;
 using LibroSphere.Domain.Entities.ShopCart;
 
 namespace LibroSphere.Application.Cart.Command.UpdateCart
@@ -9,30 +9,36 @@ namespace LibroSphere.Application.Cart.Command.UpdateCart
     internal sealed class UpdateCartCommandHandler : ICommandHandler<UpdateCartCommand, ShoppingCart>
     {
         private readonly ICartService _cartService;
+        private readonly IBookRepository _bookRepository;
 
-        public UpdateCartCommandHandler(ICartService cartService)
+        public UpdateCartCommandHandler(ICartService cartService, IBookRepository bookRepository)
         {
             _cartService = cartService;
+            _bookRepository = bookRepository;
         }
 
         public async Task<Result<ShoppingCart>> Handle(UpdateCartCommand request, CancellationToken cancellationToken)
         {
             var cart = ShoppingCart.CreateCart(request.Id, request.UserId);
+            var bookIds = request.Items
+                .Select(item => item.BookId)
+                .Distinct()
+                .ToList();
+            var books = await _bookRepository.GetByIdsWithDetailsAsync(bookIds, cancellationToken);
+            var bookLookup = books.ToDictionary(book => book.Id);
 
             foreach (var item in request.Items)
             {
+                if (!bookLookup.TryGetValue(item.BookId, out var book))
+                {
+                    return Result.Failure<ShoppingCart>(new Error("Cart.BookNotFound", "One or more books in the cart were not found."));
+                }
+
                 cart.Items.Add(ShoppingCartItem.AddItem(
                     request.Id,
                     item.BookId,
-                    new Money(item.Amount, Currency.FromCode(item.CurrencyCode))));
+                    book.Price));
             }
-
-            if (!string.IsNullOrWhiteSpace(request.PaymentIntentId))
-            {
-                cart.SetPaymentIntent(request.PaymentIntentId);
-            }
-
-            cart.ClientSecret = request.ClientSecret;
 
             var updated = await _cartService.SetCartAsync(cart);
             return updated is not null

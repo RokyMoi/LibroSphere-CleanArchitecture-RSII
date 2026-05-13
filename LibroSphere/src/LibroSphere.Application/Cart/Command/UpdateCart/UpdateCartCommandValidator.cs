@@ -12,8 +12,6 @@ namespace LibroSphere.Application.Cart.Command.UpdateCart
             RuleForEach(x => x.Items).ChildRules(item =>
             {
                 item.RuleFor(x => x.BookId).NotEmpty();
-                item.RuleFor(x => x.Amount).GreaterThan(0);
-                item.RuleFor(x => x.CurrencyCode).NotEmpty().MaximumLength(10);
             });
         }
     }
