@@ -48,7 +48,14 @@ namespace LibroSphere.WebApi.Controllers.Cart
                 request.Items.Select(item => new UpdateCartItemModel(item.BookId)).ToList());
 
             var result = await _sender.Send(command, cancellationToken);
-            return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+            return result.IsSuccess
+                ? Ok(result.Value)
+                : result.Error.Code switch
+                {
+                    "Cart.Forbidden" => Forbid(),
+                    "Cart.NotFound" => NotFound(result.Error),
+                    _ => BadRequest(result.Error)
+                };
         }
 
         [HttpDelete("{cartId:guid}")]

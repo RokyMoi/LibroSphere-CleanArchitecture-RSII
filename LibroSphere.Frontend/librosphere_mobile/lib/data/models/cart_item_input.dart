@@ -7,6 +7,5 @@ class CartItemInput {
 
   Map<String, dynamic> toJson() => {
         'bookId': bookId,
-        'price': {'amount': amount, 'currencyCode': currencyCode},
       };
 }

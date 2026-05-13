@@ -2,7 +2,7 @@ namespace LibroSphere.WebApi.Controllers.Cart
 {
     public sealed class UpdateCartRequest
     {
-        public Guid Id { get; set; }
+        public Guid? Id { get; set; }
         public List<UpdateCartItemRequest> Items { get; set; } = new();
     }
 

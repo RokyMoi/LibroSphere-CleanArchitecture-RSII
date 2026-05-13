@@ -13,19 +13,13 @@ class CartService {
 
   Future<ShoppingCartModel> upsertCart({
     required String accessToken,
-    required String cartId,
-    required String userId,
+    String? cartId,
     required List<CartItemInput> items,
-    String? clientSecret,
-    String? paymentIntentId,
   }) {
     return _apiClient.upsertCart(
       accessToken: accessToken,
       cartId: cartId,
-      userId: userId,
       items: items,
-      clientSecret: clientSecret,
-      paymentIntentId: paymentIntentId,
     );
   }
 

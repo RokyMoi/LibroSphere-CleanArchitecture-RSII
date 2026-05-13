@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../../../core/error/result.dart';
 import '../../../../data/models/author_model.dart';
@@ -32,7 +31,6 @@ class SessionViewModel extends ChangeNotifier {
 
   final AppServices _services;
   AppServices get services => _services;
-  final _uuid = const Uuid();
   final ValueNotifier<bool> _readyState = ValueNotifier(false);
   final ValueNotifier<AuthUserModel?> _profileState = ValueNotifier(null);
   final ValueNotifier<ShoppingCartModel?> _cartState = ValueNotifier(null);
@@ -805,14 +803,10 @@ class SessionViewModel extends ChangeNotifier {
 
   Future<void> _upsertCart(List<CartItemInput> items) async {
     _requireAuth();
-    final cartId = cart?.id ?? _uuid.v4();
     final newCart = await _services.cart.upsertCart(
       accessToken: accessToken!,
-      cartId: cartId,
-      userId: currentUser!.id,
+      cartId: cart?.id,
       items: items,
-      clientSecret: cart?.clientSecret,
-      paymentIntentId: cart?.paymentIntentId,
     );
 
     _setCart(newCart);

@@ -19,7 +19,25 @@ namespace LibroSphere.Application.Cart.Command.UpdateCart
 
         public async Task<Result<ShoppingCart>> Handle(UpdateCartCommand request, CancellationToken cancellationToken)
         {
-            var cart = ShoppingCart.CreateCart(request.Id, request.UserId);
+            var requestedCartId = request.Id.GetValueOrDefault();
+            ShoppingCart? existingCart = null;
+
+            if (requestedCartId != Guid.Empty)
+            {
+                existingCart = await _cartService.GetCartASync(requestedCartId.ToString());
+                if (existingCart is null)
+                {
+                    return Result.Failure<ShoppingCart>(new Error("Cart.NotFound", "Cart was not found."));
+                }
+
+                if (existingCart.UserId != request.UserId)
+                {
+                    return Result.Failure<ShoppingCart>(new Error("Cart.Forbidden", "You do not have access to this cart."));
+                }
+            }
+
+            var cartId = existingCart?.Id ?? Guid.NewGuid();
+            var cart = ShoppingCart.CreateCart(cartId, request.UserId);
             var bookIds = request.Items
                 .Select(item => item.BookId)
                 .Distinct()
@@ -35,9 +53,15 @@ namespace LibroSphere.Application.Cart.Command.UpdateCart
                 }
 
                 cart.Items.Add(ShoppingCartItem.AddItem(
-                    request.Id,
+                    cartId,
                     item.BookId,
                     book.Price));
+            }
+
+            if (!string.IsNullOrWhiteSpace(existingCart?.PaymentIntentId))
+            {
+                cart.SetPaymentIntent(existingCart.PaymentIntentId);
+                cart.ClientSecret = existingCart.ClientSecret;
             }
 
             var updated = await _cartService.SetCartAsync(cart);

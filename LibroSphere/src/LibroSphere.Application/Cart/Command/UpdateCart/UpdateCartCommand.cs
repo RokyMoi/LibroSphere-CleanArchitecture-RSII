@@ -4,7 +4,7 @@ using LibroSphere.Domain.Entities.ShopCart;
 namespace LibroSphere.Application.Cart.Command.UpdateCart
 {
     public sealed record UpdateCartCommand(
-        Guid Id,
+        Guid? Id,
         Guid UserId,
         List<UpdateCartItemModel> Items) : ICommand<ShoppingCart>;
 

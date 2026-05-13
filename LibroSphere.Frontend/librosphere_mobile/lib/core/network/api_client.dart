@@ -382,22 +382,20 @@ class ApiClient {
 
   Future<ShoppingCartModel> upsertCart({
     required String accessToken,
-    required String cartId,
-    required String userId,
+    String? cartId,
     required List<CartItemInput> items,
-    String? clientSecret,
-    String? paymentIntentId,
   }) async {
+    final body = <String, dynamic>{
+      'items': items.map((item) => item.toJson()).toList(),
+    };
+    if (cartId != null) {
+      body['id'] = cartId;
+    }
+
     final response = await _post(
       '/api/cart',
       token: accessToken,
-      body: {
-        'id': cartId,
-        'userId': userId,
-        'clientSecret': clientSecret,
-        'paymentIntentId': paymentIntentId,
-        'items': items.map((item) => item.toJson()).toList(),
-      },
+      body: body,
     );
 
     return ShoppingCartModel.fromJson(await _decodeMap(response));
