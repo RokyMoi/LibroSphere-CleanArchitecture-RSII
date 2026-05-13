@@ -23,7 +23,6 @@ namespace LibroSphere.Infrastructure.Authentication
         private readonly JwtOptions _jwtSettings;
         private readonly IPublishEndpoint _publishEndpoint;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly AccessControlOptions _accessControlOptions;
         private readonly IConnectionMultiplexer _redis;
 
         private static readonly TimeSpan PasswordResetCodeTtl = TimeSpan.FromMinutes(15);
@@ -37,7 +36,6 @@ namespace LibroSphere.Infrastructure.Authentication
             IOptions<JwtOptions> jwtSettings,
             IPublishEndpoint publishEndpoint,
             RoleManager<IdentityRole> roleManager,
-            IOptions<AccessControlOptions> accessControlOptions,
             IConnectionMultiplexer redis)
         {
             _userManager = userManager;
@@ -48,7 +46,6 @@ namespace LibroSphere.Infrastructure.Authentication
             _jwtSettings = jwtSettings.Value;
             _publishEndpoint = publishEndpoint;
             _roleManager = roleManager;
-            _accessControlOptions = accessControlOptions.Value;
             _redis = redis;
         }
 
@@ -83,7 +80,7 @@ namespace LibroSphere.Infrastructure.Authentication
 
             await EnsureRolesExistAsync();
 
-            var roles = await DetermineRolesForUserAsync(appUser);
+            var roles = new[] { ApplicationRoles.User };
             var roleResult = await _userManager.AddToRolesAsync(appUser, roles);
             if (!roleResult.Succeeded)
             {
@@ -262,27 +259,6 @@ namespace LibroSphere.Infrastructure.Authentication
             {
                 await _roleManager.CreateAsync(new IdentityRole(ApplicationRoles.Admin));
             }
-        }
-
-        private async Task<IReadOnlyCollection<string>> DetermineRolesForUserAsync(ApplicationUser appUser)
-        {
-            var roles = new List<string> { ApplicationRoles.User };
-            var isConfiguredAdmin = _accessControlOptions.AdminEmails.Any(email =>
-                email.Equals(appUser.Email, StringComparison.OrdinalIgnoreCase));
-
-            if (isConfiguredAdmin)
-            {
-                roles.Add(ApplicationRoles.Admin);
-                return roles;
-            }
-
-            var admins = await _userManager.GetUsersInRoleAsync(ApplicationRoles.Admin);
-            if (admins.Count == 0)
-            {
-                roles.Add(ApplicationRoles.Admin);
-            }
-
-            return roles;
         }
 
         public async Task<Result> CreateAdminAsync(
