@@ -6,10 +6,10 @@ namespace LibroSphere.Application.Orders.Command.CreateOrder
     {
         public CreateOrderCommandValidator()
         {
-            RuleFor(x => x.BuyerEmail).NotEmpty().EmailAddress();
+            RuleFor(x => x.BuyerEmail).NotEmpty().MaximumLength(256).EmailAddress();
             RuleFor(x => x.UserId).NotEmpty();
             RuleFor(x => x.CartId).NotEmpty();
-            RuleFor(x => x.PaymentIntentId).NotEmpty();
+            RuleFor(x => x.PaymentIntentId).NotEmpty().MaximumLength(200);
         }
     }
 }

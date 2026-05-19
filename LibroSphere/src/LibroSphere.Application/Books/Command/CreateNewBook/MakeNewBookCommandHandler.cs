@@ -4,10 +4,6 @@ using LibroSphere.Domain.Entities.Authors;
 using LibroSphere.Domain.Entities.Authors.Errors;
 using LibroSphere.Domain.Entities.Books;
 using LibroSphere.Domain.Entities.Books.Genre;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace LibroSphere.Application.Books.Command.CreateNewBook
 {
@@ -23,31 +19,25 @@ namespace LibroSphere.Application.Books.Command.CreateNewBook
             IAuthorRepository authorRepository,
             IGenreRepository genreRepository,
             IUnitOfWork unitOfWork,
-            IBookRepository bookRepo
-            ) 
+            IBookRepository bookRepo)
         {
             _authorRepository = authorRepository;
             _genreRepository = genreRepository;
             _unitOfWork = unitOfWork;
             _bookRepository = bookRepo;
-            
         }
 
         public async Task<Result<Guid>> Handle(
             MakeNewBookCommand request,
             CancellationToken cancellationToken)
         {
-         
-            var author = await _authorRepository.GetAsyncById(request.authorId);
-         
-
+            var author = await _authorRepository.GetAsyncById(request.authorId, cancellationToken);
             if (author == null)
             {
                 return Result.Failure<Guid>(AuthorErrors.NotFound);
             }
-          
-           
-            var book =Book.MakeABook(
+
+            var book = Book.MakeABook(
                 request.title,
                 request.description,
                 request.price,

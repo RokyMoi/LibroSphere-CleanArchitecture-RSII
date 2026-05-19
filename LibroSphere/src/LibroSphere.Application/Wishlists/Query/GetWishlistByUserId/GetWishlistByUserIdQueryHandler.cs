@@ -26,8 +26,7 @@ namespace LibroSphere.Application.Wishlists.Query.GetWishlistByUserId
                 return Result.Failure<WishlistResponse>(WishlistErrors.NotFound);
             }
 
-            var items = new List<WishlistItemResponse>();
-            foreach (var item in wishlist.Items)
+            var itemTasks = wishlist.Items.Select(async item =>
             {
                 var imageLink = await _bookAssetStorageService.GetImageUrlAsync(
                     item.Book.BookLinkovi.imageLink,
@@ -37,7 +36,7 @@ namespace LibroSphere.Application.Wishlists.Query.GetWishlistByUserId
                     ? 0
                     : item.Book.Reviews.Average(review => review.Rating);
 
-                items.Add(new WishlistItemResponse(
+                return new WishlistItemResponse(
                     item.BookId,
                     item.Book.Title.Value,
                     item.Book.Description.Value,
@@ -54,8 +53,10 @@ namespace LibroSphere.Application.Wishlists.Query.GetWishlistByUserId
                         .Where(bg => bg.Genre is not null)
                         .Select(bg => bg.Genre!.Name.Value)
                         .OrderBy(name => name)
-                        .ToList()));
-            }
+                        .ToList());
+            });
+
+            var items = (await Task.WhenAll(itemTasks)).ToList();
 
             return Result.Success(new WishlistResponse(
                 wishlist.Id,

@@ -310,15 +310,19 @@ Users/AuthCommands/
  RegisterUserCommand.cs
  RegisterUserCommandHandler.cs
  RegisterUserCommandValidator.cs
+Users/Command/ChangePassword/
+ ChangeUserPasswordCommand.cs
+ ChangeUserPasswordCommandValidator.cs
+Users/Command/DeleteUser/
+ DeleteUserCommand.cs
+ DeleteUserCommandHandler.cs
+ DeleteUserCommandValidator.cs
 Users/Command/
- ChangePassword/ChangeUserPasswordCommand.cs
- DeleteUser/
-  DeleteUserCommand.cs
-  DeleteUserCommandHandler.cs
-  DeleteUserCommandValidator.cs
  ResetPassword/AdminResetPasswordCommand.cs
  UpdateInterests/UpdateUserInterestsCommandHandler.cs
- UpdateProfile/UpdateUserProfileCommand.cs
+ UpdateProfile/
+  UpdateUserProfileCommand.cs
+  UpdateUserProfileCommandValidator.cs
  UpdateProfilePicture/UpdateProfilePictureCommand.cs
 Users/
  EventHandlers/UserDomainEventHandlers.cs

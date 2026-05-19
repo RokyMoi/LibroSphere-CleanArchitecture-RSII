@@ -1,32 +1,25 @@
 ﻿using LibroSphere.Application.Abstractions.Messaging;
 using LibroSphere.Domain.Abstraction;
 using LibroSphere.Domain.Entities.Authors;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
 
 namespace LibroSphere.Application.Authors.Command.CreateNewAuthor
 {
-    public class MakeANewAuthorCommandHandler : ICommandHandler<MakeANewAuthorCommand, Guid>
+    internal sealed class MakeANewAuthorCommandHandler : ICommandHandler<MakeANewAuthorCommand, Guid>
     {
-        IAuthorRepository authorRepo;
-        IUnitOfWork unitOfWork;
-        public MakeANewAuthorCommandHandler(IUnitOfWork _unit, IAuthorRepository autho)
+        private readonly IAuthorRepository _authorRepository;
+        private readonly IUnitOfWork _unitOfWork;
+
+        public MakeANewAuthorCommandHandler(IAuthorRepository authorRepository, IUnitOfWork unitOfWork)
         {
-            unitOfWork = _unit;
-            authorRepo = autho;
+            _authorRepository = authorRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Result<Guid>> Handle(MakeANewAuthorCommand request, CancellationToken cancellationToken)
         {
             var author = Author.Create(request.name, request.Biography);
-
-            authorRepo.Add(author);
-             await unitOfWork.SaveChangesAsync();
-
+            _authorRepository.Add(author);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
             return Result.Success(author.Id);
         }
     }

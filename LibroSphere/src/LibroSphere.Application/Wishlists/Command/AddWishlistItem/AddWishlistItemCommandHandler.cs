@@ -26,15 +26,14 @@ namespace LibroSphere.Application.Wishlists.Command.AddWishlistItem
                 return Result.Failure(Error.NullValue);
             }
 
-            var wishlist = await _wishlistRepository.GetByUserIdAsync(request.UserId, cancellationToken);
+            var wishlist = await _wishlistRepository.GetByUserIdWithItemsOnlyAsync(request.UserId, cancellationToken);
             if (wishlist is null)
             {
                 wishlist = Wishlist.CreateWishlist(request.UserId);
                 _wishlistRepository.Add(wishlist);
             }
 
-            var existingItem = wishlist.Items.FirstOrDefault(x => x.BookId == request.BookId);
-            if (existingItem is null)
+            if (!wishlist.Items.Any(x => x.BookId == request.BookId))
             {
                 var item = wishlist.AddItem(request.BookId);
                 _wishlistRepository.AddItem(item);

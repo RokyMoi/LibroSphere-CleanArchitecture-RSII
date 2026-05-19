@@ -26,7 +26,7 @@ public sealed record OrderDetailsResponse(
 public sealed record OrderItemResponse(
     Guid BookId,
     string Title,
-    string ImageLink,
+    string? ImageLink,
     decimal Price,
     string Currency,
     int Quantity)

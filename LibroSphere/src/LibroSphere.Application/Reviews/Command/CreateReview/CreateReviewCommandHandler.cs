@@ -4,7 +4,6 @@ using LibroSphere.Domain.Entities.Books;
 using LibroSphere.Domain.Entities.ManyToMany.IRepositories;
 using LibroSphere.Domain.Entities.Reviews;
 using LibroSphere.Domain.Entities.Reviews.Errors;
-using LibroSphere.Domain.Entities.Users;
 
 namespace LibroSphere.Application.Reviews.Command.CreateReview
 {
@@ -12,20 +11,17 @@ namespace LibroSphere.Application.Reviews.Command.CreateReview
     {
         private readonly IReviewRepository _reviewRepository;
         private readonly IBookRepository _bookRepository;
-        private readonly IUserRepository _userRepository;
         private readonly IUserBookRepository _userBookRepository;
         private readonly IUnitOfWork _unitOfWork;
 
         public CreateReviewCommandHandler(
             IReviewRepository reviewRepository,
             IBookRepository bookRepository,
-            IUserRepository userRepository,
             IUserBookRepository userBookRepository,
             IUnitOfWork unitOfWork)
         {
             _reviewRepository = reviewRepository;
             _bookRepository = bookRepository;
-            _userRepository = userRepository;
             _userBookRepository = userBookRepository;
             _unitOfWork = unitOfWork;
         }
@@ -38,14 +34,13 @@ namespace LibroSphere.Application.Reviews.Command.CreateReview
                 return Result.Failure<Guid>(ReviewErrors.AlreadyExists);
             }
 
-            var user = await _userRepository.GetAsyncById(request.UserId, cancellationToken);
             var book = await _bookRepository.GetAsyncById(request.BookId, cancellationToken);
-            if (user is null || book is null)
+            if (book is null)
             {
-                return Result.Failure<Guid>(Error.NullValue);
+                return Result.Failure<Guid>(new Error("Book.NotFound", "Book not found."));
             }
 
-            var hasAccess = await _userBookRepository.HasAccessAsync(request.UserId, request.BookId);
+            var hasAccess = await _userBookRepository.HasAccessAsync(request.UserId, request.BookId, cancellationToken);
             if (!hasAccess)
             {
                 return Result.Failure<Guid>(new Error("Review.NoAccess", "You can only review books you own."));

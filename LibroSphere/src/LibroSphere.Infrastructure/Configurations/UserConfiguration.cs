@@ -22,7 +22,7 @@ namespace LibroSphere.Infrastructure.Configurations
                 .HasConversion(ln => ln.Value, value => new LastName(value));
 
             builder.Property(u => u.UserEmail)
-                .HasMaxLength(150)
+                .HasMaxLength(256)
                 .HasConversion(em => em.Value, value => new Email(value));
 
             builder.Property(u => u.DateRegistered).IsRequired();

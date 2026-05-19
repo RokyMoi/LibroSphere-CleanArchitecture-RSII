@@ -12,7 +12,7 @@ namespace LibroSphere.Infrastructure.Configurations
             builder.HasKey(g => g.Id);
 
             builder.Property(g => g.Name)
-                .HasMaxLength(50)
+                .HasMaxLength(100)
                 .HasConversion(n => n.Value, value => new Name(value));
 
             builder.HasIndex(g => g.Name).IsUnique();

@@ -16,6 +16,7 @@ namespace LibroSphere.Application.Users.AuthCommands
 
             RuleFor(x => x.Email)
                 .NotEmpty()
+                .MaximumLength(256)
                 .EmailAddress();
 
             RuleFor(x => x.Password)
