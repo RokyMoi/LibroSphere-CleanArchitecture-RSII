@@ -317,6 +317,7 @@ Users/Command/
   DeleteUserCommandHandler.cs
   DeleteUserCommandValidator.cs
  ResetPassword/AdminResetPasswordCommand.cs
+ UpdateInterests/UpdateUserInterestsCommandHandler.cs
  UpdateProfile/UpdateUserProfileCommand.cs
  UpdateProfilePicture/UpdateProfilePictureCommand.cs
 Users/
@@ -330,6 +331,7 @@ Users/
   GetUserByIdQueryHandler.cs
   GetUserByIdQueryValidator.cs
   UserResponse.cs
+ Query/GetUserInterests/GetUserInterestsQueryHandler.cs
 Wishlists/Command/AddWishlistItem/
  AddWishlistItemCommand.cs
  AddWishlistItemCommandHandler.cs

@@ -27,6 +27,7 @@ class CatalogService {
     String? genreId,
     double? minPrice,
     double? maxPrice,
+    double? minRating,
     String? accessToken,
   }) {
     return _apiClient.getBooks(
@@ -37,6 +38,7 @@ class CatalogService {
       genreId: genreId,
       minPrice: minPrice,
       maxPrice: maxPrice,
+      minRating: minRating,
       accessToken: accessToken,
     );
   }

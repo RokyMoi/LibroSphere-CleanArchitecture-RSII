@@ -34,6 +34,7 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
   String? _selectedGenreName;
   double? _minPrice;
   double? _maxPrice;
+  double? _minRating;
 
   @override
   void initState() {
@@ -45,7 +46,8 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
       _selectedAuthorId != null ||
       _selectedGenreId != null ||
       _minPrice != null ||
-      _maxPrice != null;
+      _maxPrice != null ||
+      _minRating != null;
 
   Future<_HomeData> _load([String? term, bool forceRefresh = false]) async {
     final session = SessionScope.read(context);
@@ -60,6 +62,7 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
         genreId: _selectedGenreId,
         minPrice: _minPrice,
         maxPrice: _maxPrice,
+        minRating: _minRating,
         forceRefresh: forceRefresh,
       );
 
@@ -162,6 +165,9 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
       final max = _maxPrice?.toStringAsFixed(0) ?? 'Any';
       parts.add('Price: \$$min - \$$max');
     }
+    if (_minRating != null) {
+      parts.add('Rating: ≥${_minRating!.toStringAsFixed(0)}★');
+    }
     return parts.isEmpty ? null : parts.join(', ');
   }
 
@@ -185,8 +191,107 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
       _selectedGenreName = null;
       _minPrice = null;
       _maxPrice = null;
+      _minRating = null;
       _future = _load();
     });
+  }
+
+  Future<void> _openMyAuthorsSheet() async {
+    final session = SessionScope.read(context);
+    List<String> interestIds;
+    List<AuthorModel> allAuthors;
+
+    try {
+      final results = await Future.wait<Object>([
+        session.getInterestAuthorIds(),
+        session.getAuthors(),
+      ]);
+      interestIds = results[0] as List<String>;
+      allAuthors = results[1] as List<AuthorModel>;
+    } catch (_) {
+      return;
+    }
+
+    final favorites = allAuthors.where((a) => interestIds.contains(a.id)).toList();
+    if (favorites.isEmpty || !mounted) return;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                child: Row(
+                  children: [
+                    const Icon(Icons.favorite_rounded, color: brandBlueDark, size: 20),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'My Authors',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                    ),
+                    const Spacer(),
+                    if (_selectedAuthorId != null &&
+                        favorites.any((a) => a.id == _selectedAuthorId))
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                          setState(() {
+                            _selectedAuthorId = null;
+                            _selectedAuthorName = null;
+                            _future = _load(_searchController.text);
+                          });
+                        },
+                        child: const Text('Clear'),
+                      ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              ...favorites.map((author) {
+                final isActive = _selectedAuthorId == author.id;
+                return ListTile(
+                  leading: Icon(
+                    isActive ? Icons.person_rounded : Icons.person_outline_rounded,
+                    color: isActive ? brandBlueDark : Colors.grey.shade600,
+                  ),
+                  title: Text(
+                    author.name,
+                    style: TextStyle(
+                      fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                      color: isActive ? brandBlueDark : null,
+                    ),
+                  ),
+                  trailing: isActive
+                      ? const Icon(Icons.check_circle_rounded, color: brandBlueDark)
+                      : null,
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    setState(() {
+                      if (isActive) {
+                        _selectedAuthorId = null;
+                        _selectedAuthorName = null;
+                      } else {
+                        _selectedAuthorId = author.id;
+                        _selectedAuthorName = author.name;
+                      }
+                      _future = _load(_searchController.text);
+                    });
+                  },
+                );
+              }),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _openFilterDialog() async {
@@ -209,6 +314,7 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
         initialGenreId: _selectedGenreId,
         initialMinPrice: _minPrice,
         initialMaxPrice: _maxPrice,
+        initialMinRating: _minRating,
       ),
     );
 
@@ -220,6 +326,7 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
         _selectedGenreName = result.genreName;
         _minPrice = result.minPrice;
         _maxPrice = result.maxPrice;
+        _minRating = result.minRating;
         _future = _load(_searchController.text);
       });
     }
@@ -233,6 +340,7 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
       genreId: _selectedGenreId,
       minPrice: _minPrice,
       maxPrice: _maxPrice,
+      minRating: _minRating,
       includeRecommendations:
           _searchController.text.trim().isEmpty && !_hasActiveFilters,
     )) {
@@ -329,6 +437,14 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
                         ),
                       ],
                     ),
+                    if (session.isAuthenticated) ...[
+                      const SizedBox(height: 10),
+                      _MyAuthorsChip(
+                        isActiveAuthorFavorite: _selectedAuthorId != null,
+                        activeAuthorName: _selectedAuthorName,
+                        onTap: _openMyAuthorsSheet,
+                      ),
+                    ],
                     if (data.searchTerm.isNotEmpty || data.hasActiveFilters) ...[
                       const SizedBox(height: 14),
                       Row(
@@ -549,6 +665,64 @@ class _NoSearchResults extends StatelessWidget {
             style: TextStyle(color: Colors.grey.shade700),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MyAuthorsChip extends StatelessWidget {
+  const _MyAuthorsChip({
+    required this.isActiveAuthorFavorite,
+    required this.activeAuthorName,
+    required this.onTap,
+  });
+
+  final bool isActiveAuthorFavorite;
+  final String? activeAuthorName;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = isActiveAuthorFavorite && activeAuthorName != null
+        ? activeAuthorName!
+        : 'My Authors';
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: isActiveAuthorFavorite ? brandBlueDark : Colors.white,
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(
+              color: brandBlueDark,
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.favorite_rounded,
+                size: 15,
+                color: isActiveAuthorFavorite ? Colors.white : brandBlueDark,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isActiveAuthorFavorite ? Colors.white : brandBlueDark,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

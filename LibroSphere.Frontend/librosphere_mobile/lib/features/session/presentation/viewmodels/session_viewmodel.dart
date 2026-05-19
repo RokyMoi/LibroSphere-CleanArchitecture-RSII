@@ -57,6 +57,7 @@ class SessionViewModel extends ChangeNotifier {
   _TimedCacheValue<List<AuthorModel>>? _authorsCache;
   _TimedCacheValue<List<GenreModel>>? _genresCache;
   _TimedCacheValue<List<Map<String, dynamic>>>? _ordersCache;
+  List<String>? _cachedInterestAuthorIds;
   DateTime? _cartCachedAt;
 
   bool get isAuthenticated => tokens != null && currentUser != null;
@@ -287,6 +288,21 @@ class SessionViewModel extends ChangeNotifier {
     _ordersCache = null;
   }
 
+  Future<List<String>> getInterestAuthorIds({bool forceRefresh = false}) async {
+    _requireAuth();
+    if (!forceRefresh && _cachedInterestAuthorIds != null) {
+      return _cachedInterestAuthorIds!;
+    }
+    _cachedInterestAuthorIds = await _services.apiClient.getInterests(accessToken!);
+    return _cachedInterestAuthorIds!;
+  }
+
+  Future<void> saveInterestAuthorIds(List<String> ids) async {
+    _requireAuth();
+    await _services.apiClient.updateInterests(accessToken!, ids);
+    _cachedInterestAuthorIds = List<String>.from(ids);
+  }
+
   Future<void> _applySession(AuthSessionModel session) async {
     _resetRuntimeState();
     tokens = session.tokens;
@@ -316,6 +332,7 @@ class SessionViewModel extends ChangeNotifier {
     _authorsCache = null;
     _genresCache = null;
     _ordersCache = null;
+    _cachedInterestAuthorIds = null;
     _cartCachedAt = null;
   }
 
@@ -349,6 +366,7 @@ class SessionViewModel extends ChangeNotifier {
     String? genreId,
     double? minPrice,
     double? maxPrice,
+    double? minRating,
     bool includeRecommendations = true,
   }) {
     final cacheKey = _buildFilterCacheKey(
@@ -357,6 +375,7 @@ class SessionViewModel extends ChangeNotifier {
       genreId: genreId,
       minPrice: minPrice,
       maxPrice: maxPrice,
+      minRating: minRating,
     );
     final searchCache = _searchCache[cacheKey];
     if (!_isFresh(searchCache, _catalogCacheTtl)) {
@@ -376,6 +395,7 @@ class SessionViewModel extends ChangeNotifier {
     String? genreId,
     double? minPrice,
     double? maxPrice,
+    double? minRating,
     bool forceRefresh = false,
   }) async {
     final cacheKey = _buildFilterCacheKey(
@@ -384,6 +404,7 @@ class SessionViewModel extends ChangeNotifier {
       genreId: genreId,
       minPrice: minPrice,
       maxPrice: maxPrice,
+      minRating: minRating,
     );
     final cachedResult = _searchCache[cacheKey];
     if (!forceRefresh && _isFresh(cachedResult, _catalogCacheTtl)) {
@@ -398,6 +419,7 @@ class SessionViewModel extends ChangeNotifier {
       genreId: genreId,
       minPrice: minPrice,
       maxPrice: maxPrice,
+      minRating: minRating,
       accessToken: accessToken,
     );
     _primeBookCaches(result.items);
@@ -411,6 +433,7 @@ class SessionViewModel extends ChangeNotifier {
     String? genreId,
     double? minPrice,
     double? maxPrice,
+    double? minRating,
   }) {
     final parts = <String>[
       searchTerm?.trim() ?? '',
@@ -418,6 +441,7 @@ class SessionViewModel extends ChangeNotifier {
       genreId ?? '',
       minPrice?.toString() ?? '',
       maxPrice?.toString() ?? '',
+      minRating?.toString() ?? '',
     ];
     return parts.join('|');
   }

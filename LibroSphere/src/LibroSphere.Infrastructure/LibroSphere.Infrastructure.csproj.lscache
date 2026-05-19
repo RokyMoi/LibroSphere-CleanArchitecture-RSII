@@ -75,6 +75,7 @@ Configurations/
  ShoppingCartItemConfig.cs
  UserBookConfiguration.cs
  UserConfiguration.cs
+ UserFavoriteAuthorConfiguration.cs
  WishListConfiguration.cs
  WishlistItemsConfiguration.cs
 Data/
@@ -89,6 +90,8 @@ Migrations/
  20260421024609_AddProfilePictureUrl.Designer.cs
  20260513162820_AddUserIdRelationshipsForOrdersAndLibrary.cs
  20260513162820_AddUserIdRelationshipsForOrdersAndLibrary.Designer.cs
+ 20260519143320_AddUserFavoriteAuthors.cs
+ 20260519143320_AddUserFavoriteAuthors.Designer.cs
  ApplicationDbContextModelSnapshot.cs
 obj/Debug/net8.0/
  .NETCoreApp,Version=v8.0.AssemblyAttributes.cs

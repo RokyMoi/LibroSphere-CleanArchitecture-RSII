@@ -130,6 +130,7 @@ Entities/Users/
  IUserRepository.cs
  LastName.cs
  User.cs
+ UserFavoriteAuthor.cs
  Username.cs
 Entities/WishList/
  Errors/WishlistErrors.cs

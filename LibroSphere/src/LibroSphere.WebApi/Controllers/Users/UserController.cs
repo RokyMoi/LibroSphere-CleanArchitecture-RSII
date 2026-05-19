@@ -1,10 +1,12 @@
 using LibroSphere.Application.Users.Query.GetAllUsers;
 using LibroSphere.Application.Users.Query.GetUserById;
+using LibroSphere.Application.Users.Query.GetUserInterests;
 using LibroSphere.Application.Users.Command.DeleteUser;
 using LibroSphere.Application.Users.Command.UpdateProfile;
 using LibroSphere.Application.Users.Command.UpdateProfilePicture;
 using LibroSphere.Application.Users.Command.ChangePassword;
 using LibroSphere.Application.Users.Command.ResetPassword;
+using LibroSphere.Application.Users.Command.UpdateInterests;
 using LibroSphere.Application.Abstractions.Identity;
 using LibroSphere.Application.Abstractions.Storage;
 using LibroSphere.Domain.Abstraction;
@@ -270,6 +272,27 @@ namespace LibroSphere.WebApi.Controllers.Users
             return Ok(new { message = "Password has been reset successfully." });
         }
 
+        [HttpGet("me/interests")]
+        public async Task<IActionResult> GetMyInterests(CancellationToken cancellationToken)
+        {
+            var userId = User.GetRequiredUserId();
+            var result = await _sender.Send(new GetUserInterestsQuery(userId), cancellationToken);
+            return result.IsSuccess
+                ? Ok(new { authorIds = result.Value })
+                : BadRequest(result.Error);
+        }
+
+        [HttpPut("me/interests")]
+        public async Task<IActionResult> UpdateMyInterests(
+            [FromBody] UpdateInterestsRequest request,
+            CancellationToken cancellationToken)
+        {
+            var userId = User.GetRequiredUserId();
+            var command = new UpdateUserInterestsCommand(userId, request.AuthorIds ?? new List<Guid>());
+            var result = await _sender.Send(command, cancellationToken);
+            return result.IsSuccess ? NoContent() : BadRequest(result.Error);
+        }
+
         private static readonly byte[] JpegMagicBytes = { 0xFF, 0xD8, 0xFF };
         private static readonly byte[] PngMagicBytes = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
         private static readonly byte[] WebpRiffMagicBytes = { 0x52, 0x49, 0x46, 0x46 };
@@ -296,6 +319,7 @@ namespace LibroSphere.WebApi.Controllers.Users
 
     public sealed record UpdateProfileRequest(string FirstName, string LastName);
     public sealed record UpdateProfileResponse(string FirstName, string LastName, string Message);
+    public sealed record UpdateInterestsRequest(List<Guid>? AuthorIds);
 
     public sealed record ChangePasswordRequest(
         string CurrentPassword,

@@ -219,6 +219,7 @@ class ApiClient {
     String? genreId,
     double? minPrice,
     double? maxPrice,
+    double? minRating,
     String? accessToken,
   }) async {
     final queryParams = <String, String>{
@@ -241,6 +242,9 @@ class ApiClient {
     if (maxPrice != null) {
       queryParams['maxPrice'] = maxPrice.toString();
     }
+    if (minRating != null) {
+      queryParams['minRating'] = minRating.toString();
+    }
 
     final response = await _get(
       '/api/book?${_encodeQuery(queryParams)}',
@@ -249,6 +253,24 @@ class ApiClient {
     return PagedResult<BookModel>.fromJson(
       await _decodeMap(response),
       (item) => BookModel.fromJson(item),
+    );
+  }
+
+  Future<List<String>> getInterests(String accessToken) async {
+    final response = await _get('/api/user/me/interests', token: accessToken);
+    final json = await _decodeMap(response);
+    final list = json['authorIds'] ?? json['AuthorIds'];
+    if (list is List) {
+      return list.map((e) => e.toString()).toList();
+    }
+    return <String>[];
+  }
+
+  Future<void> updateInterests(String accessToken, List<String> authorIds) async {
+    await _put(
+      '/api/user/me/interests',
+      token: accessToken,
+      body: {'authorIds': authorIds},
     );
   }
 

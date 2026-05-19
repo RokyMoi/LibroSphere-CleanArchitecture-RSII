@@ -468,6 +468,18 @@ namespace LibroSphere.Infrastructure.Services
                 INNER JOIN Books b ON b.Id = sci.BookId
                 LEFT JOIN BookGenres bg ON bg.BookId = b.Id
                 WHERE sc.UserId = @UserId
+            ),
+            FavoriteAuthorSignals AS (
+                SELECT
+                    'favorite_author' AS SignalType,
+                    b.Id AS BookId,
+                    b.AuthorId,
+                    bg.GenreId,
+                    CAST(3.0 AS float) AS Weight
+                FROM UserFavoriteAuthors ufa
+                INNER JOIN Books b ON b.AuthorId = ufa.AuthorId
+                LEFT JOIN BookGenres bg ON bg.BookId = b.Id
+                WHERE ufa.UserId = @UserId
             )
             SELECT SignalType, BookId, AuthorId, GenreId, Weight FROM PurchaseSignals
             UNION ALL
@@ -475,7 +487,9 @@ namespace LibroSphere.Infrastructure.Services
             UNION ALL
             SELECT SignalType, BookId, AuthorId, GenreId, Weight FROM WishlistSignals
             UNION ALL
-            SELECT SignalType, BookId, AuthorId, GenreId, Weight FROM CartSignals;
+            SELECT SignalType, BookId, AuthorId, GenreId, Weight FROM CartSignals
+            UNION ALL
+            SELECT SignalType, BookId, AuthorId, GenreId, Weight FROM FavoriteAuthorSignals;
             """;
 
         private const string CandidateBooksSql = """

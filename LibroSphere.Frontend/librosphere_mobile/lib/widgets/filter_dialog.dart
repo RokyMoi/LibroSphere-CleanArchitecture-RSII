@@ -10,6 +10,7 @@ class BookFilterResult {
   final String? genreName;
   final double? minPrice;
   final double? maxPrice;
+  final double? minRating;
 
   BookFilterResult({
     this.authorId,
@@ -18,10 +19,15 @@ class BookFilterResult {
     this.genreName,
     this.minPrice,
     this.maxPrice,
+    this.minRating,
   });
 
   bool get hasFilters =>
-      authorId != null || genreId != null || minPrice != null || maxPrice != null;
+      authorId != null ||
+      genreId != null ||
+      minPrice != null ||
+      maxPrice != null ||
+      minRating != null;
 }
 
 class BookFilterDialog extends StatefulWidget {
@@ -33,6 +39,7 @@ class BookFilterDialog extends StatefulWidget {
     this.initialGenreId,
     this.initialMinPrice,
     this.initialMaxPrice,
+    this.initialMinRating,
   });
 
   final List<AuthorModel> authors;
@@ -41,6 +48,7 @@ class BookFilterDialog extends StatefulWidget {
   final String? initialGenreId;
   final double? initialMinPrice;
   final double? initialMaxPrice;
+  final double? initialMinRating;
 
   @override
   State<BookFilterDialog> createState() => _BookFilterDialogState();
@@ -49,6 +57,7 @@ class BookFilterDialog extends StatefulWidget {
 class _BookFilterDialogState extends State<BookFilterDialog> {
   String? _selectedAuthorId;
   String? _selectedGenreId;
+  double? _selectedMinRating;
   final _minPriceController = TextEditingController();
   final _maxPriceController = TextEditingController();
 
@@ -57,6 +66,7 @@ class _BookFilterDialogState extends State<BookFilterDialog> {
     super.initState();
     _selectedAuthorId = widget.initialAuthorId;
     _selectedGenreId = widget.initialGenreId;
+    _selectedMinRating = widget.initialMinRating;
     if (widget.initialMinPrice != null) {
       _minPriceController.text = widget.initialMinPrice!.toStringAsFixed(0);
     }
@@ -92,6 +102,7 @@ class _BookFilterDialogState extends State<BookFilterDialog> {
       genreName: _selectedGenreId != null ? genre.name : null,
       minPrice: minPriceText.isNotEmpty ? double.tryParse(minPriceText) : null,
       maxPrice: maxPriceText.isNotEmpty ? double.tryParse(maxPriceText) : null,
+      minRating: _selectedMinRating,
     ));
   }
 
@@ -246,6 +257,10 @@ class _BookFilterDialogState extends State<BookFilterDialog> {
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
+              _buildSectionTitle('Minimum Rating'),
+              const SizedBox(height: 8),
+              _buildStarRatingSelector(),
               const SizedBox(height: 24),
               Row(
                 children: [
@@ -275,6 +290,62 @@ class _BookFilterDialogState extends State<BookFilterDialog> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildStarRatingSelector() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F7FA),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          ...List.generate(5, (index) {
+            final starValue = (index + 1).toDouble();
+            final isSelected =
+                _selectedMinRating != null && starValue <= _selectedMinRating!;
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  if (_selectedMinRating == starValue) {
+                    _selectedMinRating = null;
+                  } else {
+                    _selectedMinRating = starValue;
+                  }
+                });
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Icon(
+                  isSelected ? Icons.star_rounded : Icons.star_outline_rounded,
+                  color: isSelected ? const Color(0xFFFFC107) : Colors.grey,
+                  size: 32,
+                ),
+              ),
+            );
+          }),
+          const SizedBox(width: 8),
+          if (_selectedMinRating != null)
+            Text(
+              '${_selectedMinRating!.toStringAsFixed(0)}+ stars',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey.shade700,
+                fontWeight: FontWeight.w500,
+              ),
+            )
+          else
+            Text(
+              'Any rating',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey.shade500,
+              ),
+            ),
+        ],
       ),
     );
   }

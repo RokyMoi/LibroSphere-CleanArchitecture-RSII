@@ -18,6 +18,14 @@ namespace LibroSphere.Infrastructure.Repositories
                 .FirstOrDefaultAsync(u => u.UserEmail.Value.ToLower() == normalizedEmail, cancellationToken);
         }
 
+        public async Task<User?> GetByIdWithFavoriteAuthorsAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            return await DbContext
+                .Set<User>()
+                .Include(u => u.FavoriteAuthors)
+                .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+        }
+
         public async Task<List<User>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             var users = await DbContext

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\dusko\\\\Desktop\\\\LibroSphere\\\\LibroSphere.Frontend\\\\librosphere_desktop\\\\lib\" -Recurse -Directory | Select-Object -ExpandProperty FullName | ForEach-Object { $_.Replace\\(\"C:\\\\Users\\\\dusko\\\\Desktop\\\\LibroSphere\\\\LibroSphere.Frontend\\\\librosphere_desktop\\\\lib\", \"\"\\) } | Sort-Object)",
+      "Bash(dotnet build *)"
+    ]
+  }
+}

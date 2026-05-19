@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../core/app_constants.dart';
 import '../core/ui/app_feedback.dart';
+import '../data/models/author_model.dart';
 import '../data/models/order_status.dart';
 import '../features/session/presentation/session_scope.dart';
 import '../features/session/presentation/viewmodels/session_viewmodel.dart';
 import '../widgets/common_widgets.dart';
-import 'package:image_picker/image_picker.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -37,6 +38,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               icon: Icons.person_outline_rounded,
               label: 'Edit Profile',
               onTap: () => _openEditProfile(session),
+            ),
+            const SizedBox(height: 10),
+            _SettingsTile(
+              icon: Icons.favorite_outline_rounded,
+              label: 'My Interests',
+              onTap: () => _openInterests(session),
             ),
             const SizedBox(height: 10),
             _SettingsTile(
@@ -78,6 +85,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _openMyOrders(SessionViewModel session) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => _MyOrdersScreen(session: session)),
+    );
+  }
+
+  void _openInterests(SessionViewModel session) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => _InterestsScreen(session: session)),
     );
   }
 }
@@ -1417,4 +1430,162 @@ class _BackHeader extends StatelessWidget {
       ),
     );
   }
+}
+
+// ── My Interests Screen ───────────────────────────────────────────────────────
+
+class _InterestsScreen extends StatefulWidget {
+  const _InterestsScreen({required this.session});
+
+  final SessionViewModel session;
+
+  @override
+  State<_InterestsScreen> createState() => _InterestsScreenState();
+}
+
+class _InterestsScreenState extends State<_InterestsScreen> {
+  late Future<_InterestsData> _future;
+  final Set<String> _selectedIds = {};
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _load();
+  }
+
+  Future<_InterestsData> _load() async {
+    final authors = await widget.session.getAuthors();
+    final interestIds = await widget.session.getInterestAuthorIds();
+    _selectedIds
+      ..clear()
+      ..addAll(interestIds);
+    return _InterestsData(authors: authors, interestIds: interestIds);
+  }
+
+  Future<void> _save() async {
+    setState(() => _isSaving = true);
+    try {
+      await widget.session.saveInterestAuthorIds(_selectedIds.toList());
+      if (!mounted) return;
+      showSuccessSnackBar(context, 'Interests saved successfully.');
+      Navigator.of(context).pop();
+    } catch (e) {
+      if (!mounted) return;
+      showDestructiveSnackBar(context, formatErrorMessage(e));
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'My Interests',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
+        actions: [
+          if (_isSaving)
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          else
+            TextButton(
+              onPressed: _save,
+              child: const Text(
+                'Save',
+                style: TextStyle(fontWeight: FontWeight.w700, color: brandBlueDark),
+              ),
+            ),
+        ],
+      ),
+      body: FutureBuilder<_InterestsData>(
+        future: _future,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  formatErrorMessage(snapshot.error!),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+            );
+          }
+
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final authors = snapshot.data!.authors;
+
+          if (authors.isEmpty) {
+            return const Center(
+              child: Text('No authors available.', style: TextStyle(color: Colors.grey)),
+            );
+          }
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 16, 18, 4),
+                child: Text(
+                  'Select authors you enjoy reading.',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                ),
+              ),
+              Expanded(
+                child: StatefulBuilder(
+                  builder: (context, setInnerState) {
+                    return ListView.separated(
+                      itemCount: authors.length,
+                      separatorBuilder: (context, _) =>
+                          const Divider(height: 1, indent: 16, endIndent: 16),
+                      itemBuilder: (context, index) {
+                        final AuthorModel author = authors[index];
+                        final isSelected = _selectedIds.contains(author.id);
+                        return CheckboxListTile(
+                          value: isSelected,
+                          activeColor: brandBlueDark,
+                          title: Text(
+                            author.name,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          onChanged: (checked) {
+                            setInnerState(() {
+                              if (checked == true) {
+                                _selectedIds.add(author.id);
+                              } else {
+                                _selectedIds.remove(author.id);
+                              }
+                            });
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _InterestsData {
+  const _InterestsData({required this.authors, required this.interestIds});
+  final List<AuthorModel> authors;
+  final List<String> interestIds;
 }

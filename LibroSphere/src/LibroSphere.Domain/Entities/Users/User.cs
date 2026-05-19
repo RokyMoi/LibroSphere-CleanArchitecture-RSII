@@ -22,11 +22,13 @@ namespace LibroSphere.Domain.Entities.Users
             DateRegistered = dateRegistered;
             IsActive = true;
             Reviews = new List<Review>();
+            FavoriteAuthors = new List<UserFavoriteAuthor>();
         }
 
         protected User()
         {
             Reviews = new List<Review>();
+            FavoriteAuthors = new List<UserFavoriteAuthor>();
         }
 
         public FirstName FirstName { get; private set; } = null!;
@@ -37,6 +39,7 @@ namespace LibroSphere.Domain.Entities.Users
         public bool IsActive { get; private set; }
         public string? ProfilePictureUrl { get; private set; }
         public ICollection<Review> Reviews { get; private set; }
+        public ICollection<UserFavoriteAuthor> FavoriteAuthors { get; private set; }
         public ShoppingCart? ShoppingCart { get; private set; }
         public Wishlist? Wishlist { get; private set; }
 
@@ -75,6 +78,15 @@ namespace LibroSphere.Domain.Entities.Users
         public void UpdateProfilePicture(string? imageUrl)
         {
             ProfilePictureUrl = imageUrl;
+        }
+
+        public void SetFavoriteAuthors(IEnumerable<Guid> authorIds)
+        {
+            FavoriteAuthors.Clear();
+            foreach (var authorId in authorIds.Distinct())
+            {
+                FavoriteAuthors.Add(new UserFavoriteAuthor { UserId = Id, AuthorId = authorId });
+            }
         }
     }
 }
