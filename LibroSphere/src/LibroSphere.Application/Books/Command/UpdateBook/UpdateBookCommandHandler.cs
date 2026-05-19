@@ -30,7 +30,7 @@ namespace LibroSphere.Application.Books.Command.UpdateBook
 
         public async Task<Result> Handle(UpdateBookCommand request, CancellationToken cancellationToken)
         {
-            var book = await _bookRepository.GetByIdWithDetailsAsync(request.BookId, cancellationToken);
+            var book = await _bookRepository.GetByIdWithDetailsForUpdateAsync(request.BookId, cancellationToken);
             if (book is null)
             {
                 return Result.Failure(BookErrors.NotFound);
@@ -42,9 +42,19 @@ namespace LibroSphere.Application.Books.Command.UpdateBook
                 return Result.Failure(AuthorErrors.NotFound);
             }
 
-            var genres = request.GenreIds.Count == 0
-                ? new List<Genre>()
-                : await _genreRepository.GetByIdsAsync(request.GenreIds, cancellationToken);
+            List<Genre> genres;
+            if (request.GenreIds.Count == 0)
+            {
+                genres = new List<Genre>();
+            }
+            else
+            {
+                genres = await _genreRepository.GetByIdsAsync(request.GenreIds, cancellationToken);
+                if (genres.Count != request.GenreIds.Count)
+                {
+                    return Result.Failure(new Error("Book.Genre.NotFound", "One or more genre IDs were not found."));
+                }
+            }
 
             book.Update(request.Title, request.Description, request.Price, request.BookLinks, request.AuthorId);
             _bookRepository.ReplaceGenres(book, genres);

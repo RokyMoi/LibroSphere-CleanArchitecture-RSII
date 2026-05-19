@@ -80,6 +80,8 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
             }
         }
 
+        var alreadyProcessed = order.Status == OrderStatus.PaymentReceived;
+
         order.UpdateStatus(OrderStatus.PaymentReceived);
 
         foreach (var item in order.Items)
@@ -95,6 +97,11 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
         if (!string.IsNullOrWhiteSpace(cartId))
         {
             await _cartService.DeleteCartAsync(cartId);
+        }
+
+        if (alreadyProcessed)
+        {
+            return;
         }
 
         await _publishEndpoint.Publish(new OrderPaidIntegrationEvent(
@@ -136,11 +143,14 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
             return null;
         }
 
+        var bookIds = cart.Items.Select(i => i.BookId).Distinct().ToList();
+        var books = await _bookRepository.GetByIdsWithDetailsAsync(bookIds, cancellationToken);
+        var bookLookup = books.ToDictionary(b => b.Id);
+
         var orderItems = new List<OrderItem>();
         foreach (var item in cart.Items)
         {
-            var book = await _bookRepository.GetAsyncById(item.BookId, cancellationToken);
-            if (book is null)
+            if (!bookLookup.TryGetValue(item.BookId, out var book))
             {
                 return null;
             }

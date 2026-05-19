@@ -1,11 +1,10 @@
 using LibroSphere.Application.Abstractions;
 using LibroSphere.Application.Abstractions.Messaging;
 using LibroSphere.Application.Common.Models;
-using LibroSphere.Domain.Entities.Orders;
 
 namespace LibroSphere.Application.Orders.Query.GetAllOrders;
 
-internal sealed class GetAllOrdersQueryHandler : IQueryHandler<GetAllOrdersQuery, PagedResponse<Order>>
+internal sealed class GetAllOrdersQueryHandler : IQueryHandler<GetAllOrdersQuery, PagedResponse<OrderListItemResponse>>
 {
     private readonly IOrderService _orderService;
 
@@ -14,11 +13,13 @@ internal sealed class GetAllOrdersQueryHandler : IQueryHandler<GetAllOrdersQuery
         _orderService = orderService;
     }
 
-    public async Task<Result<PagedResponse<Order>>> Handle(GetAllOrdersQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PagedResponse<OrderListItemResponse>>> Handle(GetAllOrdersQuery request, CancellationToken cancellationToken)
     {
+        var page = Math.Max(1, request.Page);
+        var pageSize = Math.Clamp(request.PageSize, 1, 100);
+
         var orders = await _orderService.GetAllOrdersAsync(cancellationToken);
 
-        // Filter by search term (buyer email)
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
             var searchTerm = request.SearchTerm.Trim().ToLowerInvariant();
@@ -27,7 +28,6 @@ internal sealed class GetAllOrdersQueryHandler : IQueryHandler<GetAllOrdersQuery
                 .ToList();
         }
 
-        // Filter by status
         if (request.Status.HasValue)
         {
             orders = orders
@@ -35,11 +35,11 @@ internal sealed class GetAllOrdersQueryHandler : IQueryHandler<GetAllOrdersQuery
                 .ToList();
         }
 
-        // Sort by created date descending (newest first)
-        orders = orders
+        var dtos = orders
             .OrderByDescending(o => o.OrderDate)
+            .Select(OrderListItemResponse.FromOrder)
             .ToList();
 
-        return Result.Success(PagedResponse<Order>.Create(orders, request.Page, request.PageSize));
+        return Result.Success(PagedResponse<OrderListItemResponse>.Create(dtos, page, pageSize));
     }
 }

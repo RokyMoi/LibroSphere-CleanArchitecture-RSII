@@ -20,14 +20,16 @@ namespace LibroSphere.Application.Library.Query.GetMyLibrary
 
         public async Task<Result<PagedResponse<LibraryBookResponse>>> Handle(GetMyLibraryQuery request, CancellationToken cancellationToken)
         {
+            var page = Math.Max(1, request.Page);
+            var pageSize = Math.Clamp(request.PageSize, 1, 100);
+
             var userBooks = await _userBookRepository.GetByUserIdAsync(request.UserId, cancellationToken);
             var filteredUserBooks = userBooks
                 .Where(ub => string.IsNullOrWhiteSpace(request.SearchTerm) ||
                              ub.Book.Title.Value.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
-            var response = new List<LibraryBookResponse>();
-            foreach (var userBook in filteredUserBooks)
+            var response = await Task.WhenAll(filteredUserBooks.Select(async userBook =>
             {
                 var imageLink = await _bookAssetStorageService.GetImageUrlAsync(
                     userBook.Book.BookLinkovi.imageLink,
@@ -37,7 +39,7 @@ namespace LibroSphere.Application.Library.Query.GetMyLibrary
                     ? 0
                     : userBook.Book.Reviews.Average(review => review.Rating);
 
-                response.Add(new LibraryBookResponse(
+                return new LibraryBookResponse(
                     userBook.BookId,
                     userBook.Book.Title.Value,
                     userBook.Book.Description.Value,
@@ -55,10 +57,10 @@ namespace LibroSphere.Application.Library.Query.GetMyLibrary
                         .Select(bg => bg.Genre!.Name.Value)
                         .OrderBy(name => name)
                         .ToList(),
-                    userBook.PurchasedAt));
-            }
+                    userBook.PurchasedAt);
+            }));
 
-            return Result.Success(PagedResponse<LibraryBookResponse>.Create(response, request.Page, request.PageSize));
+            return Result.Success(PagedResponse<LibraryBookResponse>.Create(response, page, pageSize));
         }
     }
 }

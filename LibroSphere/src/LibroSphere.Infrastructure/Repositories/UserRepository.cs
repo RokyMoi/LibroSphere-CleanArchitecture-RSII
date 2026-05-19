@@ -11,10 +11,11 @@ namespace LibroSphere.Infrastructure.Repositories
 
         public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
         {
+            var normalizedEmail = email.Trim().ToLowerInvariant();
             return await DbContext
                 .Set<User>()
                 .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.UserEmail.Value.ToLower() == email.ToLower(), cancellationToken);
+                .FirstOrDefaultAsync(u => u.UserEmail.Value.ToLower() == normalizedEmail, cancellationToken);
         }
 
         public async Task<List<User>> GetAllAsync(CancellationToken cancellationToken = default)

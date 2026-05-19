@@ -97,6 +97,7 @@ namespace LibroSphere.WebApi.Controllers.Orders
         }
 
         [HttpPost("{id:guid}/refund")]
+        [Authorize(Roles = ApplicationRoles.Admin)]
         public async Task<IActionResult> RefundOrder(
             Guid id,
             [FromBody] RefundOrderRequest request,

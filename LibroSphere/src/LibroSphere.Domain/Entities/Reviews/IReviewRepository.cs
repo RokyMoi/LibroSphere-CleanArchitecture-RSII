@@ -4,8 +4,8 @@ namespace LibroSphere.Domain.Entities.Reviews
     {
         Task<Review?> GetAsyncById(Guid id, CancellationToken cancellationToken = default);
         Task<Review?> GetReadOnlyByIdAsync(Guid id, CancellationToken cancellationToken = default);
-        Task<List<Review>> GetByBookIdAsync(Guid bookId, CancellationToken cancellationToken = default);
-        Task<List<Review>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
+        Task<List<Review>> GetByBookIdAsync(Guid bookId, int? minRating = null, int? maxRating = null, CancellationToken cancellationToken = default);
+        Task<List<Review>> GetByUserIdAsync(Guid userId, int? minRating = null, int? maxRating = null, CancellationToken cancellationToken = default);
         Task<Review?> GetByUserAndBookAsync(Guid userId, Guid bookId, CancellationToken cancellationToken = default);
         void Add(Review review);
         void Delete(Review review);

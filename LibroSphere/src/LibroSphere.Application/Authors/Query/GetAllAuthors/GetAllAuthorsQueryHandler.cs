@@ -16,6 +16,9 @@ namespace LibroSphere.Application.Authors.Query.GetAllAuthors
 
         public async Task<Result<PagedResponse<AuthorResponse>>> Handle(GetAllAuthorsQuery request, CancellationToken cancellationToken)
         {
+            var page = Math.Max(1, request.Page);
+            var pageSize = Math.Clamp(request.PageSize, 1, 200);
+
             var authors = await _authorRepository.GetAllAsync(cancellationToken);
 
             var response = authors
@@ -31,7 +34,7 @@ namespace LibroSphere.Application.Authors.Query.GetAllAuthors
                 })
                 .ToList();
 
-            return Result.Success(PagedResponse<AuthorResponse>.Create(response, request.Page, request.PageSize));
+            return Result.Success(PagedResponse<AuthorResponse>.Create(response, page, pageSize));
         }
     }
 }

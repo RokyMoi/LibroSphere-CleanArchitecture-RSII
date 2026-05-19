@@ -23,6 +23,17 @@ namespace LibroSphere.Infrastructure.Repositories
                 .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
         }
 
+        public async Task<Book?> GetByIdWithDetailsForUpdateAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            return await DbContext
+                .Set<Book>()
+                .Include(b => b.Author)
+                .Include(b => b.BookGenres)
+                    .ThenInclude(bg => bg.Genre)
+                .Include(b => b.Reviews)
+                .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
+        }
+
         public async Task<List<Book>> GetByIdsWithDetailsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default)
         {
             if (ids.Count == 0)
@@ -59,25 +70,14 @@ namespace LibroSphere.Infrastructure.Repositories
 
         public async Task<List<Book>> SearchAsync(string? searchTerm, Guid? authorId, Guid? genreId, CancellationToken cancellationToken = default)
         {
-            var books = await DbContext
+            var query = DbContext
                 .Set<Book>()
                 .AsNoTracking()
                 .Include(b => b.Author)
                 .Include(b => b.BookGenres)
                     .ThenInclude(bg => bg.Genre)
                 .Include(b => b.Reviews)
-                .ToListAsync(cancellationToken);
-
-            IEnumerable<Book> query = books;
-
-            if (!string.IsNullOrWhiteSpace(searchTerm))
-            {
-                var normalizedSearchTerm = searchTerm.Trim();
-                query = query.Where(b =>
-                    b.Title.Value.Contains(normalizedSearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    b.Description.Value.Contains(normalizedSearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    b.Author.Name.Value.Contains(normalizedSearchTerm, StringComparison.OrdinalIgnoreCase));
-            }
+                .AsQueryable();
 
             if (authorId.HasValue)
             {
@@ -89,7 +89,19 @@ namespace LibroSphere.Infrastructure.Repositories
                 query = query.Where(b => b.BookGenres.Any(bg => bg.GenreId == genreId.Value));
             }
 
-            return query
+            var books = await query.ToListAsync(cancellationToken);
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var normalizedSearchTerm = searchTerm.Trim();
+                books = books.Where(b =>
+                    b.Title.Value.Contains(normalizedSearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    b.Description.Value.Contains(normalizedSearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    (b.Author != null && b.Author.Name.Value.Contains(normalizedSearchTerm, StringComparison.OrdinalIgnoreCase)))
+                    .ToList();
+            }
+
+            return books
                 .OrderBy(b => b.Title.Value)
                 .ToList();
         }

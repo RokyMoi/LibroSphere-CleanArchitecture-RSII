@@ -20,6 +20,7 @@ namespace LibroSphere.Application.Recommendations.Query.GetRecommendedBooks
         public async Task<Result<List<RecommendedBookResponse>>> Handle(GetRecommendedBooksQuery request, CancellationToken cancellationToken)
         {
             var books = await _recommendationService.GetRecommendationsForUserAsync(request.UserId, request.Take, cancellationToken);
+            var isPersonalized = books.Count > 0;
             var response = await Task.WhenAll(books.Select(async book =>
             {
                 var imageLink = await _bookAssetStorageService.GetImageUrlAsync(book.BookLinkovi.imageLink, cancellationToken);
@@ -27,6 +28,10 @@ namespace LibroSphere.Application.Recommendations.Query.GetRecommendedBooks
                 var averageRating = reviewCount == 0
                     ? 0
                     : book.Reviews.Average(review => review.Rating);
+
+                var reason = isPersonalized
+                    ? "Recommended based on your reading history and preferences"
+                    : "Popular among readers";
 
                 return new RecommendedBookResponse(
                     book.Id,
@@ -41,7 +46,8 @@ namespace LibroSphere.Application.Recommendations.Query.GetRecommendedBooks
                     averageRating,
                     reviewCount,
                     book.AuthorId,
-                    book.Author?.Name.Value ?? string.Empty);
+                    book.Author?.Name.Value ?? string.Empty,
+                    reason);
             }));
 
             return Result.Success(response.ToList());

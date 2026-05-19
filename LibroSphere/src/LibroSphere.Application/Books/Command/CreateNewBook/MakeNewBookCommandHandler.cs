@@ -54,9 +54,19 @@ namespace LibroSphere.Application.Books.Command.CreateNewBook
                 request.bookLinks,
                 request.authorId);
 
-            var genres = request.GenreIds.Count == 0
-                ? new List<Genre>()
-                : await _genreRepository.GetByIdsAsync(request.GenreIds, cancellationToken);
+            List<Genre> genres;
+            if (request.GenreIds.Count == 0)
+            {
+                genres = new List<Genre>();
+            }
+            else
+            {
+                genres = await _genreRepository.GetByIdsAsync(request.GenreIds, cancellationToken);
+                if (genres.Count != request.GenreIds.Count)
+                {
+                    return Result.Failure<Guid>(new Error("Book.Genre.NotFound", "One or more genre IDs were not found."));
+                }
+            }
 
             _bookRepository.Add(book);
             _bookRepository.ReplaceGenres(book, genres);

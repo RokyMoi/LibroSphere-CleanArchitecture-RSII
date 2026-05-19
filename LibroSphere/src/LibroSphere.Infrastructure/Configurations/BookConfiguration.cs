@@ -30,7 +30,7 @@ namespace LibroSphere.Infrastructure.Configurations
 
 
             builder.Property(book => book.Description)
-                .HasMaxLength(200)
+                .HasMaxLength(2000)
                 .HasConversion(
                     description => description.Value,
                     value => new Description(value));

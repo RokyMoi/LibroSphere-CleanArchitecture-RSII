@@ -38,14 +38,23 @@ namespace LibroSphere.Infrastructure.Services
                 { "buyerEmail", buyerEmail }
             };
 
+            var bookIds = cart.Items.Select(i => i.BookId).Distinct().ToList();
+            var books = await _bookRepository.GetByIdsWithDetailsAsync(bookIds, CancellationToken.None);
+            var bookLookup = books.ToDictionary(b => b.Id);
+
             foreach (var item in cart.Items)
             {
-                var book = await _bookRepository.GetAsyncById(item.BookId);
-                if (book == null) return null;
-
+                if (!bookLookup.TryGetValue(item.BookId, out var book)) return null;
                 if (book.Price != item.Price)
                     item.SetPrice(book.Price);
             }
+
+            var currencyCodes = cart.Items
+                .Select(i => i.Price.Currency.Code.ToLowerInvariant())
+                .Distinct()
+                .ToList();
+            if (currencyCodes.Count > 1) return null;
+            var currency = currencyCodes.FirstOrDefault() ?? "usd";
 
             var service = new PaymentIntentService();
             PaymentIntent intent;
@@ -59,7 +68,7 @@ namespace LibroSphere.Infrastructure.Services
                 var options = new PaymentIntentCreateOptions
                 {
                     Amount = amountInCents,
-                    Currency = "usd",
+                    Currency = currency,
                     PaymentMethodTypes = new List<string> { "card" },
                     Metadata = metadata
                 };

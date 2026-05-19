@@ -15,6 +15,9 @@ namespace LibroSphere.Application.Genres.Query.GetAllGenres
 
         public async Task<Result<PagedResponse<GenreResponse>>> Handle(GetAllGenresQuery request, CancellationToken cancellationToken)
         {
+            var page = Math.Max(1, request.Page);
+            var pageSize = Math.Clamp(request.PageSize, 1, 200);
+
             var genres = await _genreRepository.GetAllAsync(cancellationToken);
             var response = genres
                 .Where(x => string.IsNullOrWhiteSpace(request.SearchTerm) ||
@@ -22,7 +25,7 @@ namespace LibroSphere.Application.Genres.Query.GetAllGenres
                 .Select(x => new GenreResponse(x.Id, x.Name.Value))
                 .ToList();
 
-            return Result.Success(PagedResponse<GenreResponse>.Create(response, request.Page, request.PageSize));
+            return Result.Success(PagedResponse<GenreResponse>.Create(response, page, pageSize));
         }
     }
 }

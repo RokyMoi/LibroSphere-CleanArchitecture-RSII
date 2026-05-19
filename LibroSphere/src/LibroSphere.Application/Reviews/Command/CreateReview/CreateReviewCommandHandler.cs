@@ -1,6 +1,7 @@
 using LibroSphere.Application.Abstractions.Messaging;
 using LibroSphere.Domain.Abstraction;
 using LibroSphere.Domain.Entities.Books;
+using LibroSphere.Domain.Entities.ManyToMany.IRepositories;
 using LibroSphere.Domain.Entities.Reviews;
 using LibroSphere.Domain.Entities.Reviews.Errors;
 using LibroSphere.Domain.Entities.Users;
@@ -12,17 +13,20 @@ namespace LibroSphere.Application.Reviews.Command.CreateReview
         private readonly IReviewRepository _reviewRepository;
         private readonly IBookRepository _bookRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IUserBookRepository _userBookRepository;
         private readonly IUnitOfWork _unitOfWork;
 
         public CreateReviewCommandHandler(
             IReviewRepository reviewRepository,
             IBookRepository bookRepository,
             IUserRepository userRepository,
+            IUserBookRepository userBookRepository,
             IUnitOfWork unitOfWork)
         {
             _reviewRepository = reviewRepository;
             _bookRepository = bookRepository;
             _userRepository = userRepository;
+            _userBookRepository = userBookRepository;
             _unitOfWork = unitOfWork;
         }
 
@@ -39,6 +43,12 @@ namespace LibroSphere.Application.Reviews.Command.CreateReview
             if (user is null || book is null)
             {
                 return Result.Failure<Guid>(Error.NullValue);
+            }
+
+            var hasAccess = await _userBookRepository.HasAccessAsync(request.UserId, request.BookId);
+            if (!hasAccess)
+            {
+                return Result.Failure<Guid>(new Error("Review.NoAccess", "You can only review books you own."));
             }
 
             var review = Review.Create(request.UserId, request.BookId, request.Rating, request.Comment);

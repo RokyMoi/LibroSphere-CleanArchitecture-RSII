@@ -11,5 +11,6 @@ namespace LibroSphere.Application.Recommendations.Query.GetRecommendedBooks
         double AverageRating,
         int ReviewCount,
         Guid AuthorId,
-        string AuthorName);
+        string AuthorName,
+        string Reason);
 }

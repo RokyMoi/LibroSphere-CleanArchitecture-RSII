@@ -12,7 +12,7 @@ namespace LibroSphere.Application.Abstractions.Behavior
 {
 
     public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-        where TRequest : IBaseCommand
+        where TRequest : notnull
     {
         private readonly IEnumerable<IValidator<TRequest>> _validators;
 

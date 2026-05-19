@@ -59,12 +59,14 @@ namespace LibroSphere.Infrastructure.Services
                 return Result.Failure<Order>(new Error("Order.PaymentIntent.Mismatch", "Payment intent does not match the cart."));
             }
 
-            var orderItems = new List<OrderItem>();
+            var bookIds = cart.Items.Select(i => i.BookId).Distinct().ToList();
+            var books = await _bookRepo.GetByIdsWithDetailsAsync(bookIds, CancellationToken.None);
+            var bookLookup = books.ToDictionary(b => b.Id);
 
+            var orderItems = new List<OrderItem>();
             foreach (var item in cart.Items)
             {
-                var book = await _bookRepo.GetAsyncById(item.BookId);
-                if (book == null)
+                if (!bookLookup.TryGetValue(item.BookId, out var book))
                 {
                     return Result.Failure<Order>(new Error("Order.Book.NotFound", $"Book {item.BookId} not found."));
                 }

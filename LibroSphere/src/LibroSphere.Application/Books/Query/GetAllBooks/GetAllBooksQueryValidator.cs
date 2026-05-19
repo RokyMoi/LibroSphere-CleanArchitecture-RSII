@@ -30,6 +30,10 @@ namespace LibroSphere.Application.Books.Query.GetAllBooks
                 .Must(x => !x.MinPrice.HasValue || !x.MaxPrice.HasValue || x.MinPrice <= x.MaxPrice)
                 .WithMessage("MinPrice must be less than or equal to MaxPrice.");
 
+            RuleFor(x => x.MinRating)
+                .InclusiveBetween(0, 5)
+                .When(x => x.MinRating.HasValue);
+
             RuleFor(x => x.Page)
                 .GreaterThanOrEqualTo(1);
 

@@ -9,6 +9,7 @@ namespace LibroSphere.Application.Books.Query.GetAllBooks
         Guid? GenreId = null,
         decimal? MinPrice = null,
         decimal? MaxPrice = null,
+        double? MinRating = null,
         int Page = 1,
         int PageSize = 12) : IQuery<PagedResponse<LibroSphere.Application.Books.Query.GetBookByIdQuery.BookResponse>>;
 }

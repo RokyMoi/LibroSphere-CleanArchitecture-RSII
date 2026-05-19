@@ -22,6 +22,6 @@ public sealed class AnalyticsController : ControllerBase
     public async Task<IActionResult> GetOverview([FromQuery] int recentActivityTake = 10, CancellationToken cancellationToken = default)
     {
         var result = await _mediator.Send(new GetAnalyticsOverviewQuery(recentActivityTake), cancellationToken);
-        return Ok(result.Value);
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
 }

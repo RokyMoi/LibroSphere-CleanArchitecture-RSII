@@ -8,4 +8,4 @@ public sealed record GetAllOrdersQuery(
     string? SearchTerm,
     OrderStatus? Status,
     int Page = 1,
-    int PageSize = 20) : IQuery<PagedResponse<Order>>;
+    int PageSize = 20) : IQuery<PagedResponse<OrderListItemResponse>>;

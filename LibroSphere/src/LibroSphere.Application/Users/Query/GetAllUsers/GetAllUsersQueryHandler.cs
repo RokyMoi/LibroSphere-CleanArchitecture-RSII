@@ -17,6 +17,9 @@ internal sealed class GetAllUsersQueryHandler : IQueryHandler<GetAllUsersQuery, 
 
     public async Task<Result<PagedResponse<UserResponse>>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
     {
+        var page = Math.Max(1, request.Page);
+        var pageSize = Math.Clamp(request.PageSize, 1, 100);
+
         var users = await _userRepository.GetAllAsync(cancellationToken);
 
         var response = users
@@ -36,6 +39,6 @@ internal sealed class GetAllUsersQueryHandler : IQueryHandler<GetAllUsersQuery, 
                 user.IsActive))
             .ToList();
 
-        return Result.Success(PagedResponse<UserResponse>.Create(response, request.Page, request.PageSize));
+        return Result.Success(PagedResponse<UserResponse>.Create(response, page, pageSize));
     }
 }

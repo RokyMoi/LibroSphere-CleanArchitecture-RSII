@@ -28,7 +28,6 @@ namespace LibroSphere.WebApi.Controllers.Book
         private readonly ISender _sender;
         private readonly IBookAssetStorageService _bookAssetStorageService;
         private readonly ILogger<BookController> _logger;
-        private const long MinPdfBytes = 1 * 1024 * 1024;
         private const long MaxPdfBytes = 100 * 1024 * 1024;
         private const long MaxImageBytes = 10 * 1024 * 1024;
         private static readonly HashSet<string> AllowedImageContentTypes = new(StringComparer.OrdinalIgnoreCase)
@@ -38,6 +37,11 @@ namespace LibroSphere.WebApi.Controllers.Book
             "image/png",
             "image/webp"
         };
+        private static readonly byte[] PdfMagicBytes = { 0x25, 0x50, 0x44, 0x46, 0x2D }; // %PDF-
+        private static readonly byte[] JpegMagicBytes = { 0xFF, 0xD8, 0xFF };
+        private static readonly byte[] PngMagicBytes = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+        private static readonly byte[] WebpRiffMagicBytes = { 0x52, 0x49, 0x46, 0x46 };
+        private static readonly byte[] WebpWebpMagicBytes = { 0x57, 0x45, 0x42, 0x50 };
 
         public BookController(
             ISender sender,
@@ -71,11 +75,12 @@ namespace LibroSphere.WebApi.Controllers.Book
             [FromQuery] Guid? genreId,
             [FromQuery] decimal? minPrice,
             [FromQuery] decimal? maxPrice,
+            [FromQuery] double? minRating,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 12,
             CancellationToken cancellationToken = default)
         {
-            var result = await _sender.Send(new GetAllBooksQuery(searchTerm, authorId, genreId, minPrice, maxPrice, page, pageSize), cancellationToken);
+            var result = await _sender.Send(new GetAllBooksQuery(searchTerm, authorId, genreId, minPrice, maxPrice, minRating, page, pageSize), cancellationToken);
             return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
         }
 
@@ -278,12 +283,17 @@ namespace LibroSphere.WebApi.Controllers.Book
         {
             if (pdfFile is not null)
             {
-                if (pdfFile.Length < MinPdfBytes || pdfFile.Length > MaxPdfBytes || !HasValidPdfContentType(pdfFile))
+                if (pdfFile.Length == 0 || pdfFile.Length > MaxPdfBytes)
                 {
-                    return Result.Failure<LibroSphere.Domain.Entities.Books.BookLinks>(new Error("Book.InvalidPdfFile", "PDF file must be a valid PDF between 1MB and 100MB."));
+                    return Result.Failure<LibroSphere.Domain.Entities.Books.BookLinks>(new Error("Book.InvalidPdfFile", "PDF file must be greater than 0 bytes and smaller than 100MB."));
                 }
 
                 await using var pdfStream = pdfFile.OpenReadStream();
+                if (!await HasValidMagicBytesAsync(pdfStream, PdfMagicBytes))
+                {
+                    return Result.Failure<LibroSphere.Domain.Entities.Books.BookLinks>(new Error("Book.InvalidPdfFile", "File is not a valid PDF."));
+                }
+                pdfStream.Position = 0;
                 pdfLink = (await _bookAssetStorageService.UploadPdfAsync(
                     pdfStream,
                     pdfFile.FileName,
@@ -293,12 +303,17 @@ namespace LibroSphere.WebApi.Controllers.Book
 
             if (imageFile is not null)
             {
-                if (imageFile.Length == 0 || imageFile.Length > MaxImageBytes || !AllowedImageContentTypes.Contains(imageFile.ContentType))
+                if (imageFile.Length == 0 || imageFile.Length > MaxImageBytes)
                 {
-                    return Result.Failure<LibroSphere.Domain.Entities.Books.BookLinks>(new Error("Book.InvalidImageFile", "Image file must be jpg, jpeg, png or webp and smaller than 10MB."));
+                    return Result.Failure<LibroSphere.Domain.Entities.Books.BookLinks>(new Error("Book.InvalidImageFile", "Image file must be greater than 0 bytes and smaller than 10MB."));
                 }
 
                 await using var imageStream = imageFile.OpenReadStream();
+                if (!await HasValidImageMagicBytesAsync(imageStream))
+                {
+                    return Result.Failure<LibroSphere.Domain.Entities.Books.BookLinks>(new Error("Book.InvalidImageFile", "File is not a valid JPEG, PNG, or WebP image."));
+                }
+                imageStream.Position = 0;
                 imageLink = (await _bookAssetStorageService.UploadImageAsync(
                     imageStream,
                     imageFile.FileName,
@@ -319,15 +334,34 @@ namespace LibroSphere.WebApi.Controllers.Book
             return Result.Success(new LibroSphere.Domain.Entities.Books.BookLinks(pdfLink.Trim(), imageLink.Trim()));
         }
 
-        private static bool HasValidPdfContentType(IFormFile pdfFile)
+        private static async Task<bool> HasValidMagicBytesAsync(Stream stream, byte[] expectedBytes)
         {
-            if (string.Equals(pdfFile.ContentType, "application/pdf", StringComparison.OrdinalIgnoreCase))
+            var buffer = new byte[expectedBytes.Length];
+            var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+            if (bytesRead < expectedBytes.Length) return false;
+            for (var i = 0; i < expectedBytes.Length; i++)
             {
-                return true;
+                if (buffer[i] != expectedBytes[i]) return false;
             }
+            return true;
+        }
 
-            return string.Equals(pdfFile.ContentType, "application/octet-stream", StringComparison.OrdinalIgnoreCase)
-                && string.Equals(Path.GetExtension(pdfFile.FileName), ".pdf", StringComparison.OrdinalIgnoreCase);
+        private static async Task<bool> HasValidImageMagicBytesAsync(Stream stream)
+        {
+            var buffer = new byte[12];
+            var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+            if (bytesRead < 4) return false;
+
+            if (bytesRead >= 3 && buffer[0] == JpegMagicBytes[0] && buffer[1] == JpegMagicBytes[1] && buffer[2] == JpegMagicBytes[2])
+                return true;
+
+            if (bytesRead >= 8 && buffer.Take(8).SequenceEqual(PngMagicBytes))
+                return true;
+
+            if (bytesRead >= 12 && buffer.Take(4).SequenceEqual(WebpRiffMagicBytes) && buffer.Skip(8).Take(4).SequenceEqual(WebpWebpMagicBytes))
+                return true;
+
+            return false;
         }
 
         private static HomeFeedResponse CreateHomeFeedResponse(

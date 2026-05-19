@@ -19,17 +19,26 @@ namespace LibroSphere.Application.Books.Query.GetAllBooks
 
         public async Task<Result<PagedResponse<BookResponse>>> Handle(GetAllBooksQuery request, CancellationToken cancellationToken)
         {
+            var page = Math.Max(1, request.Page);
+            var pageSize = Math.Clamp(request.PageSize, 1, 100);
+
             var books = await _bookRepository.SearchAsync(request.SearchTerm, request.AuthorId, request.GenreId, cancellationToken);
 
             var filteredBooks = books
                 .Where(book => !request.MinPrice.HasValue || book.Price.amount >= request.MinPrice.Value)
                 .Where(book => !request.MaxPrice.HasValue || book.Price.amount <= request.MaxPrice.Value)
+                .Where(book =>
+                {
+                    if (!request.MinRating.HasValue) return true;
+                    var avg = book.Reviews.Count == 0 ? 0 : book.Reviews.Average(r => r.Rating);
+                    return avg >= request.MinRating.Value;
+                })
                 .ToList();
 
             var totalCount = filteredBooks.Count;
             var pageBooks = filteredBooks
-                .Skip((request.Page - 1) * request.PageSize)
-                .Take(request.PageSize)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToList();
 
             var response = await Task.WhenAll(pageBooks.Select(async book =>
@@ -65,8 +74,8 @@ namespace LibroSphere.Application.Books.Query.GetAllBooks
 
             return Result.Success(new PagedResponse<BookResponse>(
                 response,
-                request.Page,
-                request.PageSize,
+                page,
+                pageSize,
                 totalCount));
         }
     }
