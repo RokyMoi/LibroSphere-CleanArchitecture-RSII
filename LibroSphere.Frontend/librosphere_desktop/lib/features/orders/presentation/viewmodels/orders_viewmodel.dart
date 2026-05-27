@@ -108,4 +108,9 @@ class OrdersViewModel extends ChangeNotifier {
         notifyListeners();
     }
   }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 }

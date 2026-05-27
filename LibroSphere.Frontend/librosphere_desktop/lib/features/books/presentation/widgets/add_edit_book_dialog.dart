@@ -186,6 +186,11 @@ class _AddEditBookDialogState extends State<AddEditBookDialog> {
               english: 'Book name is required.',
               bosnian: 'Naziv knjige je obavezan.',
             )
+          : normalizedTitle.length > 200
+          ? context.tr(
+              english: 'Title cannot exceed 200 characters.',
+              bosnian: 'Naslov ne može imati više od 200 karaktera.',
+            )
           : null;
       _authorError = _selectedAuthorId == null
           ? context.tr(
@@ -203,6 +208,11 @@ class _AddEditBookDialogState extends State<AddEditBookDialog> {
           ? context.tr(
               english: 'Description is required.',
               bosnian: 'Opis je obavezan.',
+            )
+          : normalizedDescription.length > 2000
+          ? context.tr(
+              english: 'Description cannot exceed 2000 characters.',
+              bosnian: 'Opis ne može imati više od 2000 karaktera.',
             )
           : null;
       _priceError = normalizedPrice == null || normalizedPrice <= 0

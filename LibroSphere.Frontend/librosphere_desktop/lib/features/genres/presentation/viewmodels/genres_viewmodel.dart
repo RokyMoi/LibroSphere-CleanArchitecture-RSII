@@ -151,4 +151,9 @@ class GenresViewModel extends ChangeNotifier {
       await _onDataChanged?.call();
     } catch (_) {}
   }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 }

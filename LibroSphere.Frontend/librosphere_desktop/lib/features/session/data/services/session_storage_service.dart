@@ -1,21 +1,22 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../auth/data/models/auth_tokens_model.dart';
 
 class SessionStorageService {
-  SharedPreferences? _prefs;
-  Future<SharedPreferences>? _prefsFuture;
+  static const _storage = FlutterSecureStorage(
+    wOptions: WindowsOptions(),
+    lOptions: LinuxOptions(),
+    mOptions: MacOsOptions(),
+  );
+
   AuthTokensModel? _cachedTokens;
   bool _hydrated = false;
 
   Future<void> warmUp() async {
-    if (_hydrated) {
-      return;
-    }
+    if (_hydrated) return;
 
-    final prefs = await _getPrefs();
-    final accessToken = prefs.getString('adminAccessToken');
-    final refreshToken = prefs.getString('adminRefreshToken');
+    final accessToken = await _storage.read(key: 'adminAccessToken');
+    final refreshToken = await _storage.read(key: 'adminRefreshToken');
 
     if (accessToken != null && refreshToken != null) {
       _cachedTokens = AuthTokensModel(
@@ -36,31 +37,14 @@ class SessionStorageService {
 
   Future<void> persistTokens(AuthTokensModel tokens) async {
     _cachedTokens = tokens;
-    final prefs = await _getPrefs();
-    await prefs.setString('adminAccessToken', tokens.accessToken);
-    await prefs.setString('adminRefreshToken', tokens.refreshToken);
+    await _storage.write(key: 'adminAccessToken', value: tokens.accessToken);
+    await _storage.write(key: 'adminRefreshToken', value: tokens.refreshToken);
     _hydrated = true;
   }
 
   Future<void> clearSession() async {
     _cachedTokens = null;
-    final prefs = await _getPrefs();
-    await prefs.remove('adminAccessToken');
-    await prefs.remove('adminRefreshToken');
+    await _storage.deleteAll();
     _hydrated = true;
-  }
-
-  Future<SharedPreferences> _getPrefs() {
-    final existing = _prefs;
-    if (existing != null) {
-      return Future<SharedPreferences>.value(existing);
-    }
-
-    final future =
-        _prefsFuture ??= SharedPreferences.getInstance().then((prefs) {
-          _prefs = prefs;
-          return prefs;
-        });
-    return future;
   }
 }

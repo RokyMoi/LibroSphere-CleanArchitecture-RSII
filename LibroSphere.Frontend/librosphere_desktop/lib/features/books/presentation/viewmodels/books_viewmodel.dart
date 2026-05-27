@@ -114,25 +114,29 @@ class BooksViewModel extends ChangeNotifier {
   Future<void> clearSearch() => load(search: '');
 
   Future<void> _loadLegacyPage(int targetPage) async {
-    final pageResultFuture = _repository.loadBooksPage(
-      _token,
-      page: targetPage,
-      pageSize: pageSize,
-    );
-    final lookupResultFuture = _repository.loadLookupData(_token);
+    try {
+      final pageResultFuture = _repository.loadBooksPage(
+        _token,
+        page: targetPage,
+        pageSize: pageSize,
+      );
+      final lookupResultFuture = _repository.loadLookupData(_token);
 
-    final pageResult = await pageResultFuture;
-    final lookupResult = await lookupResultFuture;
+      final pageResult = await pageResultFuture;
+      final lookupResult = await lookupResultFuture;
 
-    switch (pageResult) {
-      case Success<BooksDataModel>(value: final data):
-        _applyBooksData(data);
-        _hasLoaded = true;
-      case ErrorResult<BooksDataModel>(failure: final error):
-        failure = error is Failure ? error : Failure(message: error.toString());
+      switch (pageResult) {
+        case Success<BooksDataModel>(value: final data):
+          _applyBooksData(data);
+          _hasLoaded = true;
+        case ErrorResult<BooksDataModel>(failure: final error):
+          failure = error is Failure ? error : Failure(message: error.toString());
+      }
+
+      _applyLookupResult(lookupResult);
+    } catch (e) {
+      failure = Failure(message: e.toString());
     }
-
-    _applyLookupResult(lookupResult);
   }
 
   Future<void> loadNextPage() async {
@@ -301,5 +305,10 @@ class BooksViewModel extends ChangeNotifier {
     try {
       await _onDataChanged?.call();
     } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 }

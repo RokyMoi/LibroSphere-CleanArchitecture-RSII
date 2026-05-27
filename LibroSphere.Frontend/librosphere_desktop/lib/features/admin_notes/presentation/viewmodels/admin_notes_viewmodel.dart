@@ -101,4 +101,9 @@ class AdminNotesViewModel extends ChangeNotifier {
       contentType: contentType,
     );
   }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 }

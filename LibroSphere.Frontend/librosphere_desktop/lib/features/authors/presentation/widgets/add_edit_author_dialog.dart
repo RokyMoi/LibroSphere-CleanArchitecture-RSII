@@ -57,11 +57,21 @@ class _AddEditAuthorDialogState extends State<AddEditAuthorDialog> {
               english: 'Author name is required.',
               bosnian: 'Ime autora je obavezno.',
             )
+          : normalizedName.length > 100
+          ? context.tr(
+              english: 'Name cannot exceed 100 characters.',
+              bosnian: 'Ime ne može imati više od 100 karaktera.',
+            )
           : null;
       _biographyError = normalizedBiography.isEmpty
           ? context.tr(
               english: 'Biography is required.',
               bosnian: 'Biografija je obavezna.',
+            )
+          : normalizedBiography.length > 4000
+          ? context.tr(
+              english: 'Biography cannot exceed 4000 characters.',
+              bosnian: 'Biografija ne može imati više od 4000 karaktera.',
             )
           : null;
       _failure = null;

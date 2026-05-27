@@ -10,6 +10,9 @@ class AuthRepository {
 
   final AuthApiService _apiService;
 
+  bool isTokenValid(String accessToken) =>
+      _apiService.decodeAndCheckToken(accessToken);
+
   Future<Result<AuthTokensModel>> login(LoginRequest request) async {
     try {
       final tokens = await _apiService.login(request);
