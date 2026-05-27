@@ -4,12 +4,14 @@ using LibroSphere.Infrastructure;
 using LibroSphere.Services;
 using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.OpenApi.Models;
 using System.IO.Compression;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 
 DotEnvLoader.LoadFromCurrentDirectory();
 
@@ -26,13 +28,17 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        if (builder.Environment.IsDevelopment() || allowedOrigins.Length == 0)
+        if (builder.Environment.IsDevelopment())
         {
             policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
         }
-        else
+        else if (allowedOrigins.Length > 0)
         {
             policy.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader();
+        }
+        else
+        {
+            throw new InvalidOperationException("Cors:AllowedOrigins must be configured in production.");
         }
     });
 });
@@ -85,6 +91,18 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("auth", limiter =>
+    {
+        limiter.PermitLimit = 10;
+        limiter.Window = TimeSpan.FromMinutes(1);
+        limiter.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiter.QueueLimit = 0;
+    });
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructureServices(builder.Configuration);
@@ -145,14 +163,23 @@ app.Use(async (context, next) =>
 });
 
 
+app.UseCustomMiddleWare();
+
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["X-Frame-Options"] = "DENY";
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
+    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    await next();
+});
+
 app.UseCors("AllowAll");
+
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();
-
-
-
-app.UseCustomMiddleWare(); 
 
 app.MapControllers();
 

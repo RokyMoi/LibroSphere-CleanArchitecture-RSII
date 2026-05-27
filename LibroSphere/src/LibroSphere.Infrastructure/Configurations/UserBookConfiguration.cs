@@ -14,10 +14,6 @@ namespace LibroSphere.Infrastructure.Configurations
             builder.Property(ub => ub.UserId)
                 .IsRequired();
 
-            builder.Property(ub => ub.UserEmail)
-                .HasMaxLength(256)
-                .IsRequired();
-
             builder.Property(ub => ub.PurchasedAt)
                 .IsRequired();
 

@@ -1,22 +1,21 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../features/auth/data/models/auth_tokens_model.dart';
 
 class SessionStorageService {
-  SharedPreferences? _prefs;
-  Future<SharedPreferences>? _prefsFuture;
+  static const _storage = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+  );
+
   AuthTokensModel? _cachedTokens;
   String? _cachedCartId;
   bool _hydrated = false;
 
   Future<void> warmUp() async {
-    if (_hydrated) {
-      return;
-    }
+    if (_hydrated) return;
 
-    final prefs = await _getPrefs();
-    final accessToken = prefs.getString('accessToken');
-    final refreshToken = prefs.getString('refreshToken');
+    final accessToken = await _storage.read(key: 'accessToken');
+    final refreshToken = await _storage.read(key: 'refreshToken');
 
     if (accessToken != null && refreshToken != null) {
       _cachedTokens = AuthTokensModel(
@@ -27,7 +26,7 @@ class SessionStorageService {
       _cachedTokens = null;
     }
 
-    _cachedCartId = prefs.getString('cartId');
+    _cachedCartId = await _storage.read(key: 'cartId');
     _hydrated = true;
   }
 
@@ -38,9 +37,8 @@ class SessionStorageService {
 
   Future<void> persistTokens(AuthTokensModel tokens) async {
     _cachedTokens = tokens;
-    final prefs = await _getPrefs();
-    await prefs.setString('accessToken', tokens.accessToken);
-    await prefs.setString('refreshToken', tokens.refreshToken);
+    await _storage.write(key: 'accessToken', value: tokens.accessToken);
+    await _storage.write(key: 'refreshToken', value: tokens.refreshToken);
     _hydrated = true;
   }
 
@@ -53,39 +51,20 @@ class SessionStorageService {
 
   Future<void> persistCartId(String cartId) async {
     _cachedCartId = cartId;
-    final prefs = await _getPrefs();
-    await prefs.setString('cartId', cartId);
+    await _storage.write(key: 'cartId', value: cartId);
     _hydrated = true;
   }
 
   Future<void> clearCart() async {
     _cachedCartId = null;
-    final prefs = await _getPrefs();
-    await prefs.remove('cartId');
+    await _storage.delete(key: 'cartId');
     _hydrated = true;
   }
 
   Future<void> clearSession() async {
     _cachedTokens = null;
     _cachedCartId = null;
-    final prefs = await _getPrefs();
-    await prefs.remove('accessToken');
-    await prefs.remove('refreshToken');
-    await prefs.remove('cartId');
+    await _storage.deleteAll();
     _hydrated = true;
-  }
-
-  Future<SharedPreferences> _getPrefs() {
-    final existing = _prefs;
-    if (existing != null) {
-      return Future<SharedPreferences>.value(existing);
-    }
-
-    final future =
-        _prefsFuture ??= SharedPreferences.getInstance().then((prefs) {
-          _prefs = prefs;
-          return prefs;
-        });
-    return future;
   }
 }

@@ -68,7 +68,7 @@ namespace LibroSphere.Infrastructure.Repositories
                 .ToList();
         }
 
-        public async Task<List<Book>> SearchAsync(string? searchTerm, Guid? authorId, Guid? genreId, CancellationToken cancellationToken = default)
+        public async Task<List<Book>> SearchAsync(string? searchTerm, Guid? authorId, Guid? genreId, decimal? minPrice = null, decimal? maxPrice = null, double? minRating = null, CancellationToken cancellationToken = default)
         {
             var query = DbContext
                 .Set<Book>()
@@ -80,30 +80,33 @@ namespace LibroSphere.Infrastructure.Repositories
                 .AsQueryable();
 
             if (authorId.HasValue)
-            {
                 query = query.Where(b => b.AuthorId == authorId.Value);
-            }
 
             if (genreId.HasValue)
-            {
                 query = query.Where(b => b.BookGenres.Any(bg => bg.GenreId == genreId.Value));
-            }
-
-            var books = await query.ToListAsync(cancellationToken);
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                var normalizedSearchTerm = searchTerm.Trim();
-                books = books.Where(b =>
-                    b.Title.Value.Contains(normalizedSearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    b.Description.Value.Contains(normalizedSearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    (b.Author != null && b.Author.Name.Value.Contains(normalizedSearchTerm, StringComparison.OrdinalIgnoreCase)))
-                    .ToList();
+                var term = searchTerm.Trim();
+                query = query.Where(b =>
+                    b.Title.Value.Contains(term) ||
+                    b.Description.Value.Contains(term) ||
+                    (b.Author != null && b.Author.Name.Value.Contains(term)));
             }
 
-            return books
-                .OrderBy(b => b.Title.Value)
-                .ToList();
+            if (minPrice.HasValue)
+                query = query.Where(b => b.Price.amount >= minPrice.Value);
+
+            if (maxPrice.HasValue)
+                query = query.Where(b => b.Price.amount <= maxPrice.Value);
+
+            if (minRating.HasValue)
+                query = query.Where(b =>
+                    b.Reviews.Count == 0
+                        ? 0 >= minRating.Value
+                        : b.Reviews.Average(r => (double)r.Rating) >= minRating.Value);
+
+            return await query.OrderBy(b => b.Title.Value).ToListAsync(cancellationToken);
         }
 
         public void ReplaceGenres(Book book, IReadOnlyCollection<Genre> genres)

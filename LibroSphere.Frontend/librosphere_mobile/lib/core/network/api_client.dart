@@ -31,6 +31,10 @@ class ApiClient {
   final http.Client _client;
   final String _baseUrl = resolveApiBaseUrl();
 
+  Future<void> Function()? _onUnauthorized;
+  set onUnauthorized(Future<void> Function()? callback) =>
+      _onUnauthorized = callback;
+
   String _networkAccessHint() {
     if (kIsWeb) {
       return 'Open the API on http://localhost:8080 and verify Docker is running.';
@@ -565,6 +569,9 @@ class ApiClient {
         final response = await request().timeout(_requestTimeout);
         if (allow404 && response.statusCode == 404) {
           return response;
+        }
+        if (response.statusCode == 401 && _onUnauthorized != null) {
+          _onUnauthorized!();
         }
         _ensureSuccess(response);
         return response;

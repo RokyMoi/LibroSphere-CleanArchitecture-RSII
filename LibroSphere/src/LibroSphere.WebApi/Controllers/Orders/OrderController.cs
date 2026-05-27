@@ -45,7 +45,7 @@ namespace LibroSphere.WebApi.Controllers.Orders
                 new CreateOrderCommand(email, userId, dto.CartId, dto.PaymentIntentId),
                 cancellationToken);
             return result.IsSuccess
-                ? CreatedAtAction(nameof(GetOrder), new { id = result.Value.Id }, result.Value)
+                ? CreatedAtAction(nameof(GetOrder), new { id = result.Value.Id }, OrderDetailsResponse.FromOrder(result.Value))
                 : result.Error.Code switch
                 {
                     "Order.Cart.Forbidden" => Forbid(),
@@ -114,6 +114,15 @@ namespace LibroSphere.WebApi.Controllers.Orders
                 return Forbid();
             }
 
+            if (order.Status == OrderStatus.Refunded || order.Status == OrderStatus.PartiallyRefunded)
+            {
+                return BadRequest(new
+                {
+                    code = "Order.Refund.AlreadyRefunded",
+                    message = "This order has already been refunded."
+                });
+            }
+
             if (order.Status != OrderStatus.PaymentReceived)
             {
                 return BadRequest(new
@@ -123,10 +132,21 @@ namespace LibroSphere.WebApi.Controllers.Orders
                 });
             }
 
-            long? amountInCents = null;
-            if (request.Amount is > 0)
+            if (request.Amount.HasValue && request.Amount.Value > order.TotalAmount.amount)
             {
-                amountInCents = (long)Math.Round(request.Amount.Value * 100m);
+                return BadRequest(new
+                {
+                    code = "Order.Refund.ExceedsTotal",
+                    message = "Refund amount cannot exceed the order total."
+                });
+            }
+
+            var isFullRefund = request.Amount is null || request.Amount.Value >= order.TotalAmount.amount;
+
+            long? amountInCents = null;
+            if (!isFullRefund)
+            {
+                amountInCents = (long)Math.Round(request.Amount!.Value * 100m);
             }
 
             var refundResult = await _paymentService.RefundPaymentIntentAsync(
@@ -140,16 +160,18 @@ namespace LibroSphere.WebApi.Controllers.Orders
                 return BadRequest(refundResult.Error);
             }
 
-            order.UpdateStatus(OrderStatus.Refunded);
+            order.UpdateStatus(isFullRefund ? OrderStatus.Refunded : OrderStatus.PartiallyRefunded);
 
-            // Remove books from user's library when order is refunded
-            var userLibrary = await _userBookRepository.GetByUserIdAsync(order.UserId, cancellationToken);
-            foreach (var item in order.Items)
+            if (isFullRefund)
             {
-                var userBook = userLibrary.FirstOrDefault(ub => ub.BookId == item.BookId);
-                if (userBook != null)
+                var userLibrary = await _userBookRepository.GetByUserIdAsync(order.UserId, cancellationToken);
+                foreach (var item in order.Items)
                 {
-                    await _userBookRepository.RemoveAsync(userBook);
+                    var userBook = userLibrary.FirstOrDefault(ub => ub.BookId == item.BookId);
+                    if (userBook != null)
+                    {
+                        await _userBookRepository.RemoveAsync(userBook);
+                    }
                 }
             }
 
@@ -160,7 +182,9 @@ namespace LibroSphere.WebApi.Controllers.Orders
                 orderId = order.Id,
                 refundId = refundResult.Value,
                 status = order.Status.ToString(),
-                message = "Refund successful. Books have been removed from user's library."
+                message = isFullRefund
+                    ? "Refund successful. Books have been removed from user's library."
+                    : "Partial refund successful."
             });
         }
     }

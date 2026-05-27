@@ -208,7 +208,11 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
       ]);
       interestIds = results[0] as List<String>;
       allAuthors = results[1] as List<AuthorModel>;
-    } catch (_) {
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(formatErrorMessage(e))),
+      );
       return;
     }
 

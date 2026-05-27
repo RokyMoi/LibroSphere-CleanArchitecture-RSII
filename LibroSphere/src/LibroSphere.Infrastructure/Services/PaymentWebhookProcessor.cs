@@ -86,10 +86,10 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
 
         foreach (var item in order.Items)
         {
-            var alreadyHas = await _userBookRepository.HasAccessAsync(order.UserId, item.BookId);
+            var alreadyHas = await _userBookRepository.HasAccessAsync(order.UserId, item.BookId, cancellationToken);
             if (!alreadyHas)
             {
-                await _userBookRepository.AddAsync(UserBook.Create(order.UserId, order.BuyerEmail, item.BookId));
+                await _userBookRepository.AddAsync(UserBook.Create(order.UserId, item.BookId));
             }
         }
 
@@ -132,7 +132,7 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
             return null;
         }
 
-        var cart = await _cartService.GetCartASync(cartId);
+        var cart = await _cartService.GetCartAsync(cartId);
         if (cart is null)
         {
             return null;

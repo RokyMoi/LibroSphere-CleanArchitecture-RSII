@@ -30,10 +30,10 @@ namespace LibroSphere.Infrastructure.Repositories
             return libo;
         }
 
-        public async Task<bool> HasAccessAsync(Guid userId, Guid bookId)
+        public async Task<bool> HasAccessAsync(Guid userId, Guid bookId, CancellationToken cancellationToken = default)
         {
             return await _context.Set<UserBook>()
-                .AnyAsync(ub => ub.UserId == userId && ub.BookId == bookId);
+                .AnyAsync(ub => ub.UserId == userId && ub.BookId == bookId, cancellationToken);
         }
 
         public async Task AddAsync(UserBook userBook)

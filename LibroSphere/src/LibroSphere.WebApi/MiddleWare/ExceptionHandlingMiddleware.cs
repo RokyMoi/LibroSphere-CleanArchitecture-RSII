@@ -69,11 +69,11 @@ namespace LibroSphere.WebApi.MiddleWare
                     "Business rule violation",
                     businessException.Message,
                     null),
-                InvalidOperationException invalidOperationException => new ExceptionDetails(
+                InvalidOperationException => new ExceptionDetails(
                     StatusCodes.Status400BadRequest,
                     "InvalidOperation",
                     "Invalid operation",
-                    invalidOperationException.Message,
+                    "The requested operation could not be completed.",
                     null),
                 _ => new ExceptionDetails(
                     StatusCodes.Status500InternalServerError,

@@ -46,6 +46,8 @@ namespace LibroSphere.Infrastructure.Configurations
                     .IsRequired();
             });
 
+            builder.HasIndex(o => o.PaymentIntentId).IsUnique();
+
             builder.HasMany(o => o.Items)
                 .WithOne()
                 .HasForeignKey("OrderId")

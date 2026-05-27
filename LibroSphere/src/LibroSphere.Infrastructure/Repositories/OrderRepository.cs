@@ -11,28 +11,28 @@ namespace LibroSphere.Infrastructure.Repositories
 
         public OrderRepository(ApplicationDbContext context) :base(context)=> _context = context;
 
-        public async Task<Order?> GetByIdAsync(Guid id)
+        public async Task<Order?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             return await _context.Set<Order>()
                 .Include(o => o.Items)
-                .FirstOrDefaultAsync(o => o.Id == id);
+                .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
         }
 
-        public async Task<Order?> GetByPaymentIntentIdAsync(string intentId)
+        public async Task<Order?> GetByPaymentIntentIdAsync(string intentId, CancellationToken cancellationToken = default)
         {
             return await _context.Set<Order>()
                 .Include(o => o.Items)
-                .FirstOrDefaultAsync(o => o.PaymentIntentId == intentId);
+                .FirstOrDefaultAsync(o => o.PaymentIntentId == intentId, cancellationToken);
         }
 
-        public async Task<List<Order>> GetByUserIdAsync(Guid userId)
+        public async Task<List<Order>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
         {
             return await _context.Set<Order>()
                 .AsNoTracking()
                 .Include(o => o.Items)
                 .Where(o => o.UserId == userId)
                 .OrderByDescending(o => o.OrderDate)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
 
         public async Task<List<Order>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -44,14 +44,14 @@ namespace LibroSphere.Infrastructure.Repositories
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task AddAsync(Order order)
+        public async Task AddAsync(Order order, CancellationToken cancellationToken = default)
         {
-            await _context.Set<Order>().AddAsync(order);
+            await _context.Set<Order>().AddAsync(order, cancellationToken);
         }
 
-        public async Task SaveChangesAsync()
+        public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
         }
     }
 }

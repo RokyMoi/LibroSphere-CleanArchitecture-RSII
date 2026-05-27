@@ -28,9 +28,10 @@ namespace LibroSphere.Infrastructure.Services
             string buyerEmail,
             Guid userId,
             string cartId,
-            string paymentIntentId)
+            string paymentIntentId,
+            CancellationToken cancellationToken = default)
         {
-            var existingOrder = await _orderRepo.GetByPaymentIntentIdAsync(paymentIntentId);
+            var existingOrder = await _orderRepo.GetByPaymentIntentIdAsync(paymentIntentId, cancellationToken);
             if (existingOrder is not null)
             {
                 return existingOrder.UserId == userId
@@ -38,7 +39,7 @@ namespace LibroSphere.Infrastructure.Services
                     : Result.Failure<Order>(new Error("Order.Cart.Forbidden", "You do not have access to this order."));
             }
 
-            var cart = await _cartService.GetCartASync(cartId);
+            var cart = await _cartService.GetCartAsync(cartId);
             if (cart == null)
             {
                 return Result.Failure<Order>(new Error("Order.Cart.NotFound", "Cart not found."));
@@ -47,6 +48,11 @@ namespace LibroSphere.Infrastructure.Services
             if (cart.UserId != userId)
             {
                 return Result.Failure<Order>(new Error("Order.Cart.Forbidden", "You do not have access to this cart."));
+            }
+
+            if (cart.Items.Count == 0)
+            {
+                return Result.Failure<Order>(new Error("Order.Cart.Empty", "Cannot create an order from an empty cart."));
             }
 
             if (string.IsNullOrEmpty(cart.PaymentIntentId))
@@ -60,7 +66,7 @@ namespace LibroSphere.Infrastructure.Services
             }
 
             var bookIds = cart.Items.Select(i => i.BookId).Distinct().ToList();
-            var books = await _bookRepo.GetByIdsWithDetailsAsync(bookIds, CancellationToken.None);
+            var books = await _bookRepo.GetByIdsWithDetailsAsync(bookIds, cancellationToken);
             var bookLookup = books.ToDictionary(b => b.Id);
 
             var orderItems = new List<OrderItem>();
@@ -86,8 +92,8 @@ namespace LibroSphere.Infrastructure.Services
                 cart.PaymentIntentId,
                 cart.ClientSecret!);
 
-            await _orderRepo.AddAsync(order);
-            await _orderRepo.SaveChangesAsync();
+            await _orderRepo.AddAsync(order, cancellationToken);
+            await _orderRepo.SaveChangesAsync(cancellationToken);
 
             return Result.Success(order);
         }
@@ -102,6 +108,6 @@ namespace LibroSphere.Infrastructure.Services
             => await _orderRepo.GetByIdAsync(id);
 
         public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
-            => await _orderRepo.SaveChangesAsync();
+            => await _orderRepo.SaveChangesAsync(cancellationToken);
     }
 }

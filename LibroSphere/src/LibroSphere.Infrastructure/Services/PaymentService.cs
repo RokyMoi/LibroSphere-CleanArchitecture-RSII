@@ -18,18 +18,19 @@ namespace LibroSphere.Infrastructure.Services
             _config = config;
             _cartService = cartService;
             _bookRepository = bookRepo;
+            StripeConfiguration.ApiKey = _config["StripeSettings:SecretKey"];
         }
 
         public async Task<ShoppingCart?> CreateOrUpdatePaymentIntent(
             string cartId,
             Guid userId,
-            string buyerEmail)
+            string buyerEmail,
+            CancellationToken cancellationToken = default)
         {
-            StripeConfiguration.ApiKey = _config["StripeSettings:SecretKey"];
-
-            var cart = await _cartService.GetCartASync(cartId);
+            var cart = await _cartService.GetCartAsync(cartId);
             if (cart == null) return null;
             if (cart.UserId != userId) return null;
+            if (cart.Items.Count == 0) return null;
 
             var metadata = new Dictionary<string, string>
             {
@@ -39,7 +40,7 @@ namespace LibroSphere.Infrastructure.Services
             };
 
             var bookIds = cart.Items.Select(i => i.BookId).Distinct().ToList();
-            var books = await _bookRepository.GetByIdsWithDetailsAsync(bookIds, CancellationToken.None);
+            var books = await _bookRepository.GetByIdsWithDetailsAsync(bookIds, cancellationToken);
             var bookLookup = books.ToDictionary(b => b.Id);
 
             foreach (var item in cart.Items)
@@ -104,8 +105,6 @@ namespace LibroSphere.Infrastructure.Services
                 return Result.Failure<string>(new Error("Payment.Refund.InvalidIntent", "Payment intent id is required for refund."));
             }
 
-            StripeConfiguration.ApiKey = _config["StripeSettings:SecretKey"];
-
             var refundService = new RefundService();
             var trimmedReason = reason?.Trim();
             var options = new RefundCreateOptions
@@ -127,6 +126,10 @@ namespace LibroSphere.Infrastructure.Services
             {
                 var refund = await refundService.CreateAsync(options, cancellationToken: cancellationToken);
                 return Result.Success(refund.Id);
+            }
+            catch (StripeException ex) when (ex.StripeError?.Code == "charge_already_refunded")
+            {
+                return Result.Success("already_refunded");
             }
             catch (StripeException ex)
             {

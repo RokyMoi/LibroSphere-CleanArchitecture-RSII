@@ -9,16 +9,22 @@ namespace LibroSphere.Infrastructure.Repositories
         {
         }
 
-        public async Task<List<Author>> GetAllAsync(CancellationToken cancellationToken = default)
+        public async Task<List<Author>> GetAllAsync(string? searchTerm = null, CancellationToken cancellationToken = default)
         {
-            var authors = await DbContext
+            var query = DbContext
                 .Set<Author>()
                 .AsNoTracking()
-                .ToListAsync(cancellationToken);
+                .AsQueryable();
 
-            return authors
-                .OrderBy(a => a.Name.Value)
-                .ToList();
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var term = searchTerm.Trim();
+                query = query.Where(a =>
+                    a.Name.Value.Contains(term) ||
+                    a.Biography.Value.Contains(term));
+            }
+
+            return await query.OrderBy(a => a.Name.Value).ToListAsync(cancellationToken);
         }
 
         public void Delete(Author author)

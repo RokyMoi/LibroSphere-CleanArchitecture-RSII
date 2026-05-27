@@ -198,7 +198,7 @@ public sealed class DomainActivityIntegrationEventConsumer :
         RecordAsync(
             "Library",
             "Granted",
-            $"The purchase was moved to the library for {context.Message.UserEmail}. UserBook ID: {context.Message.UserBookId}. Book ID: {context.Message.BookId}.",
+            $"Book added to library for user {context.Message.UserId}. UserBook ID: {context.Message.UserBookId}. Book ID: {context.Message.BookId}.",
             context.Message.OccurredOnUtc);
 
     private async Task RecordAsync(string entityName, string action, string description, DateTime occurredOnUtc)

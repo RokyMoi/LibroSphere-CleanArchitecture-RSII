@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 
+import '../../../../core/error/app_exception.dart';
 import '../../../../core/error/result.dart';
 import '../../../../data/models/author_model.dart';
 import '../../../../data/models/book_model.dart';
@@ -38,6 +39,7 @@ class SessionViewModel extends ChangeNotifier {
   final ValueNotifier<int> _libraryRevision = ValueNotifier(0);
 
   bool isReady = false;
+  bool _isRefreshing = false;
   AuthTokensModel? tokens;
   AuthUserModel? currentUser;
   ShoppingCartModel? cart;
@@ -94,6 +96,7 @@ class SessionViewModel extends ChangeNotifier {
   }
 
   Future<void> initialize() async {
+    _services.apiClient.onUnauthorized = _handleUnauthorized;
     await _services.storage.warmUp();
     final restoredTokens = await _services.storage.restoreTokens();
 
@@ -256,7 +259,9 @@ class SessionViewModel extends ChangeNotifier {
       return _ordersCache!.value;
     }
 
-    final orders = await _services.apiClient.getOrders(accessToken!);
+    final orders = await _executeWithAuth(
+      () => _services.apiClient.getOrders(accessToken!),
+    );
     _ordersCache = _TimedCacheValue(orders);
     return orders;
   }
@@ -352,6 +357,44 @@ class SessionViewModel extends ChangeNotifier {
   void _requireAuth() {
     if (!isAuthenticated) {
       throw Exception('Please login first.');
+    }
+  }
+
+  Future<void> _handleUnauthorized() async {
+    if (_isRefreshing || tokens == null) return;
+    _isRefreshing = true;
+    try {
+      final result = await _services.authRepository.restoreSession(tokens!);
+      switch (result) {
+        case Success<AuthSessionModel>(value: final session):
+          await _applySession(session);
+        case ErrorResult<AuthSessionModel>():
+          await _clearPersistedSession();
+      }
+    } finally {
+      _isRefreshing = false;
+    }
+  }
+
+  Future<T> _executeWithAuth<T>(Future<T> Function() call) async {
+    try {
+      return await call();
+    } on AppException catch (e) {
+      if (e.statusCode != 401 || _isRefreshing || tokens == null) rethrow;
+      _isRefreshing = true;
+      try {
+        final result = await _services.authRepository.restoreSession(tokens!);
+        switch (result) {
+          case Success<AuthSessionModel>(value: final session):
+            await _applySession(session);
+            return await call();
+          case ErrorResult<AuthSessionModel>():
+            await _clearPersistedSession();
+            rethrow;
+        }
+      } finally {
+        _isRefreshing = false;
+      }
     }
   }
 

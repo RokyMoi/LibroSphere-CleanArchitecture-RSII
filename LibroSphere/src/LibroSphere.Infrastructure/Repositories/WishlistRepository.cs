@@ -27,6 +27,14 @@ namespace LibroSphere.Infrastructure.Repositories
                 .FirstOrDefaultAsync(w => w.UserId == userId, cancellationToken);
         }
 
+        public async Task<Wishlist?> GetByUserIdWithItemsOnlyAsync(Guid userId, CancellationToken cancellationToken = default)
+        {
+            return await DbContext
+                .Set<Wishlist>()
+                .Include(w => w.Items)
+                .FirstOrDefaultAsync(w => w.UserId == userId, cancellationToken);
+        }
+
         public async Task<WishlistItem?> GetItemAsync(Guid wishlistId, Guid bookId, CancellationToken cancellationToken = default)
         {
             return await DbContext

@@ -4,6 +4,7 @@ using LibroSphere.WebApi.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace LibroSphere.WebApi.Controllers.Auth;
 
@@ -20,6 +21,7 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
+    [EnableRateLimiting("auth")]
     [HttpPost("register")]
     public async Task<IActionResult> Register(
         [FromBody] RegisterUserCommand command,
@@ -49,6 +51,7 @@ public class AuthController : ControllerBase
         return Ok(new { Message = result.Value.Error ?? "Logged out successfully." });
     }
 
+    [EnableRateLimiting("auth")]
     [HttpPost("login")]
     public async Task<IActionResult> Login(
         [FromBody] LoginUserCommand command,
@@ -57,7 +60,7 @@ public class AuthController : ControllerBase
         var result = await _sender.Send(command, ct);
 
         if (result.IsFailure)
-            return Unauthorized(new { Error = "Pogresili ste sifru ili email." });
+            return Unauthorized(new { Error = "Invalid email or password." });
 
         return Ok(new
         {
@@ -99,9 +102,10 @@ public class AuthController : ControllerBase
         if (result.IsFailure)
             return BadRequest(new { Error = result.Error.Message });
 
-        return Ok(new { Message = "Admin nalog je uspjesno kreiran." });
+        return Ok(new { Message = "Admin account created successfully." });
     }
 
+    [EnableRateLimiting("auth")]
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword(
         [FromBody] ForgotPasswordRequest request,
@@ -113,9 +117,10 @@ public class AuthController : ControllerBase
             return BadRequest(new { Error = result.Error.Message });
 
         // Always return 200 to avoid revealing whether email exists.
-        return Ok(new { Message = "Ako email postoji, kod za reset je poslat." });
+        return Ok(new { Message = "If the email exists, a reset code has been sent." });
     }
 
+    [EnableRateLimiting("auth")]
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword(
         [FromBody] ResetPasswordRequest request,
@@ -130,7 +135,7 @@ public class AuthController : ControllerBase
         if (result.IsFailure)
             return BadRequest(new { Error = result.Error.Message });
 
-        return Ok(new { Message = "Lozinka je uspjesno promijenjena." });
+        return Ok(new { Message = "Password changed successfully." });
     }
 }
 

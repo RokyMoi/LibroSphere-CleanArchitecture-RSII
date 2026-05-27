@@ -44,6 +44,14 @@ class AuthApiService {
       throw const FormatException('Invalid access token claims.');
     }
 
+    final exp = payload['exp'];
+    if (exp is int) {
+      final expiresAt = DateTime.fromMillisecondsSinceEpoch(exp * 1000, isUtc: true);
+      if (DateTime.now().toUtc().isAfter(expiresAt)) {
+        throw const FormatException('Access token has expired.');
+      }
+    }
+
     String readClaim(List<String> keys) {
       for (final key in keys) {
         final value = payload[key];

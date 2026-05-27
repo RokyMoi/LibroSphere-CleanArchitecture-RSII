@@ -110,7 +110,7 @@ namespace LibroSphere.Infrastructure.Authentication
 
         public async Task<AuthResult> LoginAsync(LoginUserCommand command, CancellationToken ct = default)
         {
-            const string invalidCredentialsMessage = "Pogresili ste sifru ili email.";
+            const string invalidCredentialsMessage = "Invalid email or password.";
 
             var appUser = await _userManager.FindByEmailAsync(command.Email);
             if (appUser is null)
@@ -271,13 +271,13 @@ namespace LibroSphere.Infrastructure.Authentication
             if (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName) ||
                 string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
-                return Result.Failure(new Error("Admin.InvalidInput", "Sva polja su obavezna."));
+                return Result.Failure(new Error("Admin.InvalidInput", "All fields are required."));
             }
 
             var existing = await _userManager.FindByEmailAsync(email);
             if (existing is not null)
             {
-                return Result.Failure(new Error("Admin.EmailInUse", "Email je vec u upotrebi."));
+                return Result.Failure(new Error("Admin.EmailInUse", "Email is already in use."));
             }
 
             var domainUser = User.Create(
@@ -326,7 +326,7 @@ namespace LibroSphere.Infrastructure.Authentication
         {
             if (string.IsNullOrWhiteSpace(email))
             {
-                return Result.Failure(new Error("PasswordReset.EmailRequired", "Email je obavezan."));
+                return Result.Failure(new Error("PasswordReset.EmailRequired", "Email is required."));
             }
 
             var appUser = await _userManager.FindByEmailAsync(email);
@@ -361,7 +361,7 @@ namespace LibroSphere.Infrastructure.Authentication
                 string.IsNullOrWhiteSpace(code) ||
                 string.IsNullOrWhiteSpace(newPassword))
             {
-                return Result.Failure(new Error("PasswordReset.InvalidInput", "Sva polja su obavezna."));
+                return Result.Failure(new Error("PasswordReset.InvalidInput", "All fields are required."));
             }
 
             var db = _redis.GetDatabase();
@@ -369,13 +369,13 @@ namespace LibroSphere.Infrastructure.Authentication
             var storedCode = await db.StringGetAsync(key);
             if (!storedCode.HasValue || storedCode.ToString() != code.Trim())
             {
-                return Result.Failure(new Error("PasswordReset.InvalidCode", "Kod je pogresan ili je istekao."));
+                return Result.Failure(new Error("PasswordReset.InvalidCode", "Code is invalid or has expired."));
             }
 
             var appUser = await _userManager.FindByEmailAsync(email);
             if (appUser is null)
             {
-                return Result.Failure(new Error("PasswordReset.InvalidCode", "Kod je pogresan ili je istekao."));
+                return Result.Failure(new Error("PasswordReset.InvalidCode", "Code is invalid or has expired."));
             }
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(appUser);
@@ -394,9 +394,11 @@ namespace LibroSphere.Infrastructure.Authentication
 
         private static string GenerateResetCode()
         {
-            // 6-digit numeric code
-            var number = RandomNumberGenerator.GetInt32(0, 1_000_000);
-            return number.ToString("D6");
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            Span<char> code = stackalloc char[8];
+            for (var i = 0; i < code.Length; i++)
+                code[i] = chars[RandomNumberGenerator.GetInt32(chars.Length)];
+            return new string(code);
         }
     }
 }

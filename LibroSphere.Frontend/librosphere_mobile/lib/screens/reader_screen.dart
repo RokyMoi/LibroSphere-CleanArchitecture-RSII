@@ -46,11 +46,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
     try {
       return await widget.session.getReadUrl(widget.book.id);
     } catch (error) {
-      final fallbackUrl = widget.book.pdfLink;
-      if (fallbackUrl != null && fallbackUrl.isNotEmpty) {
-        return fallbackUrl;
-      }
-
       throw Exception(formatErrorMessage(error));
     }
   }
@@ -70,10 +65,20 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
     _updateLoadingState('Preparing your book...', null);
     final pdfUrl = await _resolvePdfUrl();
+    if (!_isValidPdfUrl(pdfUrl)) {
+      throw Exception('Received an untrusted or invalid PDF URL from the server.');
+    }
     _updateLoadingState('Downloading book to your device...', 0);
     final downloadedFile = await _downloadPdf(pdfUrl, pdfFile);
 
     return _PreparedReaderDocument(pdfPath: downloadedFile.path);
+  }
+
+  bool _isValidPdfUrl(String url) {
+    final uri = Uri.tryParse(url);
+    return uri != null &&
+        (uri.scheme == 'https' || uri.scheme == 'http') &&
+        uri.host.isNotEmpty;
   }
 
   Future<_ReaderCachePath> _resolveCachePath(String bookId) async {

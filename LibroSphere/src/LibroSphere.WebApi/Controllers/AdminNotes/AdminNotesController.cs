@@ -31,6 +31,7 @@ public sealed class AdminNotesController : ControllerBase
         _storageService = storageService;
     }
 
+    [Authorize(Roles = ApplicationRoles.Admin)]
     [HttpGet]
     public async Task<IActionResult> GetLatest(
         [FromQuery] int take = 20,

@@ -23,18 +23,18 @@ namespace LibroSphere.Infrastructure.Services
             _publishEndpoint = publishEndpoint;
         }
 
-        public async Task<bool> DeleteCartAsync(string key)
+        public async Task<bool> DeleteCartAsync(string key, CancellationToken cancellationToken = default)
         {
             var deleted = await _database.KeyDeleteAsync(key);
             if (deleted && Guid.TryParse(key, out var cartId))
             {
-                await _publishEndpoint.Publish(new CartDeletedIntegrationEvent(cartId));
+                await _publishEndpoint.Publish(new CartDeletedIntegrationEvent(cartId), cancellationToken);
             }
 
             return deleted;
         }
 
-        public async Task<ShoppingCart?> GetCartASync(string key)
+        public async Task<ShoppingCart?> GetCartAsync(string key, CancellationToken cancellationToken = default)
         {
             var data = await _database.StringGetAsync(key);
             return data.IsNullOrEmpty
@@ -42,7 +42,7 @@ namespace LibroSphere.Infrastructure.Services
                 : JsonSerializer.Deserialize<ShoppingCart>(data!, _jsonOptions);
         }
 
-        public async Task<ShoppingCart?> SetCartAsync(ShoppingCart cart)
+        public async Task<ShoppingCart?> SetCartAsync(ShoppingCart cart, CancellationToken cancellationToken = default)
         {
             var json = JsonSerializer.Serialize(cart, _jsonOptions);
             var created = await _database.StringSetAsync(
@@ -62,9 +62,10 @@ namespace LibroSphere.Infrastructure.Services
                     cart.UserId,
                     cart.Items.Count,
                     total.amount,
-                    total.Currency.Code));
+                    total.Currency.Code),
+                cancellationToken);
 
-            return await GetCartASync(cart.Id.ToString());
+            return await GetCartAsync(cart.Id.ToString(), cancellationToken);
         }
     }
 }
