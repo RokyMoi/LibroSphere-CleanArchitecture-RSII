@@ -9,7 +9,7 @@ namespace LibroSphere.Application.Reviews.Command.CreateReview
             RuleFor(x => x.UserId).NotEmpty();
             RuleFor(x => x.BookId).NotEmpty();
             RuleFor(x => x.Rating).InclusiveBetween(1, 5);
-            RuleFor(x => x.Comment).NotEmpty().MaximumLength(2000);
+            RuleFor(x => x.Comment).MaximumLength(2000);
         }
     }
 }
