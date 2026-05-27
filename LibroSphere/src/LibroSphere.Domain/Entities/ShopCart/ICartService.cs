@@ -4,8 +4,8 @@ namespace LibroSphere.Domain.Entities.ShopCart
 {
     public interface ICartService
     {
-        Task<ShoppingCart?> GetCartASync(string key);
-        Task<ShoppingCart?> SetCartAsync(ShoppingCart cart);
-        Task<bool> DeleteCartAsync(string key);
+        Task<ShoppingCart?> GetCartAsync(string key, CancellationToken cancellationToken = default);
+        Task<ShoppingCart?> SetCartAsync(ShoppingCart cart, CancellationToken cancellationToken = default);
+        Task<bool> DeleteCartAsync(string key, CancellationToken cancellationToken = default);
     }
 }

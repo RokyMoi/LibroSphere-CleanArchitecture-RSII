@@ -9,7 +9,8 @@ namespace LibroSphere.Application.Abstractions
             string buyerEmail,
             Guid userId,
             string cartId,
-            string paymentIntentId);
+            string paymentIntentId,
+            CancellationToken cancellationToken = default);
         Task<List<Order>> GetOrdersForUserAsync(Guid userId);
         Task<List<Order>> GetAllOrdersAsync(CancellationToken cancellationToken = default);
         Task<Order?> GetOrderByIdAsync(Guid id);

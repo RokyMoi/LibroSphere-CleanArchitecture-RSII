@@ -19,7 +19,8 @@ internal sealed class CreateOrUpdatePaymentIntentCommandHandler : ICommandHandle
         var cart = await _paymentService.CreateOrUpdatePaymentIntent(
             request.CartId,
             request.UserId,
-            request.BuyerEmail);
+            request.BuyerEmail,
+            cancellationToken);
 
         return cart is not null
             ? Result.Success(cart)

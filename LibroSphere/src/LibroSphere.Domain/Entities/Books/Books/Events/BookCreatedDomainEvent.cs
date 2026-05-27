@@ -1,4 +1,4 @@
-using LibroSphere.Application.Abstractions.Events.DomainEvent;
+﻿using LibroSphere.Domain.Abstraction;
 
 namespace LibroSphere.Domain.Entities.Books.Events;
 

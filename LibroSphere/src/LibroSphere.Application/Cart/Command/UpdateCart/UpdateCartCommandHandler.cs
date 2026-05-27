@@ -24,7 +24,7 @@ namespace LibroSphere.Application.Cart.Command.UpdateCart
 
             if (requestedCartId != Guid.Empty)
             {
-                existingCart = await _cartService.GetCartASync(requestedCartId.ToString());
+                existingCart = await _cartService.GetCartAsync(requestedCartId.ToString());
                 if (existingCart is null)
                 {
                     return Result.Failure<ShoppingCart>(new Error("Cart.NotFound", "Cart was not found."));
@@ -58,7 +58,11 @@ namespace LibroSphere.Application.Cart.Command.UpdateCart
                     book.Price));
             }
 
-            if (!string.IsNullOrWhiteSpace(existingCart?.PaymentIntentId))
+            var newBookIds = request.Items.Select(i => i.BookId).OrderBy(id => id).ToList();
+            var existingBookIds = existingCart?.Items.Select(i => i.BookId).OrderBy(id => id).ToList();
+            var itemsUnchanged = existingBookIds != null && newBookIds.SequenceEqual(existingBookIds);
+
+            if (itemsUnchanged && !string.IsNullOrWhiteSpace(existingCart?.PaymentIntentId))
             {
                 cart.SetPaymentIntent(existingCart.PaymentIntentId);
                 cart.ClientSecret = existingCart.ClientSecret;

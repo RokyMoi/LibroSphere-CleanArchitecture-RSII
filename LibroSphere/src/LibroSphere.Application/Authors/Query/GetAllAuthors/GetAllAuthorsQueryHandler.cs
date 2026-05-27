@@ -19,13 +19,9 @@ namespace LibroSphere.Application.Authors.Query.GetAllAuthors
             var page = Math.Max(1, request.Page);
             var pageSize = Math.Clamp(request.PageSize, 1, 200);
 
-            var authors = await _authorRepository.GetAllAsync(cancellationToken);
+            var authors = await _authorRepository.GetAllAsync(request.SearchTerm, cancellationToken);
 
             var response = authors
-                .Where(author =>
-                    string.IsNullOrWhiteSpace(request.SearchTerm) ||
-                    author.Name.Value.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    author.Biography.Value.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase))
                 .Select(author => new AuthorResponse
                 {
                     Id = author.Id,

@@ -15,7 +15,7 @@ namespace LibroSphere.Application.Cart.Query.GetCartById
 
         public async Task<Result<ShoppingCart>> Handle(GetCartByIdQuery request, CancellationToken cancellationToken)
         {
-            var cart = await _cartService.GetCartASync(request.CartId.ToString());
+            var cart = await _cartService.GetCartAsync(request.CartId.ToString());
             return cart is not null
                 ? Result.Success(cart)
                 : Result.Failure<ShoppingCart>(Error.NullValue);

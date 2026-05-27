@@ -8,7 +8,7 @@ namespace LibroSphere.Domain.Entities.Books
         Task<Book?> GetByIdWithDetailsForUpdateAsync(Guid id, CancellationToken cancellationToken = default);
         Task<List<Book>> GetByIdsWithDetailsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
         Task<List<Book>> GetAllAsync(CancellationToken cancellationToken = default);
-        Task<List<Book>> SearchAsync(string? searchTerm, Guid? authorId, Guid? genreId, CancellationToken cancellationToken = default);
+        Task<List<Book>> SearchAsync(string? searchTerm, Guid? authorId, Guid? genreId, decimal? minPrice = null, decimal? maxPrice = null, double? minRating = null, CancellationToken cancellationToken = default);
         void ReplaceGenres(Book book, IReadOnlyCollection<Genre.Genre> genres);
         void Add(Book book);
         void Delete(Book book);

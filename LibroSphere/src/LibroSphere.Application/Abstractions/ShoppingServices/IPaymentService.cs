@@ -8,7 +8,8 @@ namespace LibroSphere.Application.Abstractions.ShoppingServices
         Task<ShoppingCart?> CreateOrUpdatePaymentIntent(
             string cartId,
             Guid userId,
-            string buyerEmail);
+            string buyerEmail,
+            CancellationToken cancellationToken = default);
 
         Task<Result<string>> RefundPaymentIntentAsync(
             string paymentIntentId,

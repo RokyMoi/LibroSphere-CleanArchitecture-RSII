@@ -25,7 +25,7 @@ internal sealed class GetCartDetailsQueryHandler : IQueryHandler<GetCartDetailsQ
 
     public async Task<Result<CartDetailsResponse>> Handle(GetCartDetailsQuery request, CancellationToken cancellationToken)
     {
-        var cart = await _cartService.GetCartASync(request.CartId.ToString());
+        var cart = await _cartService.GetCartAsync(request.CartId.ToString());
         if (cart is null)
         {
             return Result.Failure<CartDetailsResponse>(Error.NullValue);

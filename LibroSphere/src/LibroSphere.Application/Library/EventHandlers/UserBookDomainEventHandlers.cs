@@ -17,7 +17,7 @@ internal sealed class UserBookGrantedDomainEventHandler : INotificationHandler<U
     public Task Handle(UserBookGrantedDomainEvent notification, CancellationToken cancellationToken)
     {
         return _publishEndpoint.Publish(
-            new UserBookGrantedIntegrationEvent(notification.UserBookId, notification.UserEmail, notification.BookId),
+            new UserBookGrantedIntegrationEvent(notification.UserBookId, notification.UserId, notification.BookId),
             cancellationToken);
     }
 }

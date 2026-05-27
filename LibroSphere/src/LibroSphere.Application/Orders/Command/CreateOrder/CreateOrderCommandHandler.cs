@@ -19,7 +19,8 @@ namespace LibroSphere.Application.Orders.Command.CreateOrder
                 request.BuyerEmail,
                 request.UserId,
                 request.CartId,
-                request.PaymentIntentId);
+                request.PaymentIntentId,
+                cancellationToken);
         }
     }
 }

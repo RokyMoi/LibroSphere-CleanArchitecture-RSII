@@ -5,13 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LibroSphere.Application.Abstractions.Events.DomainEvent
+namespace LibroSphere.Domain.Abstraction
 {
     using MediatR;
 
-   
-
-    public interface IDomainEvent : INotification  
+    public interface IDomainEvent : INotification
     {
     }
 }
