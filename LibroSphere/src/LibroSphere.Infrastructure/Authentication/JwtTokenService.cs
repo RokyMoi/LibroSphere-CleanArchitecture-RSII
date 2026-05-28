@@ -1,5 +1,6 @@
 ﻿using LibroSphere.Application.Abstractions.Identity;
 using LibroSphere.Domain.Entities.Users;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -16,9 +17,13 @@ namespace LibroSphere.Infrastructure.Authentication
     internal sealed class JwtTokenService : IJwtService
     {
         private readonly JwtOptions _settings;
+        private readonly ILogger<JwtTokenService> _logger;
 
-        public JwtTokenService(IOptions<JwtOptions> settings)
-            => _settings = settings.Value;
+        public JwtTokenService(IOptions<JwtOptions> settings, ILogger<JwtTokenService> logger)
+        {
+            _settings = settings.Value;
+            _logger = logger;
+        }
 
         public string GenerateAccessToken(User domainUser, string identityUserId, IEnumerable<string> roles)
         {
@@ -74,7 +79,11 @@ namespace LibroSphere.Infrastructure.Authentication
                 var sub = principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
                 return Guid.TryParse(sub, out var id) ? id : null;
             }
-            catch { return null; }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "JWT validation failed in GetUserIdFromToken");
+                return null;
+            }
         }
     }
 }
