@@ -1,4 +1,4 @@
-﻿using LibroSphere.Domain.Entities.Books;
+using LibroSphere.Domain.Entities.Books;
 using LibroSphere.Domain.Entities.Books.Genre;
 using LibroSphere.Domain.Entities.ManyToMany;
 using Microsoft.EntityFrameworkCore;
@@ -64,7 +64,7 @@ namespace LibroSphere.Infrastructure.Repositories
                 .ToListAsync(cancellationToken);
 
             return books
-                .OrderBy(b => b.Title.Value)
+                .OrderBy(b => b.Title)
                 .ToList();
         }
 
@@ -85,7 +85,7 @@ namespace LibroSphere.Infrastructure.Repositories
                 maxPrice,
                 minRating);
 
-            return await query.OrderBy(b => b.Title.Value).ToListAsync(cancellationToken);
+            return await query.OrderBy(b => b.Title).ToListAsync(cancellationToken);
         }
 
         public async Task<(List<Book> Items, int TotalCount)> SearchPagedAsync(
@@ -111,7 +111,7 @@ namespace LibroSphere.Infrastructure.Repositories
             var totalCount = await filteredQuery.CountAsync(cancellationToken);
 
             var items = await filteredQuery
-                .OrderBy(b => b.Title.Value)
+                .OrderBy(b => b.Title)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .AsSplitQuery()
