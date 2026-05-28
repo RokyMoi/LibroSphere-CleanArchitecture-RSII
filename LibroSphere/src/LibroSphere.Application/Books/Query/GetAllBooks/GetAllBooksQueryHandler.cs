@@ -3,17 +3,23 @@ using LibroSphere.Application.Abstractions.Storage;
 using LibroSphere.Application.Common.Models;
 using LibroSphere.Application.Books.Query.GetBookByIdQuery;
 using LibroSphere.Domain.Entities.Books;
+using LibroSphere.Domain.Entities.Reviews;
 
 namespace LibroSphere.Application.Books.Query.GetAllBooks
 {
     internal sealed class GetAllBooksQueryHandler : IQueryHandler<GetAllBooksQuery, PagedResponse<BookResponse>>
     {
         private readonly IBookRepository _bookRepository;
+        private readonly IReviewRepository _reviewRepository;
         private readonly IBookAssetStorageService _bookAssetStorageService;
 
-        public GetAllBooksQueryHandler(IBookRepository bookRepository, IBookAssetStorageService bookAssetStorageService)
+        public GetAllBooksQueryHandler(
+            IBookRepository bookRepository,
+            IReviewRepository reviewRepository,
+            IBookAssetStorageService bookAssetStorageService)
         {
             _bookRepository = bookRepository;
+            _reviewRepository = reviewRepository;
             _bookAssetStorageService = bookAssetStorageService;
         }
 
@@ -37,15 +43,13 @@ namespace LibroSphere.Application.Books.Query.GetAllBooks
                 .Take(pageSize)
                 .ToList();
 
+            var bookIds = pageBooks.Select(b => b.Id).ToList();
+            var reviewStats = await _reviewRepository.GetStatsForBooksAsync(bookIds, cancellationToken);
+
             var response = await Task.WhenAll(pageBooks.Select(async book =>
             {
-                var imageLinkTask = _bookAssetStorageService.GetImageUrlAsync(book.BookLinkovi.imageLink, cancellationToken);
-                await imageLinkTask;
-
-                var reviewCount = book.Reviews.Count;
-                var averageRating = reviewCount == 0
-                    ? 0
-                    : book.Reviews.Average(review => review.Rating);
+                var imageLink = await _bookAssetStorageService.GetImageUrlAsync(book.BookLinkovi.imageLink, cancellationToken);
+                var stats = reviewStats.TryGetValue(book.Id, out var s) ? s : new BookReviewStats(0, 0);
 
                 return new BookResponse
                 {
@@ -54,9 +58,9 @@ namespace LibroSphere.Application.Books.Query.GetAllBooks
                     Description = book.Description.Value,
                     amount = book.Price.amount,
                     currency = book.Price.Currency.Code,
-                    imageLink = await imageLinkTask,
-                    AverageRating = averageRating,
-                    ReviewCount = reviewCount,
+                    imageLink = imageLink,
+                    AverageRating = stats.Average,
+                    ReviewCount = stats.Count,
                     AuthorId = book.AuthorId,
                     AuthorName = book.Author?.Name.Value ?? string.Empty,
                     GenreIds = book.BookGenres.Select(bg => bg.GenreId).ToList(),
