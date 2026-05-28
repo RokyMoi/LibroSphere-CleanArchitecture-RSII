@@ -29,7 +29,13 @@ namespace LibroSphere.Application.Library.Query.GetMyLibrary
                              ub.Book.Title.Value.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
-            var response = await Task.WhenAll(filteredUserBooks.Select(async userBook =>
+            var totalCount = filteredUserBooks.Count;
+            var pagedUserBooks = filteredUserBooks
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var response = await Task.WhenAll(pagedUserBooks.Select(async userBook =>
             {
                 var imageLink = await _bookAssetStorageService.GetImageUrlAsync(
                     userBook.Book.BookLinkovi.imageLink,
@@ -60,7 +66,7 @@ namespace LibroSphere.Application.Library.Query.GetMyLibrary
                     userBook.PurchasedAt);
             }));
 
-            return Result.Success(PagedResponse<LibraryBookResponse>.Create(response, page, pageSize));
+            return Result.Success(new PagedResponse<LibraryBookResponse>(response, page, pageSize, totalCount));
         }
     }
 }
