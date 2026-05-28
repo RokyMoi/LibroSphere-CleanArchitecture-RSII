@@ -149,7 +149,9 @@ class GenresViewModel extends ChangeNotifier {
   Future<void> _notifyDataChanged() async {
     try {
       await _onDataChanged?.call();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('GenresViewModel._notifyDataChanged failed: $e');
+    }
   }
 
   @override

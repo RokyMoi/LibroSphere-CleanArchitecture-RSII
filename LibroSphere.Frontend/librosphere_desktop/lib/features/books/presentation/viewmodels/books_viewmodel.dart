@@ -304,7 +304,9 @@ class BooksViewModel extends ChangeNotifier {
   Future<void> _notifyDataChanged() async {
     try {
       await _onDataChanged?.call();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('BooksViewModel._notifyDataChanged failed: $e');
+    }
   }
 
   @override

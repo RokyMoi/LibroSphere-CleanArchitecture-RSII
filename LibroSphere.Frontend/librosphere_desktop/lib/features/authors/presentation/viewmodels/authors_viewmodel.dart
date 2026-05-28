@@ -150,7 +150,9 @@ class AuthorsViewModel extends ChangeNotifier {
   Future<void> _notifyDataChanged() async {
     try {
       await _onDataChanged?.call();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('AuthorsViewModel._notifyDataChanged failed: $e');
+    }
   }
 
   @override
