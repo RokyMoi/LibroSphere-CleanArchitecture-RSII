@@ -20,7 +20,7 @@ namespace LibroSphere.Application.Books.Query.GetAllBooks
         public async Task<Result<PagedResponse<BookResponse>>> Handle(GetAllBooksQuery request, CancellationToken cancellationToken)
         {
             var page = Math.Max(1, request.Page);
-            var pageSize = Math.Clamp(request.PageSize, 1, 100);
+            var pageSize = Math.Clamp(request.PageSize, 1, 200);
 
             var books = await _bookRepository.SearchAsync(
                 request.SearchTerm,

@@ -93,7 +93,7 @@ namespace LibroSphere.WebApi.Controllers.Book
             CancellationToken cancellationToken = default)
         {
             var booksTask = _sender.Send(
-                new GetAllBooksQuery(searchTerm, null, null, null, null, page, pageSize),
+                new GetAllBooksQuery(searchTerm, null, null, null, null, null, page, pageSize),
                 cancellationToken);
 
             if (User.Identity?.IsAuthenticated != true)
@@ -152,7 +152,7 @@ namespace LibroSphere.WebApi.Controllers.Book
             CancellationToken cancellationToken = default)
         {
             var booksResult = await _sender.Send(
-                new GetAllBooksQuery(null, null, null, null, null, page, pageSize),
+                new GetAllBooksQuery(null, null, null, null, null, null, page, pageSize),
                 cancellationToken);
             var authorsResult = await _sender.Send(
                 new GetAllAuthorsQuery(null, 1, 200),

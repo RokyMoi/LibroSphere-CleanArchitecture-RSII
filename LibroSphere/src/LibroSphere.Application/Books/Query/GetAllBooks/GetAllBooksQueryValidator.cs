@@ -38,7 +38,7 @@ namespace LibroSphere.Application.Books.Query.GetAllBooks
                 .GreaterThanOrEqualTo(1);
 
             RuleFor(x => x.PageSize)
-                .InclusiveBetween(1, 100);
+                .InclusiveBetween(1, 200);
         }
     }
 }
