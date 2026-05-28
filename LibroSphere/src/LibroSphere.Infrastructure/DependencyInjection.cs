@@ -19,6 +19,7 @@ using LibroSphere.Domain.Entities.Users;
 using LibroSphere.Infrastructure.Authentication;
 using LibroSphere.Infrastructure.Clock;
 using LibroSphere.Infrastructure.Data;
+using LibroSphere.Infrastructure.Mail;
 using LibroSphere.Infrastructure.Repositories;
 using LibroSphere.Infrastructure.Services;
 using LibroSphere.Infrastructure.Services.Analytics;
@@ -49,6 +50,8 @@ namespace LibroSphere.Infrastructure
             services.AddCustomAuthentication(configuration);
             services.RabbitMQDepedencyProviders(configuration);
             services.Configure<CloudflareR2Options>(configuration.GetSection(CloudflareR2Options.SectionName));
+            services.Configure<SmtpEmailOptions>(configuration.GetSection(SmtpEmailOptions.SectionName));
+            services.AddScoped<LibroSphere.Application.Abstractions.Email.IEmailSender, SmtpEmailSender>();
 
             services.AddHttpContextAccessor();
             services.AddScoped<LibroSphere.Application.Abstractions.Identity.IUserContext, LibroSphere.Infrastructure.Authentication.UserContext>();

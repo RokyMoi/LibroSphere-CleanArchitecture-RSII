@@ -31,27 +31,24 @@ namespace LibroSphere.WebApi.Controllers.Payment
             });
         }
 
-        [HttpPost("{cartId}")]
+        [HttpPost("{cartId:guid}")]
         [Authorize]
-        public async Task<IActionResult> CreateOrUpdatePaymentIntent(string cartId, CancellationToken cancellationToken)
+        public async Task<IActionResult> CreateOrUpdatePaymentIntent(Guid cartId, CancellationToken cancellationToken)
         {
-            if (Guid.TryParse(cartId, out var parsedCartId))
+            var cartResult = await _sender.Send(new GetCartByIdQuery(cartId), cancellationToken);
+            if (cartResult.IsFailure)
             {
-                var cartResult = await _sender.Send(new GetCartByIdQuery(parsedCartId), cancellationToken);
-                if (cartResult.IsFailure)
-                {
-                    return NotFound(cartResult.Error);
-                }
+                return NotFound(cartResult.Error);
+            }
 
-                if (!User.IsAdmin() && cartResult.Value.UserId != User.GetRequiredUserId())
-                {
-                    return Forbid();
-                }
+            if (!User.IsAdmin() && cartResult.Value.UserId != User.GetRequiredUserId())
+            {
+                return Forbid();
             }
 
             var result = await _sender.Send(
                 new CreateOrUpdatePaymentIntentCommand(
-                    cartId,
+                    cartId.ToString(),
                     User.GetRequiredUserId(),
                     User.GetRequiredEmail()),
                 cancellationToken);

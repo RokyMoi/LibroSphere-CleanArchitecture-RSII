@@ -4,6 +4,7 @@ using LibroSphere.Infrastructure;
 using LibroSphere.Services;
 using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -23,18 +24,27 @@ builder.WebHost.UseUrls($"http://+:{port}");
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
     .Get<string[]>() ?? Array.Empty<string>();
+var developmentOrigins = new[]
+{
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://localhost:8080",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:8080"
+};
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        if (builder.Environment.IsDevelopment())
-        {
-            policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-        }
-        else if (allowedOrigins.Length > 0)
+        if (allowedOrigins.Length > 0)
         {
             policy.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader();
+        }
+        else if (builder.Environment.IsDevelopment())
+        {
+            policy.WithOrigins(developmentOrigins).AllowAnyMethod().AllowAnyHeader();
         }
         else
         {
@@ -103,6 +113,17 @@ builder.Services.AddRateLimiter(options =>
     });
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+builder.Services.AddHsts(options =>
+{
+    options.IncludeSubDomains = true;
+    options.MaxAge = TimeSpan.FromDays(365);
+});
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructureServices(builder.Configuration);
@@ -118,6 +139,8 @@ if (swaggerEnabled)
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseForwardedHeaders();
 
 if (app.Environment.IsDevelopment())
 {
@@ -153,6 +176,10 @@ else
 if (!isRunningInContainer)
 {
     app.UseHttpsRedirection();
+}
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
 }
 app.UseResponseCompression();
 app.Use(async (context, next) =>

@@ -42,14 +42,12 @@ internal sealed class GetCartDetailsQueryHandler : IQueryHandler<GetCartDetailsQ
 
         var books = await _bookRepository.GetByIdsWithDetailsAsync(bookIds, cancellationToken);
         var reviewStats = await _reviewRepository.GetStatsForBooksAsync(bookIds, cancellationToken);
-        var bookLookup = new Dictionary<Guid, BookResponse>(books.Count);
-
-        foreach (var book in books)
+        var bookResponses = await Task.WhenAll(books.Select(async book =>
         {
             var imageLink = await _bookAssetStorageService.GetImageUrlAsync(book.BookLinkovi.imageLink, cancellationToken);
             var stats = reviewStats.TryGetValue(book.Id, out var s) ? s : new BookReviewStats(0, 0);
 
-            bookLookup[book.Id] = new BookResponse
+            return new BookResponse
             {
                 bookId = book.Id,
                 Title = book.Title.Value,
@@ -68,7 +66,9 @@ internal sealed class GetCartDetailsQueryHandler : IQueryHandler<GetCartDetailsQ
                     .OrderBy(name => name)
                     .ToList()
             };
-        }
+        }));
+
+        var bookLookup = bookResponses.ToDictionary(book => book.bookId);
 
         var orderedBooks = cart.Items
             .Select(item => item.BookId)
