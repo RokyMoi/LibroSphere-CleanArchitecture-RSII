@@ -3,6 +3,7 @@ using LibroSphere.Application.Abstractions.Storage;
 using LibroSphere.Application.Books.Query.GetBookByIdQuery;
 using LibroSphere.Domain.Abstraction;
 using LibroSphere.Domain.Entities.Books;
+using LibroSphere.Domain.Entities.Reviews;
 using LibroSphere.Domain.Entities.ShopCart;
 
 namespace LibroSphere.Application.Cart.Query.GetCartDetails;
@@ -11,15 +12,18 @@ internal sealed class GetCartDetailsQueryHandler : IQueryHandler<GetCartDetailsQ
 {
     private readonly IBookAssetStorageService _bookAssetStorageService;
     private readonly IBookRepository _bookRepository;
+    private readonly IReviewRepository _reviewRepository;
     private readonly ICartService _cartService;
 
     public GetCartDetailsQueryHandler(
         ICartService cartService,
         IBookRepository bookRepository,
+        IReviewRepository reviewRepository,
         IBookAssetStorageService bookAssetStorageService)
     {
         _cartService = cartService;
         _bookRepository = bookRepository;
+        _reviewRepository = reviewRepository;
         _bookAssetStorageService = bookAssetStorageService;
     }
 
@@ -37,15 +41,13 @@ internal sealed class GetCartDetailsQueryHandler : IQueryHandler<GetCartDetailsQ
             .ToList();
 
         var books = await _bookRepository.GetByIdsWithDetailsAsync(bookIds, cancellationToken);
+        var reviewStats = await _reviewRepository.GetStatsForBooksAsync(bookIds, cancellationToken);
         var bookLookup = new Dictionary<Guid, BookResponse>(books.Count);
 
         foreach (var book in books)
         {
             var imageLink = await _bookAssetStorageService.GetImageUrlAsync(book.BookLinkovi.imageLink, cancellationToken);
-            var reviewCount = book.Reviews.Count;
-            var averageRating = reviewCount == 0
-                ? 0
-                : book.Reviews.Average(review => review.Rating);
+            var stats = reviewStats.TryGetValue(book.Id, out var s) ? s : new BookReviewStats(0, 0);
 
             bookLookup[book.Id] = new BookResponse
             {
@@ -55,8 +57,8 @@ internal sealed class GetCartDetailsQueryHandler : IQueryHandler<GetCartDetailsQ
                 amount = book.Price.amount,
                 currency = book.Price.Currency.Code,
                 imageLink = imageLink,
-                AverageRating = averageRating,
-                ReviewCount = reviewCount,
+                AverageRating = stats.Average,
+                ReviewCount = stats.Count,
                 AuthorId = book.AuthorId,
                 AuthorName = book.Author?.Name.Value ?? string.Empty,
                 GenreIds = book.BookGenres.Select(bg => bg.GenreId).ToList(),

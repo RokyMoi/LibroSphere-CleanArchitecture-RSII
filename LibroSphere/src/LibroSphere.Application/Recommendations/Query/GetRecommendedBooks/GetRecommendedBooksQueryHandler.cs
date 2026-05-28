@@ -1,19 +1,23 @@
 using LibroSphere.Application.Abstractions.Messaging;
 using LibroSphere.Application.Abstractions.Recommendations;
 using LibroSphere.Application.Abstractions.Storage;
+using LibroSphere.Domain.Entities.Reviews;
 
 namespace LibroSphere.Application.Recommendations.Query.GetRecommendedBooks
 {
     internal sealed class GetRecommendedBooksQueryHandler : IQueryHandler<GetRecommendedBooksQuery, List<RecommendedBookResponse>>
     {
         private readonly IBookRecommendationService _recommendationService;
+        private readonly IReviewRepository _reviewRepository;
         private readonly IBookAssetStorageService _bookAssetStorageService;
 
         public GetRecommendedBooksQueryHandler(
             IBookRecommendationService recommendationService,
+            IReviewRepository reviewRepository,
             IBookAssetStorageService bookAssetStorageService)
         {
             _recommendationService = recommendationService;
+            _reviewRepository = reviewRepository;
             _bookAssetStorageService = bookAssetStorageService;
         }
 
@@ -21,13 +25,13 @@ namespace LibroSphere.Application.Recommendations.Query.GetRecommendedBooks
         {
             var books = await _recommendationService.GetRecommendationsForUserAsync(request.UserId, request.Take, cancellationToken);
             var isPersonalized = books.Count > 0;
+            var bookIds = books.Select(b => b.Id).ToList();
+            var reviewStats = await _reviewRepository.GetStatsForBooksAsync(bookIds, cancellationToken);
+
             var response = await Task.WhenAll(books.Select(async book =>
             {
                 var imageLink = await _bookAssetStorageService.GetImageUrlAsync(book.BookLinkovi.imageLink, cancellationToken);
-                var reviewCount = book.Reviews.Count;
-                var averageRating = reviewCount == 0
-                    ? 0
-                    : book.Reviews.Average(review => review.Rating);
+                var stats = reviewStats.TryGetValue(book.Id, out var s) ? s : new BookReviewStats(0, 0);
 
                 var reason = isPersonalized
                     ? "Recommended based on your reading history and preferences"
@@ -43,8 +47,8 @@ namespace LibroSphere.Application.Recommendations.Query.GetRecommendedBooks
                         ? null
                         : book.BookLinkovi.PdfLink,
                     imageLink,
-                    averageRating,
-                    reviewCount,
+                    stats.Average,
+                    stats.Count,
                     book.AuthorId,
                     book.Author?.Name.Value ?? string.Empty,
                     reason);

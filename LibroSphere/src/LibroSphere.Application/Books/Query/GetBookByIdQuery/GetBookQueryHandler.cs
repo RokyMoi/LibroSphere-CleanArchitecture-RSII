@@ -2,17 +2,23 @@ using LibroSphere.Application.Abstractions.Messaging;
 using LibroSphere.Application.Abstractions.Storage;
 using LibroSphere.Domain.Entities.Books;
 using LibroSphere.Domain.Entities.Books.Errors;
+using LibroSphere.Domain.Entities.Reviews;
 
 namespace LibroSphere.Application.Books.Query.GetBookByIdQuery
 {
     internal sealed class GetBookQueryHandler : IQueryHandler<GetBookQuery, BookResponse>
     {
         private readonly IBookRepository _bookRepository;
+        private readonly IReviewRepository _reviewRepository;
         private readonly IBookAssetStorageService _bookAssetStorageService;
 
-        public GetBookQueryHandler(IBookRepository bookRepository, IBookAssetStorageService bookAssetStorageService)
+        public GetBookQueryHandler(
+            IBookRepository bookRepository,
+            IReviewRepository reviewRepository,
+            IBookAssetStorageService bookAssetStorageService)
         {
             _bookRepository = bookRepository;
+            _reviewRepository = reviewRepository;
             _bookAssetStorageService = bookAssetStorageService;
         }
 
@@ -25,10 +31,8 @@ namespace LibroSphere.Application.Books.Query.GetBookByIdQuery
             }
 
             var imageLink = await _bookAssetStorageService.GetImageUrlAsync(book.BookLinkovi.imageLink, cancellationToken);
-            var reviewCount = book.Reviews.Count;
-            var averageRating = reviewCount == 0
-                ? 0
-                : book.Reviews.Average(review => review.Rating);
+            var stats = await _reviewRepository.GetStatsForBooksAsync(new[] { book.Id }, cancellationToken);
+            var bookStats = stats.TryGetValue(book.Id, out var s) ? s : new BookReviewStats(0, 0);
 
             return Result.Success(new BookResponse
             {
@@ -38,8 +42,8 @@ namespace LibroSphere.Application.Books.Query.GetBookByIdQuery
                 amount = book.Price.amount,
                 currency = book.Price.Currency.Code,
                 imageLink = imageLink,
-                AverageRating = averageRating,
-                ReviewCount = reviewCount,
+                AverageRating = bookStats.Average,
+                ReviewCount = bookStats.Count,
                 AuthorId = book.AuthorId,
                 AuthorName = book.Author?.Name.Value ?? string.Empty,
                 GenreIds = book.BookGenres.Select(bg => bg.GenreId).ToList(),

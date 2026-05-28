@@ -1,5 +1,6 @@
 using LibroSphere.Application.Abstractions.Messaging;
 using LibroSphere.Application.Abstractions.Storage;
+using LibroSphere.Domain.Entities.Reviews;
 using LibroSphere.Domain.Entities.WishList;
 using LibroSphere.Domain.Entities.WishList.Errors;
 
@@ -8,13 +9,16 @@ namespace LibroSphere.Application.Wishlists.Query.GetWishlistByUserId
     internal sealed class GetWishlistByUserIdQueryHandler : IQueryHandler<GetWishlistByUserIdQuery, WishlistResponse>
     {
         private readonly IWishlistRepository _wishlistRepository;
+        private readonly IReviewRepository _reviewRepository;
         private readonly IBookAssetStorageService _bookAssetStorageService;
 
         public GetWishlistByUserIdQueryHandler(
             IWishlistRepository wishlistRepository,
+            IReviewRepository reviewRepository,
             IBookAssetStorageService bookAssetStorageService)
         {
             _wishlistRepository = wishlistRepository;
+            _reviewRepository = reviewRepository;
             _bookAssetStorageService = bookAssetStorageService;
         }
 
@@ -26,15 +30,15 @@ namespace LibroSphere.Application.Wishlists.Query.GetWishlistByUserId
                 return Result.Failure<WishlistResponse>(WishlistErrors.NotFound);
             }
 
+            var bookIds = wishlist.Items.Select(item => item.BookId).ToList();
+            var reviewStats = await _reviewRepository.GetStatsForBooksAsync(bookIds, cancellationToken);
+
             var itemTasks = wishlist.Items.Select(async item =>
             {
                 var imageLink = await _bookAssetStorageService.GetImageUrlAsync(
                     item.Book.BookLinkovi.imageLink,
                     cancellationToken);
-                var reviewCount = item.Book.Reviews.Count;
-                var averageRating = reviewCount == 0
-                    ? 0
-                    : item.Book.Reviews.Average(review => review.Rating);
+                var stats = reviewStats.TryGetValue(item.BookId, out var s) ? s : new BookReviewStats(0, 0);
 
                 return new WishlistItemResponse(
                     item.BookId,
@@ -44,8 +48,8 @@ namespace LibroSphere.Application.Wishlists.Query.GetWishlistByUserId
                     item.Book.Price.Currency.Code,
                     null,
                     imageLink,
-                    averageRating,
-                    reviewCount,
+                    stats.Average,
+                    stats.Count,
                     item.Book.AuthorId,
                     item.Book.Author?.Name.Value ?? string.Empty,
                     item.Book.BookGenres.Select(bg => bg.GenreId).ToList(),
