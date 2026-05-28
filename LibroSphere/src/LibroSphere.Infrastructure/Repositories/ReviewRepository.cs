@@ -55,6 +55,24 @@ namespace LibroSphere.Infrastructure.Repositories
                 .FirstOrDefaultAsync(r => r.UserId == userId && r.BookId == bookId, cancellationToken);
         }
 
+        public async Task<IReadOnlyDictionary<Guid, BookReviewStats>> GetStatsForBooksAsync(IReadOnlyCollection<Guid> bookIds, CancellationToken cancellationToken = default)
+        {
+            if (bookIds.Count == 0)
+            {
+                return new Dictionary<Guid, BookReviewStats>();
+            }
+
+            var stats = await DbContext
+                .Set<Review>()
+                .AsNoTracking()
+                .Where(r => bookIds.Contains(r.BookId))
+                .GroupBy(r => r.BookId)
+                .Select(g => new { BookId = g.Key, Count = g.Count(), Average = g.Average(r => (double)r.Rating) })
+                .ToListAsync(cancellationToken);
+
+            return stats.ToDictionary(s => s.BookId, s => new BookReviewStats(s.Count, s.Average));
+        }
+
         public void Delete(Review review)
         {
             DbContext.Set<Review>().Remove(review);

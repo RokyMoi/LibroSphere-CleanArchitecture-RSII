@@ -30,6 +30,40 @@ namespace LibroSphere.Infrastructure.Repositories
             return libo;
         }
 
+        public async Task<(List<UserBook> Items, int TotalCount)> GetPagedByUserIdAsync(
+            Guid userId,
+            string? searchTerm,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            var filteredQuery = _context.Set<UserBook>()
+                .AsNoTracking()
+                .Where(ub => ub.UserId == userId);
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var term = searchTerm.Trim();
+                filteredQuery = filteredQuery.Where(ub => ub.Book.Title.Value.Contains(term));
+            }
+
+            var totalCount = await filteredQuery.CountAsync(cancellationToken);
+
+            var pageItems = await filteredQuery
+                .OrderByDescending(ub => ub.PurchasedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .AsSplitQuery()
+                .Include(ub => ub.Book)
+                    .ThenInclude(book => book.Author)
+                .Include(ub => ub.Book)
+                    .ThenInclude(book => book.BookGenres)
+                        .ThenInclude(bookGenre => bookGenre.Genre)
+                .ToListAsync(cancellationToken);
+
+            return (pageItems, totalCount);
+        }
+
         public async Task<bool> HasAccessAsync(Guid userId, Guid bookId, CancellationToken cancellationToken = default)
         {
             return await _context.Set<UserBook>()
