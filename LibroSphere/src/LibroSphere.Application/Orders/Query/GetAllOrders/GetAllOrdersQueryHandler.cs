@@ -18,28 +18,17 @@ internal sealed class GetAllOrdersQueryHandler : IQueryHandler<GetAllOrdersQuery
         var page = Math.Max(1, request.Page);
         var pageSize = Math.Clamp(request.PageSize, 1, 100);
 
-        var orders = await _orderService.GetAllOrdersAsync(cancellationToken);
-
-        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
-        {
-            var searchTerm = request.SearchTerm.Trim().ToLowerInvariant();
-            orders = orders
-                .Where(o => o.BuyerEmail.ToLowerInvariant().Contains(searchTerm))
-                .ToList();
-        }
-
-        if (request.Status.HasValue)
-        {
-            orders = orders
-                .Where(o => o.Status == request.Status.Value)
-                .ToList();
-        }
+        var (orders, totalCount) = await _orderService.GetPagedAllOrdersAsync(
+            request.SearchTerm,
+            request.Status,
+            page,
+            pageSize,
+            cancellationToken);
 
         var dtos = orders
-            .OrderByDescending(o => o.OrderDate)
             .Select(OrderListItemResponse.FromOrder)
             .ToList();
 
-        return Result.Success(PagedResponse<OrderListItemResponse>.Create(dtos, page, pageSize));
+        return Result.Success(new PagedResponse<OrderListItemResponse>(dtos, page, pageSize, totalCount));
     }
 }

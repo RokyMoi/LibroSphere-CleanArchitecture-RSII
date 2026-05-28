@@ -19,14 +19,18 @@ namespace LibroSphere.Application.Orders.Query.GetMyOrders
             var page = Math.Max(1, request.Page);
             var pageSize = Math.Clamp(request.PageSize, 1, 100);
 
-            var orders = await _orderService.GetOrdersForUserAsync(request.UserId);
+            var (orders, totalCount) = await _orderService.GetPagedOrdersForUserAsync(
+                request.UserId,
+                request.Status,
+                page,
+                pageSize,
+                cancellationToken);
+
             var dtos = orders
-                .Where(order => !request.Status.HasValue || order.Status == request.Status.Value)
-                .OrderByDescending(order => order.OrderDate)
                 .Select(OrderListItemResponse.FromOrder)
                 .ToList();
 
-            return Result.Success(PagedResponse<OrderListItemResponse>.Create(dtos, page, pageSize));
+            return Result.Success(new PagedResponse<OrderListItemResponse>(dtos, page, pageSize, totalCount));
         }
     }
 }

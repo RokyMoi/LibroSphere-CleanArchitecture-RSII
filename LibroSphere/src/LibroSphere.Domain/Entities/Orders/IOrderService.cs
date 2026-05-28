@@ -13,6 +13,18 @@ namespace LibroSphere.Application.Abstractions
             CancellationToken cancellationToken = default);
         Task<List<Order>> GetOrdersForUserAsync(Guid userId);
         Task<List<Order>> GetAllOrdersAsync(CancellationToken cancellationToken = default);
+        Task<(List<Order> Items, int TotalCount)> GetPagedOrdersForUserAsync(
+            Guid userId,
+            OrderStatus? status,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default);
+        Task<(List<Order> Items, int TotalCount)> GetPagedAllOrdersAsync(
+            string? searchTerm,
+            OrderStatus? status,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default);
         Task<Order?> GetOrderByIdAsync(Guid id);
         Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }
