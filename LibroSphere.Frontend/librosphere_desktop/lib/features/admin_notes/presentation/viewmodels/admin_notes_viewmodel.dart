@@ -11,12 +11,24 @@ class AdminNotesViewModel extends ChangeNotifier {
   final AdminNotesRepository _repository;
   final String _token;
   bool _hasLoaded = false;
+  bool _disposed = false;
 
   bool isLoading = true;
   bool isSaving = false;
   String? deletingAdminNoteId;
   Failure? failure;
   List<AdminNoteModel> adminNotes = <AdminNoteModel>[];
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  void _safeNotify() {
+    if (_disposed) return;
+    notifyListeners();
+  }
 
   Future<void> ensureLoaded() {
     if (_hasLoaded) return Future.value();
@@ -26,7 +38,7 @@ class AdminNotesViewModel extends ChangeNotifier {
   Future<void> load() async {
     isLoading = true;
     failure = null;
-    notifyListeners();
+    _safeNotify();
 
     final result = await _repository.getAdminNotes(_token, take: 50);
 
@@ -39,7 +51,7 @@ class AdminNotesViewModel extends ChangeNotifier {
     }
 
     isLoading = false;
-    notifyListeners();
+    _safeNotify();
   }
 
   Future<Result<void>> createAdminNote({
@@ -48,7 +60,7 @@ class AdminNotesViewModel extends ChangeNotifier {
     required String imageUrl,
   }) async {
     isSaving = true;
-    notifyListeners();
+    _safeNotify();
 
     final result = await _repository.createAdminNote(
       token: _token,
@@ -57,21 +69,19 @@ class AdminNotesViewModel extends ChangeNotifier {
       imageUrl: imageUrl,
     );
 
+    isSaving = false;
     if (result is Success<void>) {
       await load();
     } else {
-      isSaving = false;
-      notifyListeners();
+      _safeNotify();
     }
 
-    isSaving = false;
-    notifyListeners();
     return result;
   }
 
   Future<Result<void>> deleteAdminNote(AdminNoteModel adminNote) async {
     deletingAdminNoteId = adminNote.id;
-    notifyListeners();
+    _safeNotify();
 
     final result = await _repository.deleteAdminNote(
       token: _token,
@@ -83,7 +93,7 @@ class AdminNotesViewModel extends ChangeNotifier {
     if (result is Success<void>) {
       await load();
     } else {
-      notifyListeners();
+      _safeNotify();
     }
 
     return result;
@@ -100,10 +110,5 @@ class AdminNotesViewModel extends ChangeNotifier {
       filename: filename,
       contentType: contentType,
     );
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 }

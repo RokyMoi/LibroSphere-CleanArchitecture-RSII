@@ -73,7 +73,9 @@ class ReportsViewModel extends ChangeNotifier {
       }
 
       _hasLoaded = true;
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('ReportsViewModel.load failed: $e');
+    }
 
     isLoading = false;
     notifyListeners();

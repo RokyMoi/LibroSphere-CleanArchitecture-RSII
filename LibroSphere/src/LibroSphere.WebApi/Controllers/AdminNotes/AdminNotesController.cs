@@ -24,6 +24,10 @@ public sealed class AdminNotesController : ControllerBase
         "image/png",
         "image/webp"
     };
+    private static readonly byte[] JpegMagicBytes = { 0xFF, 0xD8, 0xFF };
+    private static readonly byte[] PngMagicBytes = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+    private static readonly byte[] WebpRiffMagicBytes = { 0x52, 0x49, 0x46, 0x46 };
+    private static readonly byte[] WebpWebpMagicBytes = { 0x57, 0x45, 0x42, 0x50 };
 
     public AdminNotesController(ISender sender, IBookAssetStorageService storageService)
     {
@@ -82,6 +86,12 @@ public sealed class AdminNotesController : ControllerBase
         }
 
         await using var stream = file.OpenReadStream();
+        if (!await HasValidImageMagicBytesAsync(stream))
+        {
+            return BadRequest(new { Error = "File is not a valid JPEG, PNG, or WebP image." });
+        }
+        stream.Position = 0;
+
         var result = await _storageService.UploadImageAsync(
             stream,
             file.FileName,
@@ -91,6 +101,24 @@ public sealed class AdminNotesController : ControllerBase
         var imageUrl = await _storageService.GetImageUrlAsync(result.StoredValue, cancellationToken);
 
         return Ok(new { ImageUrl = imageUrl, StoredValue = result.StoredValue });
+    }
+
+    private static async Task<bool> HasValidImageMagicBytesAsync(Stream stream)
+    {
+        var buffer = new byte[12];
+        var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+        if (bytesRead < 4) return false;
+
+        if (bytesRead >= 3 && buffer[0] == JpegMagicBytes[0] && buffer[1] == JpegMagicBytes[1] && buffer[2] == JpegMagicBytes[2])
+            return true;
+
+        if (bytesRead >= 8 && buffer.Take(8).SequenceEqual(PngMagicBytes))
+            return true;
+
+        if (bytesRead >= 12 && buffer.Take(4).SequenceEqual(WebpRiffMagicBytes) && buffer.Skip(8).Take(4).SequenceEqual(WebpWebpMagicBytes))
+            return true;
+
+        return false;
     }
 }
 

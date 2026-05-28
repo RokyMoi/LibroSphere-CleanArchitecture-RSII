@@ -88,7 +88,9 @@ class NotificationViewModel extends ChangeNotifier {
             : n;
       }).toList();
       _notifySafely();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('NotificationViewModel.markRead failed: $e');
+    }
   }
 
   Future<void> markAllRead() async {
@@ -112,7 +114,9 @@ class NotificationViewModel extends ChangeNotifier {
         );
       }).toList();
       _notifySafely();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('NotificationViewModel.markAllRead failed: $e');
+    }
   }
 
   Future<void> _fetch() async {
