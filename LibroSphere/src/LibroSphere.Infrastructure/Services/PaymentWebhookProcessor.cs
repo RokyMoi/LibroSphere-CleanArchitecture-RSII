@@ -55,7 +55,7 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
                 await HandleSucceeded(stripeEvent.Data.Object as PaymentIntent, cancellationToken);
                 break;
             case "payment_intent.payment_failed":
-                await HandleFailed(stripeEvent.Data.Object as PaymentIntent);
+                await HandleFailed(stripeEvent.Data.Object as PaymentIntent, cancellationToken);
                 break;
         }
 
@@ -70,7 +70,7 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
         }
 
         intent.Metadata.TryGetValue("cartId", out var cartId);
-        var order = await _orderRepository.GetByPaymentIntentIdAsync(intent.Id);
+        var order = await _orderRepository.GetByPaymentIntentIdAsync(intent.Id, cancellationToken);
         if (order is null)
         {
             order = await CreateOrderFromPaymentIntentAsync(intent, cartId, cancellationToken);
@@ -96,7 +96,7 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         if (!string.IsNullOrWhiteSpace(cartId))
         {
-            await _cartService.DeleteCartAsync(cartId);
+            await _cartService.DeleteCartAsync(cartId, cancellationToken);
         }
 
         if (alreadyProcessed)
@@ -132,7 +132,7 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
             return null;
         }
 
-        var cart = await _cartService.GetCartAsync(cartId);
+        var cart = await _cartService.GetCartAsync(cartId, cancellationToken);
         if (cart is null)
         {
             return null;
@@ -170,24 +170,24 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
             intent.Id,
             cart.ClientSecret ?? string.Empty);
 
-        await _orderRepository.AddAsync(order);
+        await _orderRepository.AddAsync(order, cancellationToken);
         return order;
     }
 
-    private async Task HandleFailed(PaymentIntent? intent)
+    private async Task HandleFailed(PaymentIntent? intent, CancellationToken cancellationToken)
     {
         if (intent is null)
         {
             return;
         }
 
-        var order = await _orderRepository.GetByPaymentIntentIdAsync(intent.Id);
+        var order = await _orderRepository.GetByPaymentIntentIdAsync(intent.Id, cancellationToken);
         if (order is null)
         {
             return;
         }
 
         order.UpdateStatus(OrderStatus.PaymentFailed);
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

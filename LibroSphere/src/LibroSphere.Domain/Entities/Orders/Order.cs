@@ -78,6 +78,7 @@ namespace LibroSphere.Domain.Entities.Orders
                 (OrderStatus.Pending, OrderStatus.PaymentReceived) => true,
                 (OrderStatus.Pending, OrderStatus.PaymentFailed) => true,
                 (OrderStatus.PaymentReceived, OrderStatus.Refunded) => true,
+                (OrderStatus.PaymentReceived, OrderStatus.PartiallyRefunded) => true,
                 _ => false
             };
 

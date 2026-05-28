@@ -38,14 +38,15 @@ namespace LibroSphere.Application.Cart.Command.UpdateCart
 
             var cartId = existingCart?.Id ?? Guid.NewGuid();
             var cart = ShoppingCart.CreateCart(cartId, request.UserId);
-            var bookIds = request.Items
-                .Select(item => item.BookId)
-                .Distinct()
+            var distinctItems = request.Items
+                .GroupBy(item => item.BookId)
+                .Select(group => group.First())
                 .ToList();
+            var bookIds = distinctItems.Select(item => item.BookId).ToList();
             var books = await _bookRepository.GetByIdsWithDetailsAsync(bookIds, cancellationToken);
             var bookLookup = books.ToDictionary(book => book.Id);
 
-            foreach (var item in request.Items)
+            foreach (var item in distinctItems)
             {
                 if (!bookLookup.TryGetValue(item.BookId, out var book))
                 {
@@ -58,7 +59,7 @@ namespace LibroSphere.Application.Cart.Command.UpdateCart
                     book.Price));
             }
 
-            var newBookIds = request.Items.Select(i => i.BookId).OrderBy(id => id).ToList();
+            var newBookIds = distinctItems.Select(i => i.BookId).OrderBy(id => id).ToList();
             var existingBookIds = existingCart?.Items.Select(i => i.BookId).OrderBy(id => id).ToList();
             var itemsUnchanged = existingBookIds != null && newBookIds.SequenceEqual(existingBookIds);
 
