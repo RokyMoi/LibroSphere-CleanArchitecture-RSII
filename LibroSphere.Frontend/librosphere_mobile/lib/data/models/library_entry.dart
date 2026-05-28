@@ -15,7 +15,6 @@ class LibraryEntry {
     required this.genreIds,
     required this.genreNames,
     this.imageLink,
-    this.pdfLink,
     this.purchasedAt,
   });
 
@@ -31,7 +30,6 @@ class LibraryEntry {
   final List<String> genreIds;
   final List<String> genreNames;
   final String? imageLink;
-  final String? pdfLink;
   final DateTime? purchasedAt;
 
   BookModel toBookModel() => BookModel(
@@ -43,7 +41,6 @@ class LibraryEntry {
     authorId: authorId,
     authorName: authorName,
     imageLink: imageLink,
-    pdfLink: pdfLink,
     averageRating: averageRating,
     reviewCount: reviewCount,
   );
@@ -65,7 +62,6 @@ class LibraryEntry {
         .map((value) => value.toString())
         .toList(),
     imageLink: readNullableString(json, ['imageLink', 'ImageLink']),
-    pdfLink: readNullableString(json, ['pdfLink', 'PdfLink']),
     purchasedAt: readDateTime(json, ['purchasedAt', 'PurchasedAt']),
   );
 }

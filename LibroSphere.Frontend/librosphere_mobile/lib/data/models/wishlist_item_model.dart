@@ -15,7 +15,6 @@ class WishlistItemModel {
     required this.genreIds,
     required this.genreNames,
     this.imageLink,
-    this.pdfLink,
   });
 
   final String bookId;
@@ -30,7 +29,6 @@ class WishlistItemModel {
   final List<String> genreIds;
   final List<String> genreNames;
   final String? imageLink;
-  final String? pdfLink;
 
   BookModel toBookModel() => BookModel(
     id: bookId,
@@ -41,7 +39,6 @@ class WishlistItemModel {
     authorId: authorId,
     authorName: authorName,
     imageLink: imageLink,
-    pdfLink: pdfLink,
     averageRating: averageRating,
     reviewCount: reviewCount,
   );
@@ -63,6 +60,5 @@ class WishlistItemModel {
         .map((value) => value.toString())
         .toList(),
     imageLink: readNullableString(json, ['imageLink', 'ImageLink']),
-    pdfLink: readNullableString(json, ['pdfLink', 'PdfLink']),
   );
 }
