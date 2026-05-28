@@ -690,12 +690,22 @@ class ApiClient {
 
           final errors = decoded['errors'];
           if (errors is Map && errors.isNotEmpty) {
+            // ASP.NET Core model binding errors: {"Field": ["msg1"]}
             final firstEntry = errors.entries.first;
             final value = firstEntry.value;
             if (value is List && value.isNotEmpty) {
               message = value.first.toString();
             } else if (value != null) {
               message = value.toString();
+            }
+          } else if (errors is List && errors.isNotEmpty) {
+            // ExceptionHandlingMiddleware ValidationExceptions: [{propertyName, errorMesage}]
+            final first = errors.first;
+            if (first is Map) {
+              final msg = first['errorMesage'] ?? first['errorMessage'] ?? first['message'];
+              if (msg != null) message = msg.toString();
+            } else if (first != null) {
+              message = first.toString();
             }
           }
         } else {
