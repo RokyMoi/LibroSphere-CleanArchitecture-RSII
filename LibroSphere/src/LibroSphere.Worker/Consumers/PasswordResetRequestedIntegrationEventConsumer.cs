@@ -25,8 +25,7 @@ public sealed class PasswordResetRequestedIntegrationEventConsumer
         var body = $"""
                     <h2>LibroSphere - Reset lozinke</h2>
                     <p>Primili smo zahtjev za reset Vase lozinke.</p>
-                    <p><strong>Vas kod:</strong> <span style="font-size:20px;">{message.Code}</span></p>
-                    <p>Kod vazi {message.ExpiresInMinutes} minuta.</p>
+                    <p>Otvorite aplikaciju i zatrazite novi reset kod ako jos uvijek trebate promjenu lozinke.</p>
                     <p>Ako niste zatrazili reset lozinke, ignorisite ovaj email.</p>
                     """;
 

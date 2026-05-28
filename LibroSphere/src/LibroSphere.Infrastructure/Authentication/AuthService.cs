@@ -1,4 +1,6 @@
 using System.Security.Cryptography;
+using System.Text;
+using LibroSphere.Application.Abstractions.Email;
 using LibroSphere.Application.Abstractions.Identity;
 using LibroSphere.Application.Events.User;
 using LibroSphere.Application.Users.AuthCommands;
@@ -24,6 +26,7 @@ namespace LibroSphere.Infrastructure.Authentication
         private readonly IPublishEndpoint _publishEndpoint;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IConnectionMultiplexer _redis;
+        private readonly IEmailSender _emailSender;
 
         private static readonly TimeSpan PasswordResetCodeTtl = TimeSpan.FromMinutes(15);
 
@@ -36,7 +39,8 @@ namespace LibroSphere.Infrastructure.Authentication
             IOptions<JwtOptions> jwtSettings,
             IPublishEndpoint publishEndpoint,
             RoleManager<IdentityRole> roleManager,
-            IConnectionMultiplexer redis)
+            IConnectionMultiplexer redis,
+            IEmailSender emailSender)
         {
             _userManager = userManager;
             _jwtService = jwtService;
@@ -47,6 +51,7 @@ namespace LibroSphere.Infrastructure.Authentication
             _publishEndpoint = publishEndpoint;
             _roleManager = roleManager;
             _redis = redis;
+            _emailSender = emailSender;
         }
 
         public async Task<AuthResult> RegisterAsync(RegisterUserCommand command, CancellationToken ct = default)
@@ -149,7 +154,8 @@ namespace LibroSphere.Infrastructure.Authentication
 
         public async Task<AuthResult> RefreshTokenAsync(string refreshToken, CancellationToken ct = default)
         {
-            var appUser = await _userManager.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken, ct);
+            var refreshTokenHash = HashSecret(refreshToken);
+            var appUser = await _userManager.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshTokenHash, ct);
             if (appUser is null)
             {
                 return new AuthResult("", "", false, "Invalid refresh token.");
@@ -207,7 +213,7 @@ namespace LibroSphere.Infrastructure.Authentication
             string? refreshToken,
             DateTime? refreshTokenExpiry)
         {
-            appUser.RefreshToken = refreshToken;
+            appUser.RefreshToken = refreshToken is null ? null : HashSecret(refreshToken);
             appUser.RefreshTokenExpiry = refreshTokenExpiry;
             return _userManager.UpdateAsync(appUser);
         }
@@ -339,14 +345,9 @@ namespace LibroSphere.Infrastructure.Authentication
             var code = GenerateResetCode();
             var db = _redis.GetDatabase();
             var key = BuildPasswordResetKey(email);
-            await db.StringSetAsync(key, code, PasswordResetCodeTtl);
+            await db.StringSetAsync(key, HashSecret(code), PasswordResetCodeTtl);
 
-            await _publishEndpoint.Publish(
-                new PasswordResetRequestedIntegrationEvent(
-                    email,
-                    code,
-                    (int)PasswordResetCodeTtl.TotalMinutes),
-                CancellationToken.None);
+            await SendPasswordResetCodeAsync(email, code, ct);
 
             return Result.Success();
         }
@@ -367,7 +368,8 @@ namespace LibroSphere.Infrastructure.Authentication
             var db = _redis.GetDatabase();
             var key = BuildPasswordResetKey(email);
             var storedCode = await db.StringGetAsync(key);
-            if (!storedCode.HasValue || storedCode.ToString() != code.Trim())
+            var submittedCodeHash = HashSecret(code.Trim().ToUpperInvariant());
+            if (!storedCode.HasValue || !HashesMatch(storedCode.ToString(), submittedCodeHash))
             {
                 return Result.Failure(new Error("PasswordReset.InvalidCode", "Code is invalid or has expired."));
             }
@@ -392,6 +394,23 @@ namespace LibroSphere.Infrastructure.Authentication
         private static string BuildPasswordResetKey(string email) =>
             $"password-reset:{email.Trim().ToLowerInvariant()}";
 
+        private async Task SendPasswordResetCodeAsync(string email, string code, CancellationToken cancellationToken)
+        {
+            var body = $"""
+                        <h2>LibroSphere - Reset lozinke</h2>
+                        <p>Primili smo zahtjev za reset Vase lozinke.</p>
+                        <p><strong>Vas kod:</strong> <span style="font-size:20px;">{code}</span></p>
+                        <p>Kod vazi {(int)PasswordResetCodeTtl.TotalMinutes} minuta.</p>
+                        <p>Ako niste zatrazili reset lozinke, ignorisite ovaj email.</p>
+                        """;
+
+            await _emailSender.SendAsync(
+                email,
+                "LibroSphere - Reset lozinke",
+                body,
+                cancellationToken);
+        }
+
         private static string GenerateResetCode()
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -399,6 +418,26 @@ namespace LibroSphere.Infrastructure.Authentication
             for (var i = 0; i < code.Length; i++)
                 code[i] = chars[RandomNumberGenerator.GetInt32(chars.Length)];
             return new string(code);
+        }
+
+        private static string HashSecret(string value)
+        {
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));
+            return Convert.ToBase64String(bytes);
+        }
+
+        private static bool HashesMatch(string storedHash, string submittedHash)
+        {
+            try
+            {
+                return CryptographicOperations.FixedTimeEquals(
+                    Convert.FromBase64String(storedHash),
+                    Convert.FromBase64String(submittedHash));
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
         }
     }
 }
