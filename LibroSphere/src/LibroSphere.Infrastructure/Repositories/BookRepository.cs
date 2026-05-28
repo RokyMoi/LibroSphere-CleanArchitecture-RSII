@@ -16,10 +16,10 @@ namespace LibroSphere.Infrastructure.Repositories
             return await DbContext
                 .Set<Book>()
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Include(b => b.Author)
                 .Include(b => b.BookGenres)
                     .ThenInclude(bg => bg.Genre)
-                .Include(b => b.Reviews)
                 .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
         }
 
@@ -27,10 +27,10 @@ namespace LibroSphere.Infrastructure.Repositories
         {
             return await DbContext
                 .Set<Book>()
+                .AsSplitQuery()
                 .Include(b => b.Author)
                 .Include(b => b.BookGenres)
                     .ThenInclude(bg => bg.Genre)
-                .Include(b => b.Reviews)
                 .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
         }
 
@@ -44,11 +44,11 @@ namespace LibroSphere.Infrastructure.Repositories
             return await DbContext
                 .Set<Book>()
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Where(b => ids.Contains(b.Id))
                 .Include(b => b.Author)
                 .Include(b => b.BookGenres)
                     .ThenInclude(bg => bg.Genre)
-                .Include(b => b.Reviews)
                 .ToListAsync(cancellationToken);
         }
 
@@ -57,10 +57,10 @@ namespace LibroSphere.Infrastructure.Repositories
             var books = await DbContext
                 .Set<Book>()
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Include(b => b.Author)
                 .Include(b => b.BookGenres)
                     .ThenInclude(bg => bg.Genre)
-                .Include(b => b.Reviews)
                 .ToListAsync(cancellationToken);
 
             return books
@@ -73,10 +73,10 @@ namespace LibroSphere.Infrastructure.Repositories
             var query = DbContext
                 .Set<Book>()
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Include(b => b.Author)
                 .Include(b => b.BookGenres)
                     .ThenInclude(bg => bg.Genre)
-                .Include(b => b.Reviews)
                 .AsQueryable();
 
             if (authorId.HasValue)

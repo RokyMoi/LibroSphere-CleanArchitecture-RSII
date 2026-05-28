@@ -48,11 +48,14 @@ namespace LibroSphere.Domain.Entities.Orders
             string paymentIntentId,
             string clientSecret)
         {
-            var total = items.Count == 0
-                ? Money.Zero()
-                : items
-                    .Select(item => new Money(item.Price.amount * item.Quantity, item.Price.Currency))
-                    .Aggregate((sum, item) => sum + item);
+            if (items.Count == 0)
+            {
+                throw new InvalidOperationException("Order must contain at least one item.");
+            }
+
+            var total = items
+                .Select(item => new Money(item.Price.amount * item.Quantity, item.Price.Currency))
+                .Aggregate((sum, item) => sum + item);
 
             var order = new Order(Guid.NewGuid(), userId, buyerEmail, items, paymentIntentId, total, clientSecret);
             order.RaiseDomainEvent(
