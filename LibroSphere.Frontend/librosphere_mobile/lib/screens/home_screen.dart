@@ -26,6 +26,7 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
   final _searchController = TextEditingController();
   final Set<String> _prefetchedCoverUrls = <String>{};
   late Future<_HomeData> _future = _load();
+  bool _hasLoadError = false;
 
   // Filter state
   String? _selectedAuthorId;
@@ -54,44 +55,51 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
     final normalizedTerm = term?.trim();
     final isSearchMode = _hasActiveFilters || normalizedTerm?.isNotEmpty == true;
 
-    if (isSearchMode) {
-      final result = await session.getBooks(
-        pageSize: 20,
+    try {
+      if (isSearchMode) {
+        final result = await session.getBooks(
+          pageSize: 20,
+          searchTerm: normalizedTerm,
+          authorId: _selectedAuthorId,
+          genreId: _selectedGenreId,
+          minPrice: _minPrice,
+          maxPrice: _maxPrice,
+          minRating: _minRating,
+          forceRefresh: forceRefresh,
+        );
+
+        _hasLoadError = false;
+        return _HomeData(
+          recommendations: const <BookModel>[],
+          newest: result.items,
+          searchTerm: normalizedTerm ?? '',
+          totalCount: result.totalCount,
+          hasActiveFilters: _hasActiveFilters,
+          activeFilterDescription: _buildFilterDescription(),
+          isSearchMode: true,
+        );
+      }
+
+      final feed = await session.getHomeFeed(
+        pageSize: 8,
+        takeRecommendations: 5,
         searchTerm: normalizedTerm,
-        authorId: _selectedAuthorId,
-        genreId: _selectedGenreId,
-        minPrice: _minPrice,
-        maxPrice: _maxPrice,
-        minRating: _minRating,
         forceRefresh: forceRefresh,
       );
-
+      _hasLoadError = false;
       return _HomeData(
-        recommendations: const <BookModel>[],
-        newest: result.items,
+        recommendations: feed.recommendations,
+        newest: feed.newest.items,
         searchTerm: normalizedTerm ?? '',
-        totalCount: result.totalCount,
-        hasActiveFilters: _hasActiveFilters,
-        activeFilterDescription: _buildFilterDescription(),
-        isSearchMode: true,
+        totalCount: feed.newest.totalCount,
+        hasActiveFilters: false,
+        activeFilterDescription: null,
+        isSearchMode: false,
       );
+    } catch (_) {
+      _hasLoadError = true;
+      rethrow;
     }
-
-    final feed = await session.getHomeFeed(
-      pageSize: 8,
-      takeRecommendations: 5,
-      searchTerm: normalizedTerm,
-      forceRefresh: forceRefresh,
-    );
-    return _HomeData(
-      recommendations: feed.recommendations,
-      newest: feed.newest.items,
-      searchTerm: normalizedTerm ?? '',
-      totalCount: feed.newest.totalCount,
-      hasActiveFilters: false,
-      activeFilterDescription: null,
-      isSearchMode: false,
-    );
   }
 
   void _prefetchVisibleCovers(_HomeData data) {
@@ -337,6 +345,8 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
   }
 
   Future<void> refreshIfStale() async {
+    if (_hasLoadError) return;
+
     final session = SessionScope.read(context);
     if (!session.shouldRefreshCatalog(
       searchTerm: _searchController.text,
@@ -359,7 +369,11 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
     setState(() {
       _future = nextFuture;
     });
-    await nextFuture;
+    try {
+      await nextFuture;
+    } catch (_) {
+      // FutureBuilder handles the error display via snapshot.hasError
+    }
   }
 
   Future<void> _refresh() async {

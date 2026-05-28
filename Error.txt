@@ -1,0 +1,330 @@
+Running Gradle task 'assembleDebug'...
+[=========                              ] 25%                                   
+[=========                              ] 25% Fetch remote repository...        
+[=======================================] 100% Fetch remote repository...       
+
+[=========                              ] 25%                                   
+[=========                              ] 25% Fetch remote repository...        
+[=======================================] 100% Fetch remote repository...       
+
+[=========                              ] 25%                                   
+[=========                              ] 25% Fetch remote repository...        
+[=======================================] 100% Fetch remote repository...       
+
+[=========                              ] 25%                                   
+[=========                              ] 25% Fetch remote repository...        
+[=======================================] 100% Fetch remote repository...       
+
+√ Built build\app\outputs\flutter-apk\app-debug.apk
+Installing build\app\outputs\flutter-apk\app-debug.apk...
+D/FlutterJNI(10815): Beginning load of flutter...
+D/FlutterJNI(10815): flutter (null) was loaded normally!
+I/flutter (10815): [IMPORTANT:flutter/shell/common/shell.cc(528)] [Action Required]: Impeller opt-out deprecated.
+I/flutter (10815):     The application opted out of Impeller by either using the
+I/flutter (10815):     `--no-enable-impeller` flag or the
+I/flutter (10815):     `io.flutter.embedding.android.EnableImpeller` `AndroidManifest.xml` entry.
+I/flutter (10815):     These options are going to go away in an upcoming Flutter release. Remove
+I/flutter (10815):     the explicit opt-out. If you need to opt-out, please report a bug describing
+I/flutter (10815):     the issue.
+I/flutter (10815): 
+I/flutter (10815):     https://github.com/flutter/flutter/issues/new?template=02_bug.yml
+I/flutter (10815): 
+E/eglCodecCommon(10815): glUtilsParamSize: unknow param 0x000082da
+Debug service listening on ws://127.0.0.1:51990/dgvMKed7kto=/ws
+Syncing files to device Android SDK built for x86 64...
+W/Glide   (10815): Failed to find GeneratedAppGlideModule. You should include an annotationProcessor compile dependency on com.github.bumptech.glide:compiler in your application and a @GlideModule annotated AppGlideModule implementation or LibraryGlideModules will be silently ignored
+W/rosphere_mobil(10815): Accessing hidden method Landroid/content/Context;->getOpPackageName()Ljava/lang/String; (light greylist, linking)
+D/OpenGLRenderer(10815): Skia GL Pipeline
+W/rosphere_mobil(10815): Accessing hidden method Landroid/view/accessibility/AccessibilityNodeInfo;->getSourceNodeId()J (light greylist, reflection)
+W/rosphere_mobil(10815): Accessing hidden method Landroid/view/accessibility/AccessibilityRecord;->getSourceNodeId()J (light greylist, reflection)
+W/rosphere_mobil(10815): Accessing hidden field Landroid/view/accessibility/AccessibilityNodeInfo;->mChildNodeIds:Landroid/util/LongArray; (light greylist, reflection)
+W/rosphere_mobil(10815): Accessing hidden method Landroid/util/LongArray;->get(I)J (light greylist, reflection)
+D/FlutterRenderer(10815): Width is zero. 0,0
+W/rosphere_mobil(10815): Accessing hidden method Landroid/os/Trace;->asyncTraceBegin(JLjava/lang/String;I)V (light greylist, reflection)
+I/Choreographer(10815): Skipped 606 frames!  The application may be doing too much work on its main thread.
+I/rosphere_mobil(10815): Rejecting re-init on previously-failed class java.lang.Class<androidx.window.layout.adapter.sidecar.DistinctElementSidecarCallback>: java.lang.NoClassDefFoundError: Failed resolution of: Landroidx/window/sidecar/SidecarInterface$SidecarCallback;
+I/rosphere_mobil(10815):   at androidx.window.layout.adapter.sidecar.ExtensionInterfaceCompat androidx.window.layout.adapter.sidecar.SidecarWindowBackend$Companion.initAndVerifyExtension(android.content.Context) (SidecarWindowBackend.kt:207)
+I/rosphere_mobil(10815):   at androidx.window.layout.adapter.sidecar.SidecarWindowBackend androidx.window.layout.adapter.sidecar.SidecarWindowBackend$Companion.getInstance(android.content.Context) (SidecarWindowBackend.kt:191)
+I/rosphere_mobil(10815):   at androidx.window.layout.WindowInfoTracker androidx.window.layout.WindowInfoTracker$Companion.getOrCreate(android.content.Context) (WindowInfoTracker.kt:135)
+I/rosphere_mobil(10815):   at io.flutter.embedding.android.WindowInfoRepositoryCallbackAdapterWrapper io.flutter.embedding.android.FlutterView.createWindowInfoRepo() (FlutterView.java:559)
+I/rosphere_mobil(10815):   at void io.flutter.embedding.android.FlutterView.onAttachedToWindow() (FlutterView.java:580)
+I/rosphere_mobil(10815):   at void android.view.View.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (View.java:18347)
+I/rosphere_mobil(10815):   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3397)
+I/rosphere_mobil(10815):   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3404)
+I/chatty  (10815): uid=10088(com.example.librosphere_mobile) identical 2 lines
+I/rosphere_mobil(10815):   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3404)
+I/rosphere_mobil(10815):   at void android.view.ViewRootImpl.performTraversals() (ViewRootImpl.java:1761)
+I/rosphere_mobil(10815):   at void android.view.ViewRootImpl.doTraversal() (ViewRootImpl.java:1460)
+I/rosphere_mobil(10815):   at void android.view.ViewRootImpl$TraversalRunnable.run() (ViewRootImpl.java:7183)
+I/rosphere_mobil(10815):   at void android.view.Choreographer$CallbackRecord.run(long) (Choreographer.java:949)
+I/rosphere_mobil(10815):   at void android.view.Choreographer.doCallbacks(int, long) (Choreographer.java:761)
+I/rosphere_mobil(10815):   at void android.view.Choreographer.doFrame(long, int) (Choreographer.java:696)
+I/rosphere_mobil(10815):   at void android.view.Choreographer$FrameDisplayEventReceiver.run() (Choreographer.java:935)
+I/rosphere_mobil(10815):   at void android.os.Handler.handleCallback(android.os.Message) (Handler.java:873)
+I/rosphere_mobil(10815):   at void android.os.Handler.dispatchMessage(android.os.Message) (Handler.java:99)
+I/rosphere_mobil(10815):   at void android.os.Looper.loop() (Looper.java:193)
+I/rosphere_mobil(10815):   at void android.app.ActivityThread.main(java.lang.String[]) (ActivityThread.java:6669)
+I/rosphere_mobil(10815):   at java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) (Method.java:-2)
+I/rosphere_mobil(10815):   at void com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run() (RuntimeInit.java:493)
+I/rosphere_mobil(10815):   at void com.android.internal.os.ZygoteInit.main(java.lang.String[]) (ZygoteInit.java:858)
+I/rosphere_mobil(10815): Caused by: java.lang.ClassNotFoundException: Didn't find class "androidx.window.sidecar.SidecarInterface$SidecarCallback" on path: DexPathList[[zip file "/system/framework/org.apache.http.legacy.boot.jar", zip file "/data/app/com.example.librosphere_mobile-qpbftmtsFLooL5JzobzFlQ==/base.apk"],nativeLibraryDirectories=[/data/app/com.example.librosphere_mobile-qpbftmtsFLooL5JzobzFlQ==/lib/x86_64, /data/app/com.example.librosphere_mobile-qpbftmtsFLooL5JzobzFlQ==/base.apk!/lib/x86_64, /system/lib64]]
+I/rosphere_mobil(10815):   at java.lang.Class dalvik.system.BaseDexClassLoader.findClass(java.lang.String) (BaseDexClassLoader.java:134)
+I/rosphere_mobil(10815):   at java.lang.Class java.lang.ClassLoader.loadClass(java.lang.String, boolean) (ClassLoader.java:379)
+I/rosphere_mobil(10815):   at java.lang.Class java.lang.ClassLoader.loadClass(java.lang.String) (ClassLoader.java:312)
+I/rosphere_mobil(10815):   at androidx.window.layout.adapter.sidecar.ExtensionInterfaceCompat androidx.window.layout.adapter.sidecar.SidecarWindowBackend$Companion.initAndVerifyExtension(android.content.Context) (SidecarWindowBackend.kt:207)
+I/rosphere_mobil(10815):   at androidx.window.layout.adapter.sidecar.SidecarWindowBackend androidx.window.layout.adapter.sidecar.SidecarWindowBackend$Companion.getInstance(android.content.Context) (SidecarWindowBackend.kt:191)
+I/rosphere_mobil(10815):   at androidx.window.layout.WindowInfoTracker androidx.window.layout.WindowInfoTracker$Companion.getOrCreate(android.content.Context) (WindowInfoTracker.kt:135)
+I/rosphere_mobil(10815):   at io.flutter.embedding.android.WindowInfoRepositoryCallbackAdapterWrapper io.flutter.embedding.android.FlutterView.createWindowInfoRepo() (FlutterView.java:559)
+I/rosphere_mobil(10815):   at void io.flutter.embedding.android.FlutterView.onAttachedToWindow() (FlutterView.java:580)
+I/rosphere_mobil(10815):   at void android.view.View.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (View.java:18347)
+I/rosphere_mobil(10815):   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3397)
+I/rosphere_mobil(10815):   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3404)
+I/chatty  (10815): uid=10088(com.example.librosphere_mobile) identical 2 lines
+I/rosphere_mobil(10815):   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3404)
+I/rosphere_mobil(10815):   at void android.view.ViewRootImpl.performTraversals() (ViewRootImpl.java:1761)
+I/rosphere_mobil(10815):   at void android.view.ViewRootImpl.doTraversal() (ViewRootImpl.java:1460)
+I/rosphere_mobil(10815):   at void android.view.ViewRootImpl$TraversalRunnable.run() (ViewRootImpl.java:7183)
+I/rosphere_mobil(10815):   at void android.view.Choreographer$CallbackRecord.run(long) (Choreographer.java:949)
+I/rosphere_mobil(10815):   at void android.view.Choreographer.doCallbacks(int, long) (Choreographer.java:761)
+I/rosphere_mobil(10815):   at void android.view.Choreographer.doFrame(long, int) (Choreographer.java:696)
+I/rosphere_mobil(10815):   at void android.view.Choreographer$FrameDisplayEventReceiver.run() (Choreographer.java:935)
+I/rosphere_mobil(10815):   at void android.os.Handler.handleCallback(android.os.Message) (Handler.java:873)
+I/rosphere_mobil(10815):   at void android.os.Handler.dispatchMessage(android.os.Message) (Handler.java:99)
+I/rosphere_mobil(10815):   at void android.os.Looper.loop() (Looper.java:193)
+I/rosphere_mobil(10815):   at void android.app.ActivityThread.main(java.lang.String[]) (ActivityThread.java:6669)
+I/rosphere_mobil(10815):   at java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) (Method.java:-2)
+I/rosphere_mobil(10815):   at void com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run() (RuntimeInit.java:493)
+I/rosphere_mobil(10815):   at void com.android.internal.os.ZygoteInit.main(java.lang.String[]) (ZygoteInit.java:858)
+I/rosphere_mobil(10815): 
+I/rosphere_mobil(10815): Rejecting re-init on previously-failed class java.lang.Class<androidx.window.layout.adapter.sidecar.DistinctElementSidecarCallback>: java.lang.NoClassDefFoundError: Failed resolution of: Landroidx/window/sidecar/SidecarInterface$SidecarCallback;
+I/rosphere_mobil(10815):   at androidx.window.layout.adapter.sidecar.ExtensionInterfaceCompat androidx.window.layout.adapter.sidecar.SidecarWindowBackend$Companion.initAndVerifyExtension(android.content.Context) (SidecarWindowBackend.kt:207)
+I/rosphere_mobil(10815):   at androidx.window.layout.adapter.sidecar.SidecarWindowBackend androidx.window.layout.adapter.sidecar.SidecarWindowBackend$Companion.getInstance(android.content.Context) (SidecarWindowBackend.kt:191)
+I/rosphere_mobil(10815):   at androidx.window.layout.WindowInfoTracker androidx.window.layout.WindowInfoTracker$Companion.getOrCreate(android.content.Context) (WindowInfoTracker.kt:135)
+I/rosphere_mobil(10815):   at io.flutter.embedding.android.WindowInfoRepositoryCallbackAdapterWrapper io.flutter.embedding.android.FlutterView.createWindowInfoRepo() (FlutterView.java:559)
+I/rosphere_mobil(10815):   at void io.flutter.embedding.android.FlutterView.onAttachedToWindow() (FlutterView.java:580)
+I/rosphere_mobil(10815):   at void android.view.View.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (View.java:18347)
+I/rosphere_mobil(10815):   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3397)
+I/rosphere_mobil(10815):   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3404)
+I/chatty  (10815): uid=10088(com.example.librosphere_mobile) identical 2 lines
+I/rosphere_mobil(10815):   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3404)
+I/rosphere_mobil(10815):   at void android.view.ViewRootImpl.performTraversals() (ViewRootImpl.java:1761)
+I/rosphere_mobil(10815):   at void android.view.ViewRootImpl.doTraversal() (ViewRootImpl.java:1460)
+I/rosphere_mobil(10815):   at void android.view.ViewRootImpl$TraversalRunnable.run() (ViewRootImpl.java:7183)
+I/rosphere_mobil(10815):   at void android.view.Choreographer$CallbackRecord.run(long) (Choreographer.java:949)
+I/rosphere_mobil(10815):   at void android.view.Choreographer.doCallbacks(int, long) (Choreographer.java:761)
+I/rosphere_mobil(10815):   at void android.view.Choreographer.doFrame(long, int) (Choreographer.java:696)
+I/rosphere_mobil(10815):   at void android.view.Choreographer$FrameDisplayEventReceiver.run() (Choreographer.java:935)
+I/rosphere_mobil(10815):   at void android.os.Handler.handleCallback(android.os.Message) (Handler.java:873)
+I/rosphere_mobil(10815):   at void android.os.Handler.dispatchMessage(android.os.Message) (Handler.java:99)
+I/rosphere_mobil(10815):   at void android.os.Looper.loop() (Looper.java:193)
+I/rosphere_mobil(10815):   at void android.app.ActivityThread.main(java.lang.String[]) (ActivityThread.java:6669)
+I/rosphere_mobil(10815):   at java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) (Method.java:-2)
+I/rosphere_mobil(10815):   at void com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run() (RuntimeInit.java:493)
+I/rosphere_mobil(10815):   at void com.android.internal.os.ZygoteInit.main(java.lang.String[]) (ZygoteInit.java:858)
+I/rosphere_mobil(10815): Caused by: java.lang.ClassNotFoundException: Didn't find class "androidx.window.sidecar.SidecarInterface$SidecarCallback" on path: DexPathList[[zip file "/system/framework/org.apache.http.legacy.boot.jar", zip file "/data/app/com.example.librosphere_mobile-qpbftmtsFLooL5JzobzFlQ==/base.apk"],nativeLibraryDirectories=[/data/app/com.example.librosphere_mobile-qpbftmtsFLooL5JzobzFlQ==/lib/x86_64, /data/app/com.example.librosphere_mobile-qpbftmtsFLooL5JzobzFlQ==/base.apk!/lib/x86_64, /system/lib64]]
+I/rosphere_mobil(10815):   at java.lang.Class dalvik.system.BaseDexClassLoader.findClass(java.lang.String) (BaseDexClassLoader.java:134)
+I/rosphere_mobil(10815):   at java.lang.Class java.lang.ClassLoader.loadClass(java.lang.String, boolean) (ClassLoader.java:379)
+I/rosphere_mobil(10815):   at java.lang.Class java.lang.ClassLoader.loadClass(java.lang.String) (ClassLoader.java:312)
+I/rosphere_mobil(10815):   at androidx.window.layout.adapter.sidecar.ExtensionInterfaceCompat androidx.window.layout.adapter.sidecar.SidecarWindowBackend$Companion.initAndVerifyExtension(android.content.Context) (SidecarWindowBackend.kt:207)
+I/rosphere_mobil(10815):   at androidx.window.layout.adapter.sidecar.SidecarWindowBackend androidx.window.layout.adapter.sidecar.SidecarWindowBackend$Companion.getInstance(android.content.Context) (SidecarWindowBackend.kt:191)
+I/rosphere_mobil(10815):   at androidx.window.layout.WindowInfoTracker androidx.window.layout.WindowInfoTracker$Companion.getOrCreate(android.content.Context) (WindowInfoTracker.kt:135)
+I/rosphere_mobil(10815):   at io.flutter.embedding.android.WindowInfoRepositoryCallbackAdapterWrapper io.flutter.embedding.android.FlutterView.createWindowInfoRepo() (FlutterView.java:559)
+I/rosphere_mobil(10815):   at void io.flutter.embedding.android.FlutterView.onAttachedToWindow() (FlutterView.java:580)
+I/rosphere_mobil(10815):   at void android.view.View.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (View.java:18347)
+I/rosphere_mobil(10815):   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3397)
+I/rosphere_mobil(10815):   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3404)
+I/chatty  (10815): uid=10088(com.example.librosphere_mobile) identical 2 lines
+I/rosphere_mobil(10815):   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3404)
+I/rosphere_mobil(10815):   at void android.view.ViewRootImpl.performTraversals() (ViewRootImpl.java:1761)
+I/rosphere_mobil(10815):   at void android.view.ViewRootImpl.doTraversal() (ViewRootImpl.java:1460)
+I/rosphere_mobil(10815):   at void android.view.ViewRootImpl$TraversalRunnable.run() (ViewRootImpl.java:7183)
+I/rosphere_mobil(10815):   at void android.view.Choreographer$CallbackRecord.run(long) (Choreographer.java:949)
+I/rosphere_mobil(10815):   at void android.view.Choreographer.doCallbacks(int, long) (Choreographer.java:761)
+I/rosphere_mobil(10815):   at void android.view.Choreographer.doFrame(long, int) (Choreographer.java:696)
+I/rosphere_mobil(10815):   at void android.view.Choreographer$FrameDisplayEventReceiver.run() (Choreographer.java:935)
+I/rosphere_mobil(10815):   at void android.os.Handler.handleCallback(android.os.Message) (Handler.java:873)
+I/rosphere_mobil(10815):   at void android.os.Handler.dispatchMessage(android.os.Message) (Handler.java:99)
+I/rosphere_mobil(10815):   at void android.os.Looper.loop() (Looper.java:193)
+I/rosphere_mobil(10815):   at void android.app.ActivityThread.main(java.lang.String[]) (ActivityThread.java:6669)
+I/rosphere_mobil(10815):   at java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) (Method.java:-2)
+I/rosphere_mobil(10815):   at void com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run() (RuntimeInit.java:493)
+I/rosphere_mobil(10815):   at void com.android.internal.os.ZygoteInit.main(java.lang.String[]) (ZygoteInit.java:858)
+I/rosphere_mobil(10815): 
+D/FlutterRenderer(10815): Width is zero. 0,0
+D/FlutterRenderer(10815): Width is zero. 0,0
+I/OpenGLRenderer(10815): Initialized EGL, version 1.4
+D/OpenGLRenderer(10815): Swap behavior 1
+D/HostConnection(10815): HostConnection::get() New Host Connection established 0x72528344cd60, tid 10860
+D/FlutterJNI(10815): Sending viewport metrics to the engine.
+D/HostConnection(10815): HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_native_sync_v3 ANDROID_EMU_native_sync_v4 ANDROID_EMU_dma_v1 ANDROID_EMU_YUV420_888_to_NV21 ANDROID_EMU_YUV_Cache ANDROID_EMU_sync_buffer_data ANDROID_EMU_hwc_color_transform GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_1 
+W/OpenGLRenderer(10815): Failed to choose config with EGL_SWAP_BEHAVIOR_PRESERVED, retrying without...
+D/OpenGLRenderer(10815): Swap behavior 0
+D/eglCodecCommon(10815): setVertexArrayObject: set vao to 0 (0) 0 0
+D/EGL_emulation(10815): eglCreateContext: 0x72528344e200: maj 3 min 1 rcv 4
+D/EGL_emulation(10815): eglMakeCurrent: 0x72528344e200: ver 3 1 (tinfo 0x725283585a80)
+E/eglCodecCommon(10815): glUtilsParamSize: unknow param 0x000082da
+E/eglCodecCommon(10815): glUtilsParamSize: unknow param 0x000082da
+D/HostConnection(10815): createUnique: call
+D/HostConnection(10815): HostConnection::get() New Host Connection established 0x72528344e520, tid 10845
+E/eglCodecCommon(10815): GoldfishAddressSpaceHostMemoryAllocator: ioctl_ping failed for device_type=5, ret=-1
+D/HostConnection(10815): HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_native_sync_v3 ANDROID_EMU_native_sync_v4 ANDROID_EMU_dma_v1 ANDROID_EMU_YUV420_888_to_NV21 ANDROID_EMU_YUV_Cache ANDROID_EMU_sync_buffer_data ANDROID_EMU_hwc_color_transform GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_1 
+D/HostConnection(10815): HostConnection::get() New Host Connection established 0x72528344e5c0, tid 10845
+D/HostConnection(10815): HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_native_sync_v3 ANDROID_EMU_native_sync_v4 ANDROID_EMU_dma_v1 ANDROID_EMU_YUV420_888_to_NV21 ANDROID_EMU_YUV_Cache ANDROID_EMU_sync_buffer_data ANDROID_EMU_hwc_color_transform GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_1 
+D/EGL_emulation(10815): eglMakeCurrent: 0x725281ad8200: ver 3 1 (tinfo 0x725280074be0)
+E/eglCodecCommon(10815): glUtilsParamSize: unknow param 0x000082da
+E/eglCodecCommon(10815): glUtilsParamSize: unknow param 0x000082da
+D/eglCodecCommon(10815): setVertexArrayObject: set vao to 0 (0) 0 0
+D/EGL_emulation(10815): eglCreateContext: 0x72528344e700: maj 3 min 1 rcv 4
+D/EGL_emulation(10815): eglMakeCurrent: 0x72528344e700: ver 3 1 (tinfo 0x725280074be0)
+D/EGL_emulation(10815): eglMakeCurrent: 0x725281ad8200: ver 3 1 (tinfo 0x725280074be0)
+D/EGL_emulation(10815): eglMakeCurrent: 0x725281ad8200: ver 3 1 (tinfo 0x725280074be0)
+W/rosphere_mobil(10815): Accessing hidden method Landroid/os/Trace;->asyncTraceEnd(JLjava/lang/String;I)V (light greylist, reflection)
+I/Choreographer(10815): Skipped 120 frames!  The application may be doing too much work on its main thread.
+D/FlutterJNI(10815): Sending viewport metrics to the engine.
+D/ProfileInstaller(10815): Installing profile for com.example.librosphere_mobile
+I/Choreographer(10815): Skipped 167 frames!  The application may be doing too much work on its main thread.
+D/eglCodecCommon(10815): setVertexArrayObject: set vao to 0 (0) 1 0
+D/FlutterJNI(10815): Sending viewport metrics to the engine.
+D/EGL_emulation(10815): eglMakeCurrent: 0x72528344e200: ver 3 1 (tinfo 0x725283585a80)
+D/eglCodecCommon(10815): setVertexArrayObject: set vao to 0 (0) 1 2
+I/OpenGLRenderer(10815): Davey! duration=1082ms; Flags=0, IntendedVsync=6072618242404, Vsync=6072618242404, OldestInputEvent=9223372036854775807, NewestInputEvent=0, HandleInputStart=6072633650300, AnimationStart=6072633683600, PerformTraversalsStart=6072633705300, DrawStart=6072640861000, SyncQueued=6072645690400, SyncStart=6072648910000, IssueDrawCommandsStart=6072649727000, SwapBuffers=6073226249600, FrameCompleted=6073703735300, DequeueBufferDuration=93700000, QueueBufferDuration=6163000, 
+W/rosphere_mobil(10815): Accessing hidden field Ljava/nio/Buffer;->address:J (light greylist, reflection)
+I/AssistStructure(10815): Flattened final assist data: 1276 bytes, containing 1 windows, 4 views
+D/FlutterJNI(10815): Sending viewport metrics to the engine.
+W/rosphere_mobil(10815): Accessing hidden method Landroid/view/View;->getViewRootImpl()Landroid/view/ViewRootImpl; (light greylist, reflection)
+W/rosphere_mobil(10815): Accessing hidden field Landroid/view/View$AttachInfo;->mVisibleInsets:Landroid/graphics/Rect; (light greylist, reflection)
+W/rosphere_mobil(10815): Accessing hidden field Landroid/view/ViewRootImpl;->mAttachInfo:Landroid/view/View$AttachInfo; (light greylist, reflection)
+W/rosphere_mobil(10815): Accessing hidden field Landroid/graphics/Insets;->left:I (light greylist, linking)
+W/rosphere_mobil(10815): Accessing hidden field Landroid/graphics/Insets;->top:I (light greylist, linking)
+W/rosphere_mobil(10815): Accessing hidden field Landroid/graphics/Insets;->right:I (light greylist, linking)
+W/rosphere_mobil(10815): Accessing hidden field Landroid/graphics/Insets;->bottom:I (light greylist, linking)
+I/AssistStructure(10815): Flattened final assist data: 1320 bytes, containing 1 windows, 4 views
+D/FlutterJNI(10815): Sending viewport metrics to the engine.
+D/FlutterJNI(10815): Sending viewport metrics to the engine.
+E/flutter (10815): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: The requested operation could not be completed.
+E/flutter (10815): #0      ApiClient._ensureSuccess (package:librosphere_mobile/core/network/api_client.dart:709:5)
+E/flutter (10815): #1      ApiClient._send (package:librosphere_mobile/core/network/api_client.dart:576:9)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #2      ApiClient.getHomeFeed (package:librosphere_mobile/core/network/api_client.dart:288:22)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #3      SessionViewModel.getHomeFeed (package:librosphere_mobile/features/session/presentation/viewmodels/session_viewmodel.dart:516:18)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #4      MobileHomeScreenState._load (package:librosphere_mobile/screens/home_screen.dart:80:18)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #5      _FutureBuilderState._subscribe.<anonymous closure> (package:flutter/src/widgets/async.dart:641:7)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): 
+E/flutter (10815): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: The requested operation could not be completed.
+E/flutter (10815): #0      ApiClient._ensureSuccess (package:librosphere_mobile/core/network/api_client.dart:709:5)
+E/flutter (10815): #1      ApiClient._send (package:librosphere_mobile/core/network/api_client.dart:576:9)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #2      ApiClient.getHomeFeed (package:librosphere_mobile/core/network/api_client.dart:288:22)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #3      SessionViewModel.getHomeFeed (package:librosphere_mobile/features/session/presentation/viewmodels/session_viewmodel.dart:516:18)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #4      MobileHomeScreenState._load (package:librosphere_mobile/screens/home_screen.dart:80:18)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #5      _FutureBuilderState._subscribe.<anonymous closure> (package:flutter/src/widgets/async.dart:641:7)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): 
+E/flutter (10815): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: The requested operation could not be completed.
+E/flutter (10815): #0      ApiClient._ensureSuccess (package:librosphere_mobile/core/network/api_client.dart:709:5)
+E/flutter (10815): #1      ApiClient._send (package:librosphere_mobile/core/network/api_client.dart:576:9)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #2      ApiClient.getHomeFeed (package:librosphere_mobile/core/network/api_client.dart:288:22)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #3      SessionViewModel.getHomeFeed (package:librosphere_mobile/features/session/presentation/viewmodels/session_viewmodel.dart:516:18)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #4      MobileHomeScreenState._load (package:librosphere_mobile/screens/home_screen.dart:80:18)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #5      _FutureBuilderState._subscribe.<anonymous closure> (package:flutter/src/widgets/async.dart:641:7)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): 
+I/AssistStructure(10815): Flattened final assist data: 1276 bytes, containing 1 windows, 4 views
+D/FlutterJNI(10815): Sending viewport metrics to the engine.
+I/AssistStructure(10815): Flattened final assist data: 1320 bytes, containing 1 windows, 4 views
+D/FlutterJNI(10815): Sending viewport metrics to the engine.
+E/flutter (10815): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: The requested operation could not be completed.
+E/flutter (10815): #0      ApiClient._ensureSuccess (package:librosphere_mobile/core/network/api_client.dart:709:5)
+E/flutter (10815): #1      ApiClient._send (package:librosphere_mobile/core/network/api_client.dart:576:9)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #2      ApiClient.getHomeFeed (package:librosphere_mobile/core/network/api_client.dart:288:22)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #3      SessionViewModel.getHomeFeed (package:librosphere_mobile/features/session/presentation/viewmodels/session_viewmodel.dart:516:18)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #4      MobileHomeScreenState._load (package:librosphere_mobile/screens/home_screen.dart:80:18)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #5      _FutureBuilderState._subscribe.<anonymous closure> (package:flutter/src/widgets/async.dart:641:7)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): 
+E/flutter (10815): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: The requested operation could not be completed.
+E/flutter (10815): #0      ApiClient._ensureSuccess (package:librosphere_mobile/core/network/api_client.dart:709:5)
+E/flutter (10815): #1      ApiClient._send (package:librosphere_mobile/core/network/api_client.dart:576:9)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #2      ApiClient.getHomeFeed (package:librosphere_mobile/core/network/api_client.dart:288:22)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #3      SessionViewModel.getHomeFeed (package:librosphere_mobile/features/session/presentation/viewmodels/session_viewmodel.dart:516:18)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #4      MobileHomeScreenState._load (package:librosphere_mobile/screens/home_screen.dart:80:18)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #5      _FutureBuilderState._subscribe.<anonymous closure> (package:flutter/src/widgets/async.dart:641:7)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): 
+I/chatty  (10815): uid=10088(com.example.librosphere_mobile) identical 1 line
+E/flutter (10815): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: The requested operation could not be completed.
+E/flutter (10815): #0      ApiClient._ensureSuccess (package:librosphere_mobile/core/network/api_client.dart:709:5)
+E/flutter (10815): #1      ApiClient._send (package:librosphere_mobile/core/network/api_client.dart:576:9)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #2      ApiClient.getHomeFeed (package:librosphere_mobile/core/network/api_client.dart:288:22)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #3      SessionViewModel.getHomeFeed (package:librosphere_mobile/features/session/presentation/viewmodels/session_viewmodel.dart:516:18)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #4      MobileHomeScreenState._load (package:librosphere_mobile/screens/home_screen.dart:80:18)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #5      _FutureBuilderState._subscribe.<anonymous closure> (package:flutter/src/widgets/async.dart:641:7)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): 
+E/flutter (10815): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: The requested operation could not be completed.
+E/flutter (10815): #0      ApiClient._ensureSuccess (package:librosphere_mobile/core/network/api_client.dart:709:5)
+E/flutter (10815): #1      ApiClient._send (package:librosphere_mobile/core/network/api_client.dart:576:9)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #2      ApiClient.getHomeFeed (package:librosphere_mobile/core/network/api_client.dart:288:22)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #3      SessionViewModel.getHomeFeed (package:librosphere_mobile/features/session/presentation/viewmodels/session_viewmodel.dart:516:18)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #4      MobileHomeScreenState._load (package:librosphere_mobile/screens/home_screen.dart:80:18)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #5      _FutureBuilderState._subscribe.<anonymous closure> (package:flutter/src/widgets/async.dart:641:7)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): 
+E/flutter (10815): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: The requested operation could not be completed.
+E/flutter (10815): #0      ApiClient._ensureSuccess (package:librosphere_mobile/core/network/api_client.dart:709:5)
+E/flutter (10815): #1      ApiClient._send (package:librosphere_mobile/core/network/api_client.dart:576:9)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #2      ApiClient.getHomeFeed (package:librosphere_mobile/core/network/api_client.dart:288:22)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #3      SessionViewModel.getHomeFeed (package:librosphere_mobile/features/session/presentation/viewmodels/session_viewmodel.dart:516:18)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #4      MobileHomeScreenState._load (package:librosphere_mobile/screens/home_screen.dart:80:18)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #5      _FutureBuilderState._subscribe.<anonymous closure> (package:flutter/src/widgets/async.dart:641:7)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): 
+I/AssistStructure(10815): Flattened final assist data: 1276 bytes, containing 1 windows, 4 views
+D/FlutterJNI(10815): Sending viewport metrics to the engine.
+I/AssistStructure(10815): Flattened final assist data: 1320 bytes, containing 1 windows, 4 views
+D/FlutterJNI(10815): Sending viewport metrics to the engine.
+E/flutter (10815): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: The requested operation could not be completed.
+E/flutter (10815): #0      ApiClient._ensureSuccess (package:librosphere_mobile/core/network/api_client.dart:709:5)
+E/flutter (10815): #1      ApiClient._send (package:librosphere_mobile/core/network/api_client.dart:576:9)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #2      ApiClient.getHomeFeed (package:librosphere_mobile/core/network/api_client.dart:288:22)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #3      SessionViewModel.getHomeFeed (package:librosphere_mobile/features/session/presentation/viewmodels/session_viewmodel.dart:516:18)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #4      MobileHomeScreenState._load (package:librosphere_mobile/screens/home_screen.dart:80:18)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815): #5      _FutureBuilderState._subscribe.<anonymous closure> (package:flutter/src/widgets/async.dart:641:7)
+E/flutter (10815): <asynchronous suspension>
+E/flutter (10815):  
+STa puca ovde? 

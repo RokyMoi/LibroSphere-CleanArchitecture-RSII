@@ -1513,10 +1513,20 @@ class _InterestsScreenState extends State<_InterestsScreen> {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
-                child: Text(
-                  formatErrorMessage(snapshot.error!),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.red),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      formatErrorMessage(snapshot.error!),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () => setState(() => _future = _load()),
+                      child: const Text('Try again'),
+                    ),
+                  ],
                 ),
               ),
             );

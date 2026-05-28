@@ -92,37 +92,27 @@ namespace LibroSphere.WebApi.Controllers.Book
             [FromQuery] int takeRecommendations = 5,
             CancellationToken cancellationToken = default)
         {
-            var booksTask = _sender.Send(
+            var booksResult = await _sender.Send(
                 new GetAllBooksQuery(searchTerm, null, null, null, null, null, page, pageSize),
                 cancellationToken);
-
-            if (User.Identity?.IsAuthenticated != true)
-            {
-                var anonymousBooksResult = await booksTask;
-
-                if (!anonymousBooksResult.IsSuccess)
-                {
-                    return BadRequest(anonymousBooksResult.Error);
-                }
-
-                return Ok(CreateHomeFeedResponse(anonymousBooksResult.Value));
-            }
-
-            var userId = User.GetRequiredUserId();
-            var recommendationsTask = _sender.Send(
-                new GetRecommendedBooksQuery(userId, takeRecommendations),
-                cancellationToken);
-
-            var booksResult = await booksTask;
 
             if (!booksResult.IsSuccess)
             {
                 return BadRequest(booksResult.Error);
             }
 
+            if (User.Identity?.IsAuthenticated != true)
+            {
+                return Ok(CreateHomeFeedResponse(booksResult.Value));
+            }
+
+            var userId = User.GetRequiredUserId();
+
             try
             {
-                var recommendationsResult = await recommendationsTask;
+                var recommendationsResult = await _sender.Send(
+                    new GetRecommendedBooksQuery(userId, takeRecommendations),
+                    cancellationToken);
 
                 if (!recommendationsResult.IsSuccess)
                 {
@@ -135,10 +125,11 @@ namespace LibroSphere.WebApi.Controllers.Book
 
                 return Ok(CreateHomeFeedResponse(booksResult.Value, recommendationsResult.Value));
             }
-            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
             {
                 _logger.LogWarning(
-                    "Home feed recommendations timed out for user {UserId}. Returning books without recommendations.",
+                    ex,
+                    "Home feed recommendations failed for user {UserId}. Returning books without recommendations.",
                     userId);
                 return Ok(CreateHomeFeedResponse(booksResult.Value));
             }
