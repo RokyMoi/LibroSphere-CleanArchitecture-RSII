@@ -52,8 +52,7 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
         switch (stripeEvent.Type)
         {
             case "payment_intent.succeeded":
-                await HandleSucceeded(stripeEvent.Data.Object as PaymentIntent, cancellationToken);
-                break;
+                return await HandleSucceeded(stripeEvent.Data.Object as PaymentIntent, cancellationToken);
             case "payment_intent.payment_failed":
                 await HandleFailed(stripeEvent.Data.Object as PaymentIntent, cancellationToken);
                 break;
@@ -62,22 +61,24 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
         return Result.Success();
     }
 
-    private async Task HandleSucceeded(PaymentIntent? intent, CancellationToken cancellationToken)
+    private async Task<Result> HandleSucceeded(PaymentIntent? intent, CancellationToken cancellationToken)
     {
         if (intent is null)
         {
-            return;
+            return Result.Failure(new Error("Stripe.Webhook.InvalidPayload", "PaymentIntent payload was missing."));
         }
 
         intent.Metadata.TryGetValue("cartId", out var cartId);
         var order = await _orderRepository.GetByPaymentIntentIdAsync(intent.Id, cancellationToken);
         if (order is null)
         {
-            order = await CreateOrderFromPaymentIntentAsync(intent, cartId, cancellationToken);
-            if (order is null)
+            var orderResult = await CreateOrderFromPaymentIntentAsync(intent, cartId, cancellationToken);
+            if (orderResult.IsFailure)
             {
-                return;
+                return Result.Failure(orderResult.Error);
             }
+
+            order = orderResult.Value;
         }
 
         var alreadyProcessed = order.Status == OrderStatus.PaymentReceived;
@@ -101,7 +102,7 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
 
         if (alreadyProcessed)
         {
-            return;
+            return Result.Success();
         }
 
         await _publishEndpoint.Publish(new OrderPaidIntegrationEvent(
@@ -116,9 +117,11 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
                     item.Price.Currency.Code,
                     item.Quantity))
                 .ToList()), cancellationToken);
+
+        return Result.Success();
     }
 
-    private async Task<Order?> CreateOrderFromPaymentIntentAsync(
+    private async Task<Result<Order>> CreateOrderFromPaymentIntentAsync(
         PaymentIntent intent,
         string? cartId,
         CancellationToken cancellationToken)
@@ -129,18 +132,18 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
             !intent.Metadata.TryGetValue("buyerEmail", out var buyerEmail) ||
             string.IsNullOrWhiteSpace(buyerEmail))
         {
-            return null;
+            return Result.Failure<Order>(new Error("Stripe.Webhook.MissingMetadata", "Payment intent metadata is incomplete."));
         }
 
         var cart = await _cartService.GetCartAsync(cartId, cancellationToken);
         if (cart is null)
         {
-            return null;
+            return Result.Failure<Order>(new Error("Stripe.Webhook.CartNotFound", "Cart from payment intent metadata was not found."));
         }
 
         if (cart.UserId != userId)
         {
-            return null;
+            return Result.Failure<Order>(new Error("Stripe.Webhook.CartForbidden", "Cart does not belong to payment intent user."));
         }
 
         var bookIds = cart.Items.Select(i => i.BookId).Distinct().ToList();
@@ -152,7 +155,7 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
         {
             if (!bookLookup.TryGetValue(item.BookId, out var book))
             {
-                return null;
+                return Result.Failure<Order>(new Error("Stripe.Webhook.BookNotFound", $"Book {item.BookId} was not found."));
             }
 
             orderItems.Add(OrderItem.Create(
@@ -171,7 +174,7 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
             cart.ClientSecret ?? string.Empty);
 
         await _orderRepository.AddAsync(order, cancellationToken);
-        return order;
+        return Result.Success(order);
     }
 
     private async Task HandleFailed(PaymentIntent? intent, CancellationToken cancellationToken)
