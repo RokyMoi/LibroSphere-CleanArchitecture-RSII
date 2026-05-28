@@ -18,12 +18,18 @@ namespace LibroSphere.Application.Reviews.Query.GetReviewsByUser
             var page = Math.Max(1, request.Page);
             var pageSize = Math.Clamp(request.PageSize, 1, 100);
 
-            var reviews = await _reviewRepository.GetByUserIdAsync(request.UserId, request.MinRating, request.MaxRating, cancellationToken);
+            var (reviews, totalCount) = await _reviewRepository.GetPagedByUserIdAsync(
+                request.UserId,
+                request.MinRating,
+                request.MaxRating,
+                page,
+                pageSize,
+                cancellationToken);
             var response = reviews
                 .Select(review => new ReviewResponse(review.Id, review.UserId, review.BookId, review.Rating, review.Comment, review.CreatedAt))
                 .ToList();
 
-            return Result.Success(PagedResponse<ReviewResponse>.Create(response, page, pageSize));
+            return Result.Success(new PagedResponse<ReviewResponse>(response, page, pageSize, totalCount));
         }
     }
 }

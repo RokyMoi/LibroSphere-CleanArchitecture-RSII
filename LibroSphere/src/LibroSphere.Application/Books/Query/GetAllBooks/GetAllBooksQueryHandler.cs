@@ -28,20 +28,16 @@ namespace LibroSphere.Application.Books.Query.GetAllBooks
             var page = Math.Max(1, request.Page);
             var pageSize = Math.Clamp(request.PageSize, 1, 200);
 
-            var books = await _bookRepository.SearchAsync(
+            var (pageBooks, totalCount) = await _bookRepository.SearchPagedAsync(
                 request.SearchTerm,
                 request.AuthorId,
                 request.GenreId,
                 request.MinPrice,
                 request.MaxPrice,
                 request.MinRating,
+                page,
+                pageSize,
                 cancellationToken);
-
-            var totalCount = books.Count;
-            var pageBooks = books
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
 
             var bookIds = pageBooks.Select(b => b.Id).ToList();
             var reviewStats = await _reviewRepository.GetStatsForBooksAsync(bookIds, cancellationToken);

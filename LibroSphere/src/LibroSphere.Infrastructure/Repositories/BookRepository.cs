@@ -70,43 +70,98 @@ namespace LibroSphere.Infrastructure.Repositories
 
         public async Task<List<Book>> SearchAsync(string? searchTerm, Guid? authorId, Guid? genreId, decimal? minPrice = null, decimal? maxPrice = null, double? minRating = null, CancellationToken cancellationToken = default)
         {
-            var query = DbContext
-                .Set<Book>()
-                .AsNoTracking()
+            var query = ApplySearchFilters(
+                DbContext
+                    .Set<Book>()
+                    .AsNoTracking()
+                    .AsSplitQuery()
+                    .Include(b => b.Author)
+                    .Include(b => b.BookGenres)
+                        .ThenInclude(bg => bg.Genre),
+                searchTerm,
+                authorId,
+                genreId,
+                minPrice,
+                maxPrice,
+                minRating);
+
+            return await query.OrderBy(b => b.Title.Value).ToListAsync(cancellationToken);
+        }
+
+        public async Task<(List<Book> Items, int TotalCount)> SearchPagedAsync(
+            string? searchTerm,
+            Guid? authorId,
+            Guid? genreId,
+            decimal? minPrice,
+            decimal? maxPrice,
+            double? minRating,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            var filteredQuery = ApplySearchFilters(
+                DbContext.Set<Book>().AsNoTracking(),
+                searchTerm,
+                authorId,
+                genreId,
+                minPrice,
+                maxPrice,
+                minRating);
+
+            var totalCount = await filteredQuery.CountAsync(cancellationToken);
+
+            var items = await filteredQuery
+                .OrderBy(b => b.Title.Value)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .AsSplitQuery()
                 .Include(b => b.Author)
                 .Include(b => b.BookGenres)
                     .ThenInclude(bg => bg.Genre)
-                .AsQueryable();
+                .ToListAsync(cancellationToken);
+
+            return (items, totalCount);
+        }
+
+        private static IQueryable<Book> ApplySearchFilters(
+            IQueryable<Book> query,
+            string? searchTerm,
+            Guid? authorId,
+            Guid? genreId,
+            decimal? minPrice,
+            decimal? maxPrice,
+            double? minRating)
+        {
+            var filtered = query;
 
             if (authorId.HasValue)
-                query = query.Where(b => b.AuthorId == authorId.Value);
+                filtered = filtered.Where(b => b.AuthorId == authorId.Value);
 
             if (genreId.HasValue)
-                query = query.Where(b => b.BookGenres.Any(bg => bg.GenreId == genreId.Value));
+                filtered = filtered.Where(b => b.BookGenres.Any(bg => bg.GenreId == genreId.Value));
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 var term = searchTerm.Trim();
-                query = query.Where(b =>
+                filtered = filtered.Where(b =>
                     b.Title.Value.Contains(term) ||
                     b.Description.Value.Contains(term) ||
                     (b.Author != null && b.Author.Name.Value.Contains(term)));
             }
 
             if (minPrice.HasValue)
-                query = query.Where(b => b.Price.amount >= minPrice.Value);
+                filtered = filtered.Where(b => b.Price.amount >= minPrice.Value);
 
             if (maxPrice.HasValue)
-                query = query.Where(b => b.Price.amount <= maxPrice.Value);
+                filtered = filtered.Where(b => b.Price.amount <= maxPrice.Value);
 
             if (minRating.HasValue)
-                query = query.Where(b =>
+                filtered = filtered.Where(b =>
                     b.Reviews.Count == 0
                         ? 0 >= minRating.Value
                         : b.Reviews.Average(r => (double)r.Rating) >= minRating.Value);
 
-            return await query.OrderBy(b => b.Title.Value).ToListAsync(cancellationToken);
+            return filtered;
         }
 
         public void ReplaceGenres(Book book, IReadOnlyCollection<Genre> genres)

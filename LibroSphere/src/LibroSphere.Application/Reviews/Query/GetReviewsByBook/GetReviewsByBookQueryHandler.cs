@@ -18,7 +18,13 @@ namespace LibroSphere.Application.Reviews.Query.GetReviewsByBook
             var page = Math.Max(1, request.Page);
             var pageSize = Math.Clamp(request.PageSize, 1, 100);
 
-            var reviews = await _reviewRepository.GetByBookIdAsync(request.BookId, request.MinRating, request.MaxRating, cancellationToken);
+            var (reviews, totalCount) = await _reviewRepository.GetPagedByBookIdAsync(
+                request.BookId,
+                request.MinRating,
+                request.MaxRating,
+                page,
+                pageSize,
+                cancellationToken);
             var response = reviews
                 .Select(review => new ReviewResponse(
                     review.Id,
@@ -31,7 +37,7 @@ namespace LibroSphere.Application.Reviews.Query.GetReviewsByBook
                     review.User?.ProfilePictureUrl))
                 .ToList();
 
-            return Result.Success(PagedResponse<ReviewResponse>.Create(response, page, pageSize));
+            return Result.Success(new PagedResponse<ReviewResponse>(response, page, pageSize, totalCount));
         }
     }
 }

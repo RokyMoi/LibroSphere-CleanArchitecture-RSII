@@ -8,6 +8,8 @@ namespace LibroSphere.Domain.Entities.Reviews
         Task<Review?> GetReadOnlyByIdAsync(Guid id, CancellationToken cancellationToken = default);
         Task<List<Review>> GetByBookIdAsync(Guid bookId, int? minRating = null, int? maxRating = null, CancellationToken cancellationToken = default);
         Task<List<Review>> GetByUserIdAsync(Guid userId, int? minRating = null, int? maxRating = null, CancellationToken cancellationToken = default);
+        Task<(List<Review> Items, int TotalCount)> GetPagedByBookIdAsync(Guid bookId, int? minRating, int? maxRating, int page, int pageSize, CancellationToken cancellationToken = default);
+        Task<(List<Review> Items, int TotalCount)> GetPagedByUserIdAsync(Guid userId, int? minRating, int? maxRating, int page, int pageSize, CancellationToken cancellationToken = default);
         Task<Review?> GetByUserAndBookAsync(Guid userId, Guid bookId, CancellationToken cancellationToken = default);
         Task<IReadOnlyDictionary<Guid, BookReviewStats>> GetStatsForBooksAsync(IReadOnlyCollection<Guid> bookIds, CancellationToken cancellationToken = default);
         void Add(Review review);
