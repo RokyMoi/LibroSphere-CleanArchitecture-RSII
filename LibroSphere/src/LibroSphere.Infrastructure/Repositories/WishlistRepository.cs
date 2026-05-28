@@ -14,12 +14,10 @@ namespace LibroSphere.Infrastructure.Repositories
         {
             return await DbContext
                 .Set<Wishlist>()
+                .AsSplitQuery()
                 .Include(w => w.Items)
                     .ThenInclude(i => i.Book)
                         .ThenInclude(book => book.Author)
-                .Include(w => w.Items)
-                    .ThenInclude(i => i.Book)
-                        .ThenInclude(book => book.Reviews)
                 .Include(w => w.Items)
                     .ThenInclude(i => i.Book)
                         .ThenInclude(book => book.BookGenres)

@@ -165,10 +165,10 @@ namespace LibroSphere.WebApi.Controllers.Orders
             if (isFullRefund)
             {
                 var userLibrary = await _userBookRepository.GetByUserIdAsync(order.UserId, cancellationToken);
+                var libraryByBookId = userLibrary.ToDictionary(ub => ub.BookId);
                 foreach (var item in order.Items)
                 {
-                    var userBook = userLibrary.FirstOrDefault(ub => ub.BookId == item.BookId);
-                    if (userBook != null)
+                    if (libraryByBookId.TryGetValue(item.BookId, out var userBook))
                     {
                         await _userBookRepository.RemoveAsync(userBook);
                     }

@@ -104,6 +104,22 @@ namespace LibroSphere.Infrastructure.Services
         public async Task<List<Order>> GetAllOrdersAsync(CancellationToken cancellationToken = default)
             => await _orderRepo.GetAllAsync();
 
+        public Task<(List<Order> Items, int TotalCount)> GetPagedOrdersForUserAsync(
+            Guid userId,
+            OrderStatus? status,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+            => _orderRepo.GetPagedForUserAsync(userId, status, page, pageSize, cancellationToken);
+
+        public Task<(List<Order> Items, int TotalCount)> GetPagedAllOrdersAsync(
+            string? searchTerm,
+            OrderStatus? status,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+            => _orderRepo.GetPagedAsync(searchTerm, status, page, pageSize, cancellationToken);
+
         public async Task<Order?> GetOrderByIdAsync(Guid id)
             => await _orderRepo.GetByIdAsync(id);
 
