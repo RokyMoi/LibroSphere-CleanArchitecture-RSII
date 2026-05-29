@@ -65,7 +65,7 @@ namespace LibroSphere.WebApi.Controllers.Payment
 
             var result = await _sender.Send(new ProcessStripeWebhookCommand(json, signature, secret), cancellationToken);
 
-            return result.IsSuccess ? Ok() : BadRequest($"Webhook error: {result.Error.Message}");
+            return result.IsSuccess ? Ok() : BadRequest();
         }
     }
 }
