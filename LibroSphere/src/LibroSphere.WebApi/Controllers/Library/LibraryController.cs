@@ -26,6 +26,7 @@ namespace LibroSphere.WebApi.Controllers.Library
             [FromQuery] int pageSize = 12,
             CancellationToken cancellationToken = default)
         {
+            pageSize = Math.Clamp(pageSize, 1, 100);
             var userId = User.GetRequiredUserId();
             var result = await _sender.Send(new GetMyLibraryQuery(userId, searchTerm, page, pageSize), cancellationToken);
             return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
