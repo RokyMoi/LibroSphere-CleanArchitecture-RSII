@@ -70,15 +70,66 @@ namespace LibroSphere.Infrastructure.Repositories
                 .AnyAsync(ub => ub.UserId == userId && ub.BookId == bookId, cancellationToken);
         }
 
+        public async Task<HashSet<Guid>> GetOwnedBookIdsAsync(
+            Guid userId,
+            IEnumerable<Guid> bookIds,
+            CancellationToken cancellationToken = default)
+        {
+            var ids = bookIds.ToList();
+            var owned = await _context.Set<UserBook>()
+                .Where(ub => ub.UserId == userId && ids.Contains(ub.BookId))
+                .Select(ub => ub.BookId)
+                .ToListAsync(cancellationToken);
+            return owned.ToHashSet();
+        }
+
         public async Task AddAsync(UserBook userBook)
         {
             await _context.Set<UserBook>().AddAsync(userBook);
+        }
+
+        public async Task<bool> AddIfNotExistsAsync(UserBook userBook, CancellationToken cancellationToken = default)
+        {
+            var alreadyOwned = await _context.Set<UserBook>()
+                .AnyAsync(ub => ub.UserId == userBook.UserId && ub.BookId == userBook.BookId, cancellationToken);
+            if (alreadyOwned)
+            {
+                return false;
+            }
+
+            await _context.Set<UserBook>().AddAsync(userBook, cancellationToken);
+            try
+            {
+                await _context.SaveChangesAsync(cancellationToken);
+                return true;
+            }
+            catch (DbUpdateException)
+            {
+                // Detach our copy so it can't poison a later SaveChanges.
+                _context.Entry(userBook).State = EntityState.Detached;
+
+                // If a concurrent delivery inserted the same (UserId, BookId) row first, treat
+                // the grant as already done. Otherwise the failure is unrelated — rethrow.
+                var grantedConcurrently = await _context.Set<UserBook>()
+                    .AnyAsync(ub => ub.UserId == userBook.UserId && ub.BookId == userBook.BookId, cancellationToken);
+                if (grantedConcurrently)
+                {
+                    return false;
+                }
+
+                throw;
+            }
         }
 
         public Task RemoveAsync(UserBook userBook)
         {
             _context.Set<UserBook>().Remove(userBook);
             return Task.CompletedTask;
+        }
+
+        public void RemoveRange(IEnumerable<UserBook> userBooks)
+        {
+            _context.Set<UserBook>().RemoveRange(userBooks);
         }
 
         public async Task SaveChangesAsync()
