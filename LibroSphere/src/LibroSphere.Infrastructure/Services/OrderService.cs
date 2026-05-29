@@ -5,6 +5,8 @@ using LibroSphere.Domain.Entities.Books;
 using LibroSphere.Domain.Entities.ManyToMany;
 using LibroSphere.Domain.Entities.Orders;
 using LibroSphere.Domain.Entities.ShopCart;
+using LibroSphere.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace LibroSphere.Infrastructure.Services
 {
@@ -93,7 +95,22 @@ namespace LibroSphere.Infrastructure.Services
                 cart.ClientSecret!);
 
             await _orderRepo.AddAsync(order, cancellationToken);
-            await _orderRepo.SaveChangesAsync(cancellationToken);
+            try
+            {
+                await _orderRepo.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateException ex) when (DbExceptions.IsDuplicateKeyViolation(ex))
+            {
+                // The Stripe webhook created this order first (PaymentIntentId is unique).
+                // Return the already-persisted order instead of surfacing a 500 to the client.
+                var existing = await _orderRepo.GetByPaymentIntentIdAsync(paymentIntentId, cancellationToken);
+                if (existing is not null && existing.UserId == userId)
+                {
+                    return Result.Success(existing);
+                }
+
+                throw;
+            }
 
             return Result.Success(order);
         }
