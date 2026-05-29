@@ -90,7 +90,19 @@ namespace LibroSphere.Infrastructure
                 throw new InvalidOperationException("Connection string 'Database' is not configured.");
 
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(connectionString));
+                options.UseSqlServer(connectionString, sqlOptions =>
+                    sqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(10),
+                        errorNumbersToAdd: null)));
+
+            services.AddDbContextFactory<ApplicationDbContext>(options =>
+                options.UseSqlServer(connectionString, sqlOptions =>
+                    sqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(10),
+                        errorNumbersToAdd: null)),
+                lifetime: ServiceLifetime.Scoped);
 
             services.AddScoped<IUnitOfWork>(sp =>
                 sp.GetRequiredService<ApplicationDbContext>());
