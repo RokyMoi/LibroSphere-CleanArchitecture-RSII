@@ -238,8 +238,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         const SizedBox(height: 24),
         RoundedInput(
           controller: _codeController,
-          hint: '6-digit code',
-          keyboardType: TextInputType.number,
+          hint: 'Reset code',
+          keyboardType: TextInputType.text,
           textInputAction: TextInputAction.next,
           enableSuggestions: false,
           autocorrect: false,
@@ -250,8 +250,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             }
           },
           inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(6),
+            LengthLimitingTextInputFormatter(64),
           ],
         ),
         const SizedBox(height: 16),
