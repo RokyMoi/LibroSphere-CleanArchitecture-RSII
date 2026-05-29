@@ -21,6 +21,7 @@ namespace LibroSphere.WebApi.Controllers.Recommendations
         [HttpGet]
         public async Task<IActionResult> Get([FromQuery] int take = 5, CancellationToken cancellationToken = default)
         {
+            take = Math.Clamp(take, 1, 50);
             var userId = User.GetRequiredUserId();
             var result = await _sender.Send(new GetRecommendedBooksQuery(userId, take), cancellationToken);
             return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
