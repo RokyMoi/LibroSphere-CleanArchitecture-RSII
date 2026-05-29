@@ -1,16 +1,17 @@
 using LibroSphere.Application.Orders.Command.CreateOrder;
+using LibroSphere.Application.Orders.Command.RefundOrder;
+using LibroSphere.Application.Orders.Command.RequestRefund;
+using LibroSphere.Application.Orders.Command.RejectRefund;
 using LibroSphere.Application.Orders.Query.GetAllOrders;
 using LibroSphere.Application.Orders.Query.GetMyOrders;
 using LibroSphere.Application.Orders.Query.GetOrderById;
 using LibroSphere.Application.Abstractions.Identity;
-using LibroSphere.Application.Abstractions.ShoppingServices;
-using LibroSphere.Application.Abstractions;
-using LibroSphere.WebApi.Extensions;
-using LibroSphere.Domain.Entities.ManyToMany.IRepositories;
 using LibroSphere.Domain.Entities.Orders;
+using LibroSphere.WebApi.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace LibroSphere.WebApi.Controllers.Orders
 {
@@ -20,23 +21,14 @@ namespace LibroSphere.WebApi.Controllers.Orders
     public class OrdersController : ControllerBase
     {
         private readonly ISender _sender;
-        private readonly IPaymentService _paymentService;
-        private readonly IOrderService _orderService;
-        private readonly IUserBookRepository _userBookRepository;
 
-        public OrdersController(
-            ISender sender,
-            IPaymentService paymentService,
-            IOrderService orderService,
-            IUserBookRepository userBookRepository)
+        public OrdersController(ISender sender)
         {
             _sender = sender;
-            _paymentService = paymentService;
-            _orderService = orderService;
-            _userBookRepository = userBookRepository;
         }
 
         [HttpPost]
+        [EnableRateLimiting("write")]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest dto, CancellationToken cancellationToken)
         {
             var email = User.GetRequiredEmail();
@@ -61,6 +53,7 @@ namespace LibroSphere.WebApi.Controllers.Orders
             [FromQuery] int pageSize = 10,
             CancellationToken cancellationToken = default)
         {
+            pageSize = Math.Clamp(pageSize, 1, 100);
             var userId = User.GetRequiredUserId();
             var result = await _sender.Send(new GetMyOrdersQuery(userId, status, page, pageSize), cancellationToken);
             return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
@@ -75,6 +68,7 @@ namespace LibroSphere.WebApi.Controllers.Orders
             [FromQuery] int pageSize = 20,
             CancellationToken cancellationToken = default)
         {
+            pageSize = Math.Clamp(pageSize, 1, 100);
             var result = await _sender.Send(new GetAllOrdersQuery(searchTerm, status, page, pageSize), cancellationToken);
             return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
         }
@@ -84,108 +78,96 @@ namespace LibroSphere.WebApi.Controllers.Orders
         {
             var result = await _sender.Send(new GetOrderByIdQuery(id), cancellationToken);
             if (result.IsFailure)
-            {
                 return NotFound(result.Error);
-            }
 
             if (!User.IsAdmin() && result.Value.UserId != User.GetRequiredUserId())
-            {
                 return Forbid();
-            }
 
             return Ok(result.Value);
         }
 
+        /// <summary>User submits a refund request — no Stripe call, sets status to RefundRequested.</summary>
+        [HttpPost("{id:guid}/refund-request")]
+        [EnableRateLimiting("write")]
+        public async Task<IActionResult> RequestRefund(
+            Guid id,
+            [FromBody] RefundRequestBody request,
+            CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(
+                new RequestRefundCommand(id, User.GetRequiredUserId(), request.Reason),
+                cancellationToken);
+
+            if (result.IsFailure)
+            {
+                return result.Error.Code switch
+                {
+                    "Order.NotFound" => NotFound(result.Error),
+                    "Order.Forbidden" => Forbid(),
+                    _ => BadRequest(result.Error)
+                };
+            }
+
+            return Ok(new { message = "Refund request submitted. An admin will review it shortly." });
+        }
+
+        /// <summary>Admin approves a refund request — calls Stripe and finalises the refund.</summary>
         [HttpPost("{id:guid}/refund")]
         [Authorize(Roles = ApplicationRoles.Admin)]
-        public async Task<IActionResult> RefundOrder(
+        [EnableRateLimiting("write")]
+        public async Task<IActionResult> ApproveRefund(
             Guid id,
             [FromBody] RefundOrderRequest request,
             CancellationToken cancellationToken)
         {
-            var order = await _orderService.GetOrderByIdAsync(id);
-            if (order is null)
-            {
-                return NotFound(new { code = "Order.NotFound", message = "Order was not found." });
-            }
-
-            if (!User.IsAdmin() && order.UserId != User.GetRequiredUserId())
-            {
-                return Forbid();
-            }
-
-            if (order.Status == OrderStatus.Refunded || order.Status == OrderStatus.PartiallyRefunded)
-            {
-                return BadRequest(new
-                {
-                    code = "Order.Refund.AlreadyRefunded",
-                    message = "This order has already been refunded."
-                });
-            }
-
-            if (order.Status != OrderStatus.PaymentReceived)
-            {
-                return BadRequest(new
-                {
-                    code = "Order.Refund.InvalidStatus",
-                    message = "Only paid orders can be refunded."
-                });
-            }
-
-            if (request.Amount.HasValue && request.Amount.Value > order.TotalAmount.amount)
-            {
-                return BadRequest(new
-                {
-                    code = "Order.Refund.ExceedsTotal",
-                    message = "Refund amount cannot exceed the order total."
-                });
-            }
-
-            var isFullRefund = request.Amount is null || request.Amount.Value >= order.TotalAmount.amount;
-
-            long? amountInCents = null;
-            if (!isFullRefund)
-            {
-                amountInCents = (long)Math.Round(request.Amount!.Value * 100m);
-            }
-
-            var refundResult = await _paymentService.RefundPaymentIntentAsync(
-                order.PaymentIntentId,
-                amountInCents,
-                request.Reason,
+            var result = await _sender.Send(
+                new RefundOrderCommand(id, User.GetRequiredUserId(), User.IsAdmin(), request.Amount, request.Reason),
                 cancellationToken);
 
-            if (refundResult.IsFailure)
+            if (result.IsFailure)
             {
-                return BadRequest(refundResult.Error);
-            }
-
-            order.UpdateStatus(isFullRefund ? OrderStatus.Refunded : OrderStatus.PartiallyRefunded);
-
-            if (isFullRefund)
-            {
-                var userLibrary = await _userBookRepository.GetByUserIdAsync(order.UserId, cancellationToken);
-                var libraryByBookId = userLibrary.ToDictionary(ub => ub.BookId);
-                foreach (var item in order.Items)
+                return result.Error.Code switch
                 {
-                    if (libraryByBookId.TryGetValue(item.BookId, out var userBook))
-                    {
-                        await _userBookRepository.RemoveAsync(userBook);
-                    }
-                }
+                    "Order.NotFound" => NotFound(result.Error),
+                    "Order.Forbidden" => Forbid(),
+                    _ => BadRequest(result.Error)
+                };
             }
-
-            await _orderService.SaveChangesAsync(cancellationToken);
 
             return Ok(new
             {
-                orderId = order.Id,
-                refundId = refundResult.Value,
-                status = order.Status.ToString(),
-                message = isFullRefund
-                    ? "Refund successful. Books have been removed from user's library."
-                    : "Partial refund successful."
+                orderId = result.Value.OrderId,
+                refundId = result.Value.RefundId,
+                status = result.Value.Status,
+                message = result.Value.Message
             });
         }
+
+        /// <summary>Admin rejects a refund request.</summary>
+        [HttpPost("{id:guid}/refund/reject")]
+        [Authorize(Roles = ApplicationRoles.Admin)]
+        [EnableRateLimiting("write")]
+        public async Task<IActionResult> RejectRefund(
+            Guid id,
+            [FromBody] RefundRequestBody request,
+            CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(
+                new RejectRefundCommand(id, User.GetRequiredUserId(), request.Reason),
+                cancellationToken);
+
+            if (result.IsFailure)
+            {
+                return result.Error.Code switch
+                {
+                    "Order.NotFound" => NotFound(result.Error),
+                    _ => BadRequest(result.Error)
+                };
+            }
+
+            return Ok(new { message = "Refund request rejected." });
+        }
     }
+
+    public sealed record RefundRequestBody(string? Reason);
 }
