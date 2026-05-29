@@ -20,16 +20,10 @@ internal sealed class GetAllUsersQueryHandler : IQueryHandler<GetAllUsersQuery, 
         var page = Math.Max(1, request.Page);
         var pageSize = Math.Clamp(request.PageSize, 1, 100);
 
-        var users = await _userRepository.GetAllAsync(cancellationToken);
+        var (users, totalCount) = await _userRepository.GetPagedAsync(
+            request.SearchTerm, request.IsActive, page, pageSize, cancellationToken);
 
-        var response = users
-            .Where(user =>
-                string.IsNullOrWhiteSpace(request.SearchTerm) ||
-                user.FirstName.Value.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                user.LastName.Value.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                user.UserEmail.Value.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase))
-            .Where(user => !request.IsActive.HasValue || user.IsActive == request.IsActive.Value)
-            .Select(user => new UserResponse(
+        var items = users.Select(user => new UserResponse(
                 user.Id,
                 user.FirstName.Value,
                 user.LastName.Value,
@@ -39,6 +33,6 @@ internal sealed class GetAllUsersQueryHandler : IQueryHandler<GetAllUsersQuery, 
                 user.IsActive))
             .ToList();
 
-        return Result.Success(PagedResponse<UserResponse>.Create(response, page, pageSize));
+        return Result.Success(PagedResponse<UserResponse>.Create(items, page, pageSize, totalCount));
     }
 }
