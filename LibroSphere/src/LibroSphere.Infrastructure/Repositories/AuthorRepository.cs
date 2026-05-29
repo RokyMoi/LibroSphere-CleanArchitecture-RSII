@@ -24,7 +24,7 @@ namespace LibroSphere.Infrastructure.Repositories
                     a.Biography.Value.Contains(term));
             }
 
-            return await query.OrderBy(a => a.Name.Value).ToListAsync(cancellationToken);
+            return await query.OrderBy(a => EF.Property<string>(a, "Name")).ToListAsync(cancellationToken);
         }
 
         public void Delete(Author author)
