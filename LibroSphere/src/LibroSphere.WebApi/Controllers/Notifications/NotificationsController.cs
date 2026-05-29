@@ -25,6 +25,7 @@ public sealed class NotificationsController : ControllerBase
         [FromQuery] int take = 20,
         CancellationToken cancellationToken = default)
     {
+        take = Math.Clamp(take, 1, 100);
         var result = await _sender.Send(
             new GetNotificationsQuery(User.GetRequiredUserId(), User.GetRequiredEmail(), take),
             cancellationToken);
@@ -49,6 +50,7 @@ public sealed class NotificationsController : ControllerBase
         [FromQuery] int take = 100,
         CancellationToken cancellationToken = default)
     {
+        take = Math.Clamp(take, 1, 200);
         var result = await _sender.Send(
             new MarkAllNotificationsReadCommand(User.GetRequiredUserId(), User.GetRequiredEmail(), take),
             cancellationToken);
