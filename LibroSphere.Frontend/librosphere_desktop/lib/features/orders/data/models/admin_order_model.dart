@@ -22,6 +22,7 @@ class AdminOrderModel {
   final List<AdminOrderItemModel> items;
 
   bool get isPaid => _normalizeStatus(status) == 'paymentreceived';
+  bool get isRefundRequested => _normalizeStatus(status) == 'refundrequested';
   String get displayCurrency => currency.trim().isEmpty ? 'USD' : currency.trim();
 
   factory AdminOrderModel.fromJson(Map<String, dynamic> json) {

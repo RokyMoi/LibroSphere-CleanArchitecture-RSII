@@ -36,6 +36,9 @@ class OrdersViewModel extends ChangeNotifier {
     'PaymentReceived',
     'PaymentFailed',
     'Refunded',
+    'PartiallyRefunded',
+    'RefundRequested',
+    'RefundRejected',
   ];
 
   Future<void> ensureLoaded() async {
@@ -82,6 +85,39 @@ class OrdersViewModel extends ChangeNotifier {
     if (failure == null) return;
     failure = null;
     notifyListeners();
+  }
+
+  Future<bool> approveRefund(String orderId) async {
+    _setLoading(true);
+    final result = await _repository.approveRefund(token: _token, orderId: orderId);
+    switch (result) {
+      case Success():
+        await load();
+        await _onDataChanged?.call();
+        return true;
+      case ErrorResult(failure: final f):
+        failure = f is Failure ? f : Failure(message: f.toString());
+        isLoading = false;
+        notifyListeners();
+        return false;
+    }
+  }
+
+  Future<bool> rejectRefund(String orderId, {String? reason}) async {
+    _setLoading(true);
+    final result = await _repository.rejectRefund(
+        token: _token, orderId: orderId, reason: reason);
+    switch (result) {
+      case Success():
+        await load();
+        await _onDataChanged?.call();
+        return true;
+      case ErrorResult(failure: final f):
+        failure = f is Failure ? f : Failure(message: f.toString());
+        isLoading = false;
+        notifyListeners();
+        return false;
+    }
   }
 
   void _setLoading(bool value) {

@@ -31,4 +31,22 @@ class OrdersApiService {
     final response = await _apiClient.getMap('/api/orders/all?$query', token: token);
     return OrdersPageModel.fromJson(response);
   }
+
+  Future<void> approveRefund(
+      {required String token, required String orderId}) async {
+    await _apiClient.postJson(
+      '/api/orders/$orderId/refund',
+      token: token,
+      body: {'reason': 'Approved by admin'},
+    );
+  }
+
+  Future<void> rejectRefund(
+      {required String token, required String orderId, String? reason}) async {
+    await _apiClient.postJson(
+      '/api/orders/$orderId/refund/reject',
+      token: token,
+      body: {'reason': reason ?? 'Rejected by admin'},
+    );
+  }
 }

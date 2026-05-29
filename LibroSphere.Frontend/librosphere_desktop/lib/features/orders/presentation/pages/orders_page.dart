@@ -20,13 +20,6 @@ class OrdersPage extends StatefulWidget {
 
 class _OrdersPageState extends State<OrdersPage> {
   static const _allStatusValue = 'All';
-  static const _statusValues = [
-    _allStatusValue,
-    'Pending',
-    'PaymentReceived',
-    'PaymentFailed',
-    'Refunded',
-  ];
 
   @override
   void initState() {
@@ -131,10 +124,10 @@ class _OrdersPageState extends State<OrdersPage> {
               bosnian: 'Filtriraj po statusu',
             ),
           ),
-          items: _statusValues
+          items: viewModel.availableStatuses
               .map((status) => DropdownMenuItem(
                     value: status,
-                    child: Text(_statusLabel(status)),
+                    child: Text(_statusLabel(context, status)),
                   ))
               .toList(),
           onChanged: (value) => viewModel.filterByStatus(value),
@@ -202,7 +195,7 @@ class _OrdersPageState extends State<OrdersPage> {
                   ),
                 ),
                 Expanded(
-                  flex: 1,
+                  flex: 2,
                   child: Text(
                     context.tr(english: 'Status', bosnian: 'Status'),
                     style: const TextStyle(fontWeight: FontWeight.w600),
@@ -229,6 +222,8 @@ class _OrdersPageState extends State<OrdersPage> {
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
+                // Actions column header — only meaningful for RefundRequested rows
+                const Expanded(flex: 2, child: SizedBox.shrink()),
               ],
             ),
           ),
@@ -239,7 +234,16 @@ class _OrdersPageState extends State<OrdersPage> {
               separatorBuilder: (_, index) => const Divider(height: 1),
               itemBuilder: (context, index) {
                 final order = viewModel.orders[index];
-                return _OrderRow(order: order);
+                return _OrderRow(
+                  order: order,
+                  isActionsDisabled: viewModel.isLoading,
+                  onApprove: order.isRefundRequested
+                      ? () => _handleApprove(context, viewModel, order)
+                      : null,
+                  onReject: order.isRefundRequested
+                      ? () => _handleReject(context, viewModel, order)
+                      : null,
+                );
               },
             ),
           ),
@@ -280,38 +284,131 @@ class _OrdersPageState extends State<OrdersPage> {
     );
   }
 
-  String _statusLabel(String status) {
+  static String _statusLabel(BuildContext context, String status) {
     return switch (status) {
       _allStatusValue => context.tr(english: 'All', bosnian: 'Sve'),
       'Pending' => context.tr(english: 'Pending', bosnian: 'Na cekanju'),
-      'PaymentReceived' => context.tr(
-          english: 'Payment Received',
-          bosnian: 'Uplata primljena',
-        ),
-      'PaymentFailed' => context.tr(
-          english: 'Payment Failed',
-          bosnian: 'Uplata neuspjesna',
-        ),
+      'PaymentReceived' =>
+        context.tr(english: 'Payment Received', bosnian: 'Uplata primljena'),
+      'PaymentFailed' =>
+        context.tr(english: 'Payment Failed', bosnian: 'Uplata neuspjesna'),
       'Refunded' => context.tr(english: 'Refunded', bosnian: 'Refundirano'),
+      'PartiallyRefunded' =>
+        context.tr(english: 'Partially Refunded', bosnian: 'Djelimicno refundirano'),
+      'RefundRequested' =>
+        context.tr(english: 'Refund Pending', bosnian: 'Refund na cekanju'),
+      'RefundRejected' =>
+        context.tr(english: 'Refund Rejected', bosnian: 'Refund odbijen'),
       _ => status,
     };
+  }
+
+  Future<void> _handleApprove(
+    BuildContext context,
+    OrdersViewModel viewModel,
+    AdminOrderModel order,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(context.tr(english: 'Approve Refund', bosnian: 'Odobri refund')),
+        content: Text(context.tr(
+          english:
+              'Approve refund for order ${order.id.substring(0, 8)}?\nThis will trigger a Stripe refund of ${order.totalAmount.toStringAsFixed(2)} ${order.displayCurrency}.',
+          bosnian:
+              'Odobri refund za narudzbu ${order.id.substring(0, 8)}?\nOvo ce pokrenuti Stripe refund od ${order.totalAmount.toStringAsFixed(2)} ${order.displayCurrency}.',
+        )),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(context.tr(english: 'Cancel', bosnian: 'Otkazi')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(context.tr(english: 'Approve', bosnian: 'Odobri')),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    final success = await viewModel.approveRefund(order.id);
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(success
+          ? context.tr(english: 'Refund approved successfully.', bosnian: 'Refund uspjesno odobren.')
+          : viewModel.failure?.message ?? 'Failed to approve refund.'),
+      backgroundColor: success ? Colors.green.shade700 : Colors.red.shade700,
+    ));
+  }
+
+  Future<void> _handleReject(
+    BuildContext context,
+    OrdersViewModel viewModel,
+    AdminOrderModel order,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(context.tr(english: 'Reject Refund', bosnian: 'Odbij refund')),
+        content: Text(context.tr(
+          english:
+              'Reject refund request for order ${order.id.substring(0, 8)}? The user will be notified.',
+          bosnian:
+              'Odbij zahtjev za refund narudzbe ${order.id.substring(0, 8)}? Korisnik ce biti obavijesten.',
+        )),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(context.tr(english: 'Cancel', bosnian: 'Otkazi')),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(context.tr(english: 'Reject', bosnian: 'Odbij')),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    final success = await viewModel.rejectRefund(order.id);
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(success
+          ? context.tr(english: 'Refund request rejected.', bosnian: 'Zahtjev za refund odbijen.')
+          : viewModel.failure?.message ?? 'Failed to reject refund.'),
+      backgroundColor: success ? Colors.orange.shade700 : Colors.red.shade700,
+    ));
   }
 }
 
 class _OrderRow extends StatelessWidget {
-  const _OrderRow({required this.order});
+  const _OrderRow({
+    required this.order,
+    this.onApprove,
+    this.onReject,
+    this.isActionsDisabled = false,
+  });
 
   final AdminOrderModel order;
+  final VoidCallback? onApprove;
+  final VoidCallback? onReject;
+  final bool isActionsDisabled;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
           Expanded(flex: 3, child: Text(order.buyerEmail)),
           Expanded(
-            flex: 1,
+            flex: 2,
             child: _StatusBadge(status: order.status),
           ),
           Expanded(
@@ -331,6 +428,28 @@ class _OrderRow extends StatelessWidget {
               ),
             ),
           ),
+          Expanded(
+            flex: 2,
+            child: order.isRefundRequested
+                ? Row(
+                    children: [
+                      _ActionButton(
+                        label: context.tr(english: 'Approve', bosnian: 'Odobri'),
+                        color: Colors.green.shade700,
+                        onPressed: isActionsDisabled ? null : onApprove,
+                        icon: Icons.check_circle_outline,
+                      ),
+                      const SizedBox(width: 8),
+                      _ActionButton(
+                        label: context.tr(english: 'Reject', bosnian: 'Odbij'),
+                        color: Colors.red.shade700,
+                        onPressed: isActionsDisabled ? null : onReject,
+                        icon: Icons.cancel_outlined,
+                      ),
+                    ],
+                  )
+                : const SizedBox.shrink(),
+          ),
         ],
       ),
     );
@@ -342,9 +461,13 @@ class _StatusBadge extends StatelessWidget {
 
   final String status;
 
+  static String _normalize(String s) =>
+      s.toLowerCase().replaceAll('_', '').replaceAll(' ', '');
+
   @override
   Widget build(BuildContext context) {
-    final color = _getStatusColor(status);
+    final color = _color(_normalize(status));
+    final label = _label(context, _normalize(status));
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -353,7 +476,7 @@ class _StatusBadge extends StatelessWidget {
         border: Border.all(color: color),
       ),
       child: Text(
-        _statusLabel(context),
+        label,
         style: TextStyle(
           color: color,
           fontSize: 12,
@@ -363,37 +486,84 @@ class _StatusBadge extends StatelessWidget {
     );
   }
 
-  Color _getStatusColor(String status) {
-    switch (_normalizeStatus(status)) {
-      case 'paymentreceived':
-        return Colors.green;
-      case 'pending':
-        return Colors.orange;
-      case 'refunded':
-        return Colors.blue;
-      case 'paymentfailed':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
+  static Color _color(String normalized) => switch (normalized) {
+        'paymentreceived' => Colors.green,
+        'pending' => Colors.orange,
+        'refunded' || 'partiallyrefunded' => Colors.blue,
+        'paymentfailed' => Colors.red,
+        'refundrequested' => const Color(0xFFF59E0B),
+        'refundrejected' => Colors.red.shade800,
+        _ => Colors.grey,
+      };
 
-  String _normalizeStatus(String status) =>
-      status.toLowerCase().replaceAll('_', '').replaceAll(' ', '');
+  static String _label(BuildContext context, String normalized) =>
+      switch (normalized) {
+        'paymentreceived' =>
+          context.tr(english: 'Payment Received', bosnian: 'Uplata primljena'),
+        'pending' => context.tr(english: 'Pending', bosnian: 'Na cekanju'),
+        'refunded' => context.tr(english: 'Refunded', bosnian: 'Refundirano'),
+        'partiallyrefunded' =>
+          context.tr(english: 'Partially Refunded', bosnian: 'Djelimicno refundirano'),
+        'paymentfailed' =>
+          context.tr(english: 'Payment Failed', bosnian: 'Uplata neuspjesna'),
+        'refundrequested' =>
+          context.tr(english: 'Refund Pending', bosnian: 'Refund na cekanju'),
+        'refundrejected' =>
+          context.tr(english: 'Refund Rejected', bosnian: 'Refund odbijen'),
+        _ => normalized,
+      };
+}
 
-  String _statusLabel(BuildContext context) {
-    return switch (_normalizeStatus(status)) {
-      'paymentreceived' => context.tr(
-          english: 'Payment Received',
-          bosnian: 'Uplata primljena',
+class _ActionButton extends StatelessWidget {
+  const _ActionButton({
+    required this.label,
+    required this.color,
+    required this.icon,
+    this.onPressed,
+  });
+
+  final String label;
+  final Color color;
+  final IconData icon;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: label,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: onPressed != null
+                ? color.withValues(alpha: 0.1)
+                : Colors.grey.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: onPressed != null ? color : Colors.grey,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon,
+                  size: 14,
+                  color: onPressed != null ? color : Colors.grey),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: onPressed != null ? color : Colors.grey,
+                ),
+              ),
+            ],
+          ),
         ),
-      'pending' => context.tr(english: 'Pending', bosnian: 'Na cekanju'),
-      'refunded' => context.tr(english: 'Refunded', bosnian: 'Refundirano'),
-      'paymentfailed' => context.tr(
-          english: 'Payment Failed',
-          bosnian: 'Uplata neuspjesna',
-        ),
-      _ => status,
-    };
+      ),
+    );
   }
 }

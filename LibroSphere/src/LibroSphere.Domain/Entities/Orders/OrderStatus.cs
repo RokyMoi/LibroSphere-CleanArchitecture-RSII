@@ -12,6 +12,8 @@ namespace LibroSphere.Domain.Entities.Orders
         PaymentReceived,
         PaymentFailed,
         Refunded,
-        PartiallyRefunded
+        PartiallyRefunded,
+        RefundRequested,
+        RefundRejected
     }
 }

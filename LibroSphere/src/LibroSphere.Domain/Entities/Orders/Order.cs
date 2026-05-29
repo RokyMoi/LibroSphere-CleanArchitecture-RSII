@@ -82,6 +82,12 @@ namespace LibroSphere.Domain.Entities.Orders
                 (OrderStatus.Pending, OrderStatus.PaymentFailed) => true,
                 (OrderStatus.PaymentReceived, OrderStatus.Refunded) => true,
                 (OrderStatus.PaymentReceived, OrderStatus.PartiallyRefunded) => true,
+                (OrderStatus.PaymentReceived, OrderStatus.RefundRequested) => true,
+                (OrderStatus.RefundRequested, OrderStatus.Refunded) => true,
+                (OrderStatus.RefundRequested, OrderStatus.PartiallyRefunded) => true,
+                (OrderStatus.RefundRequested, OrderStatus.RefundRejected) => true,
+                // Allow re-request after rejection
+                (OrderStatus.RefundRejected, OrderStatus.RefundRequested) => true,
                 _ => false
             };
 
