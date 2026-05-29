@@ -1,3 +1,4 @@
+using LibroSphere.Domain.Entities.Authors;
 using LibroSphere.Domain.Entities.Books;
 using LibroSphere.Domain.Entities.Books.Genre;
 using LibroSphere.Domain.Entities.ManyToMany;
@@ -70,7 +71,7 @@ namespace LibroSphere.Infrastructure.Repositories
 
         public async Task<List<Book>> SearchAsync(string? searchTerm, Guid? authorId, Guid? genreId, decimal? minPrice = null, decimal? maxPrice = null, double? minRating = null, CancellationToken cancellationToken = default)
         {
-            var query = ApplySearchFilters(
+            var query = ApplyStructuredFilters(
                 DbContext
                     .Set<Book>()
                     .AsNoTracking()
@@ -78,14 +79,21 @@ namespace LibroSphere.Infrastructure.Repositories
                     .Include(b => b.Author)
                     .Include(b => b.BookGenres)
                         .ThenInclude(bg => bg.Genre),
-                searchTerm,
                 authorId,
                 genreId,
                 minPrice,
                 maxPrice,
                 minRating);
 
-            return await query.OrderBy(b => b.Title).ToListAsync(cancellationToken);
+            var books = await query.ToListAsync(cancellationToken);
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var term = searchTerm.Trim();
+                books = books.Where(b => MatchesSearchTerm(b, term)).ToList();
+            }
+
+            return books.OrderBy(b => b.Title.Value).ToList();
         }
 
         public async Task<(List<Book> Items, int TotalCount)> SearchPagedAsync(
@@ -99,33 +107,62 @@ namespace LibroSphere.Infrastructure.Repositories
             int pageSize,
             CancellationToken cancellationToken = default)
         {
-            var filteredQuery = ApplySearchFilters(
+            var filteredQuery = ApplyStructuredFilters(
                 DbContext.Set<Book>().AsNoTracking(),
-                searchTerm,
                 authorId,
                 genreId,
                 minPrice,
                 maxPrice,
                 minRating);
 
-            var totalCount = await filteredQuery.CountAsync(cancellationToken);
+            // No text term: keep efficient DB-side pagination.
+            if (string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var totalCount = await filteredQuery.CountAsync(cancellationToken);
 
-            var items = await filteredQuery
-                .OrderBy(b => b.Title)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
+                var items = await filteredQuery
+                    .OrderBy(b => b.Title)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .AsSplitQuery()
+                    .Include(b => b.Author)
+                    .Include(b => b.BookGenres)
+                        .ThenInclude(bg => bg.Genre)
+                    .ToListAsync(cancellationToken);
+
+                return (items, totalCount);
+            }
+
+            // Text term present: value-converted columns can't be filtered in SQL, so materialize
+            // the structurally-filtered set (with author/genres) and match + paginate in memory.
+            var term = searchTerm.Trim();
+
+            var candidates = await filteredQuery
                 .AsSplitQuery()
                 .Include(b => b.Author)
                 .Include(b => b.BookGenres)
                     .ThenInclude(bg => bg.Genre)
                 .ToListAsync(cancellationToken);
 
-            return (items, totalCount);
+            var matched = candidates
+                .Where(b => MatchesSearchTerm(b, term))
+                .OrderBy(b => b.Title.Value)
+                .ToList();
+
+            var pageItems = matched
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return (pageItems, matched.Count);
         }
 
-        private static IQueryable<Book> ApplySearchFilters(
+        // Note: searchTerm is intentionally NOT handled here. Title/Description/Author.Name are
+        // value objects mapped through EF value converters, and EF Core cannot translate string
+        // operations (LIKE/Contains) over converted columns. The text match is therefore applied
+        // in memory by the callers (see MatchesSearchTerm) only when a term is supplied.
+        private static IQueryable<Book> ApplyStructuredFilters(
             IQueryable<Book> query,
-            string? searchTerm,
             Guid? authorId,
             Guid? genreId,
             decimal? minPrice,
@@ -139,15 +176,6 @@ namespace LibroSphere.Infrastructure.Repositories
 
             if (genreId.HasValue)
                 filtered = filtered.Where(b => b.BookGenres.Any(bg => bg.GenreId == genreId.Value));
-
-            if (!string.IsNullOrWhiteSpace(searchTerm))
-            {
-                var term = searchTerm.Trim();
-                filtered = filtered.Where(b =>
-                    b.Title.Value.Contains(term) ||
-                    b.Description.Value.Contains(term) ||
-                    (b.Author != null && b.Author.Name.Value.Contains(term)));
-            }
 
             if (minPrice.HasValue)
                 filtered = filtered.Where(b => b.Price.amount >= minPrice.Value);
@@ -163,6 +191,12 @@ namespace LibroSphere.Infrastructure.Repositories
 
             return filtered;
         }
+
+        private static bool MatchesSearchTerm(Book book, string term) =>
+            book.Title.Value.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+            book.Description.Value.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+            (book.Author is not null &&
+             book.Author.Name.Value.Contains(term, StringComparison.OrdinalIgnoreCase));
 
         public void ReplaceGenres(Book book, IReadOnlyCollection<Genre> genres)
         {
