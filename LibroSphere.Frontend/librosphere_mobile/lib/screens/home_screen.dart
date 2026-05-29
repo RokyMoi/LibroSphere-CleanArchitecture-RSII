@@ -308,12 +308,21 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
 
   Future<void> _openFilterDialog() async {
     final session = SessionScope.read(context);
-    final results = await Future.wait<Object>([
-      session.getAuthors(),
-      session.getGenres(),
-    ]);
-    final authors = results[0] as List<AuthorModel>;
-    final genres = results[1] as List<GenreModel>;
+
+    List<AuthorModel> authors;
+    List<GenreModel> genres;
+    try {
+      final results = await Future.wait<Object>([
+        session.getAuthors(),
+        session.getGenres(),
+      ]);
+      authors = results[0] as List<AuthorModel>;
+      genres = results[1] as List<GenreModel>;
+    } catch (_) {
+      if (!mounted) return;
+      showErrorSnackBar(context, 'Failed to load filter options. Please try again.');
+      return;
+    }
 
     if (!mounted) return;
 
