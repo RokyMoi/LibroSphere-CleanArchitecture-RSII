@@ -287,6 +287,22 @@ class SessionViewModel extends ChangeNotifier {
     return DateTime.now().difference(_cartCachedAt!) >= _userCollectionCacheTtl;
   }
 
+  Future<Map<String, dynamic>> getOrderById(String orderId) async {
+    _requireAuth();
+    return _executeWithAuth(
+      () => _services.apiClient.getOrderById(accessToken!, orderId),
+    );
+  }
+
+  /// Submit a refund request — does NOT call Stripe; sets status to RefundRequested.
+  Future<void> requestRefund(String orderId, {String? reason}) async {
+    _requireAuth();
+    await _executeWithAuth(
+      () => _services.apiClient.requestRefund(accessToken!, orderId, reason: reason),
+    );
+    _ordersCache = null;
+  }
+
   Future<void> refundOrder(String orderId) async {
     _requireAuth();
     await _services.apiClient.refundOrder(accessToken!, orderId);

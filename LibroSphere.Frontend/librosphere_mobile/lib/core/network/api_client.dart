@@ -148,12 +148,32 @@ class ApiClient {
     return _decodeItemsFromMap(json);
   }
 
+  Future<Map<String, dynamic>> getOrderById(
+    String accessToken,
+    String orderId,
+  ) async {
+    final response = await _get('/api/orders/$orderId', token: accessToken);
+    return _decodeMap(response);
+  }
+
+  /// User submits a refund request — no Stripe call, sets status to RefundRequested.
+  Future<void> requestRefund(String accessToken, String orderId, {String? reason}) async {
+    await _post(
+      '/api/orders/$orderId/refund-request',
+      token: accessToken,
+      body: <String, dynamic>{
+        'reason': reason ?? 'Requested by customer from mobile app',
+      },
+    );
+  }
+
+  /// Admin-only: approve a pending refund request (calls Stripe).
   Future<void> refundOrder(String accessToken, String orderId) async {
     await _post(
       '/api/orders/$orderId/refund',
       token: accessToken,
       body: const <String, dynamic>{
-        'reason': 'Requested by customer from mobile app',
+        'reason': 'Approved by admin',
       },
     );
   }
@@ -298,14 +318,14 @@ class ApiClient {
 
     final json = await _decodeMap(response);
     final newest = PagedResult<BookModel>(
-      items: _decodeArrayFromMap(json, 'newest').map(BookModel.fromJson).toList(),
+      items: _decodeArrayFromMapAny(json, ['newest', 'Newest']).map(BookModel.fromJson).toList(),
       page: readInt(json, ['page', 'Page']),
       pageSize: readInt(json, ['pageSize', 'PageSize']),
       totalCount: readInt(json, ['totalCount', 'TotalCount']),
     );
-    final recommendations = _decodeArrayFromMap(
+    final recommendations = _decodeArrayFromMapAny(
       json,
-      'recommendations',
+      ['recommendations', 'Recommendations'],
     ).map(BookModel.fromJson).toList();
 
     return HomeFeedModel(newest: newest, recommendations: recommendations);
@@ -639,6 +659,19 @@ class ApiClient {
     final items = json[key];
     if (items is List) {
       return items.whereType<Map<String, dynamic>>().toList();
+    }
+    return <Map<String, dynamic>>[];
+  }
+
+  List<Map<String, dynamic>> _decodeArrayFromMapAny(
+    Map<String, dynamic> json,
+    List<String> keys,
+  ) {
+    for (final key in keys) {
+      final items = json[key];
+      if (items is List) {
+        return items.whereType<Map<String, dynamic>>().toList();
+      }
     }
     return <Map<String, dynamic>>[];
   }

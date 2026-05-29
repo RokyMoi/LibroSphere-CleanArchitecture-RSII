@@ -586,8 +586,11 @@ class _MyOrdersScreenState extends State<_MyOrdersScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Refund Order'),
-        content: const Text('Are you sure you want to request a refund for this order?'),
+        title: const Text('Request Refund'),
+        content: const Text(
+          'Your refund request will be sent to our team for review. '
+          'You will receive a notification once it is processed.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -595,7 +598,7 @@ class _MyOrdersScreenState extends State<_MyOrdersScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Refund'),
+            child: const Text('Submit Request'),
           ),
         ],
       ),
@@ -604,9 +607,9 @@ class _MyOrdersScreenState extends State<_MyOrdersScreen> {
     if (confirmed != true || !mounted) return false;
 
     try {
-      await widget.session.refundOrder(orderId);
+      await widget.session.requestRefund(orderId);
       if (!mounted) return false;
-      showSuccessSnackBar(context, 'Refund requested successfully.');
+      showSuccessSnackBar(context, 'Refund request submitted. Our team will review it shortly.');
       await _refresh();
       return true;
     } catch (error) {
@@ -617,11 +620,22 @@ class _MyOrdersScreenState extends State<_MyOrdersScreen> {
   }
 
   Future<void> _openOrderDetails(_OrderViewData order) async {
+    // Fetch the full order detail (items are not included in the list response)
+    _OrderViewData detailedOrder = order;
+    try {
+      final detail = await widget.session.getOrderById(order.id);
+      detailedOrder = _OrderViewData.fromMap(detail);
+    } catch (_) {
+      // Fall back to list data if detail fetch fails
+    }
+
+    if (!mounted) return;
+
     final didRefund = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => _OrderDetailsScreen(
-          order: order,
-          onRefund: order.isRefundable
+          order: detailedOrder,
+          onRefund: detailedOrder.isRefundable
               ? () => _refund(order.id)
               : null,
         ),
@@ -951,6 +965,62 @@ class _OrderDetailsScreen extends StatelessWidget {
               )
             else
               ...order.items.map((item) => _OrderItemTile(item: item)),
+            if (order.isRefundPending) ...[
+              const SizedBox(height: 20),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF8E1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFD97706), width: 1),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.hourglass_top_rounded, color: Color(0xFF92400E), size: 20),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Your refund request is under review. We\'ll notify you once it\'s processed.',
+                        style: TextStyle(
+                          color: Color(0xFF92400E),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            if (order.status == OrderStatus.refundRejected) ...[
+              const SizedBox(height: 20),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFEEEE),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFB42318), width: 1),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.cancel_outlined, color: Color(0xFFB42318), size: 20),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Your refund request was rejected. You may submit a new request if you believe this was an error.',
+                        style: TextStyle(
+                          color: Color(0xFFB42318),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             if (order.isRefundable) ...[
               const SizedBox(height: 24),
               SizedBox(
@@ -966,9 +1036,11 @@ class _OrderDetailsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(28),
                     ),
                   ),
-                  child: const Text(
-                    'Request Refund',
-                    style: TextStyle(
+                  child: Text(
+                    order.status == OrderStatus.refundRejected
+                        ? 'Re-submit Refund Request'
+                        : 'Request Refund',
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                     ),
@@ -1084,8 +1156,15 @@ class _StatusChip extends StatelessWidget {
         bg = const Color(0xFFE7F6EC);
         fg = const Color(0xFF027A48);
       case OrderStatus.refunded:
-        bg = const Color(0xFFFFF4ED);
-        fg = const Color(0xFFB54708);
+      case OrderStatus.partiallyRefunded:
+        bg = const Color(0xFFEFF8FF);
+        fg = const Color(0xFF175CD3);
+      case OrderStatus.refundRequested:
+        bg = const Color(0xFFFFF8E1);
+        fg = const Color(0xFF92400E);
+      case OrderStatus.refundRejected:
+        bg = const Color(0xFFFFEEEE);
+        fg = const Color(0xFFB42318);
       case OrderStatus.pending:
         bg = const Color(0xFFFFF8E1);
         fg = const Color(0xFF92400E);
@@ -1120,6 +1199,9 @@ class _StatusChip extends StatelessWidget {
       OrderStatus.paymentReceived => 'Paid',
       OrderStatus.paymentFailed => 'Payment Failed',
       OrderStatus.refunded => 'Refunded',
+      OrderStatus.partiallyRefunded => 'Partially Refunded',
+      OrderStatus.refundRequested => 'Refund Pending',
+      OrderStatus.refundRejected => 'Refund Rejected',
       OrderStatus.unknown => 'Unknown',
     };
   }
@@ -1221,6 +1303,7 @@ class _OrderViewData {
     required this.items,
     required this.buyerEmail,
     required this.orderDate,
+    this.itemCount,
   });
 
   final String id;
@@ -1230,16 +1313,28 @@ class _OrderViewData {
   final List<_OrderLineItemViewData> items;
   final String buyerEmail;
   final DateTime? orderDate;
+  // From the list endpoint (items array is not present there)
+  final int? itemCount;
 
-  bool get isRefundable => status == OrderStatus.paymentReceived;
+  /// True when the user can submit a refund request.
+  bool get isRefundable =>
+      status == OrderStatus.paymentReceived || status == OrderStatus.refundRejected;
+
+  /// True when a refund request is pending admin review.
+  bool get isRefundPending => status == OrderStatus.refundRequested;
 
   String get shortId => id.length > 8 ? id.substring(0, 8) : id;
 
   String get formattedTotal => _formatMoney(totalAmount, currencyCode);
 
   String get itemSummary {
-    final quantity = items.fold<int>(0, (sum, item) => sum + item.quantity);
-    final count = quantity == 0 ? items.length : quantity;
+    if (items.isNotEmpty) {
+      final quantity = items.fold<int>(0, (sum, item) => sum + item.quantity);
+      final count = quantity == 0 ? items.length : quantity;
+      return '$count item${count == 1 ? '' : 's'}';
+    }
+    // Fall back to the itemCount field from the list response
+    final count = itemCount ?? 0;
     return '$count item${count == 1 ? '' : 's'}';
   }
 
@@ -1254,6 +1349,9 @@ class _OrderViewData {
 
   factory _OrderViewData.fromMap(Map<String, dynamic> json) {
     final totalValue = _readAny(json, const ['totalAmount', 'TotalAmount']);
+    // Top-level 'currency' field from the list response and detail response
+    final topLevelCurrency =
+        (_readAny(json, const ['currency', 'Currency']) ?? '').toString().trim();
     final rawItems = _readAny(json, const ['items', 'Items']);
     final itemMaps = rawItems is List
         ? rawItems.whereType<Map>().map((item) {
@@ -1261,7 +1359,9 @@ class _OrderViewData {
           }).toList()
         : <Map<String, dynamic>>[];
     final items = itemMaps.map(_OrderLineItemViewData.fromMap).toList();
-    final fallbackCurrency = items.isNotEmpty ? items.first.currencyCode : 'USD';
+    final fallbackCurrency = topLevelCurrency.isNotEmpty
+        ? topLevelCurrency
+        : (items.isNotEmpty ? items.first.currencyCode : 'USD');
 
     return _OrderViewData(
       id: (_readAny(json, const ['id', 'Id']) ?? '').toString(),
@@ -1276,6 +1376,10 @@ class _OrderViewData {
           json,
           const ['orderDate', 'OrderDate', 'createdOnUtc', 'CreatedOnUtc'],
         ),
+      ),
+      itemCount: _parseInt(
+        _readAny(json, const ['itemCount', 'ItemCount']),
+        fallback: 0,
       ),
     );
   }
@@ -1301,6 +1405,10 @@ class _OrderLineItemViewData {
       json,
       const ['price', 'Price', 'priceAtPurchase', 'PriceAtPurchase'],
     );
+    // Detail endpoint returns price as a plain decimal + separate currency field
+    final itemCurrency =
+        (_readAny(json, const ['currency', 'Currency']) ?? '').toString().trim();
+    final fallbackCurrency = itemCurrency.isNotEmpty ? itemCurrency : 'USD';
 
     return _OrderLineItemViewData(
       title: (_readAny(json, const ['title', 'Title', 'bookTitle', 'BookTitle']) ??
@@ -1311,7 +1419,7 @@ class _OrderLineItemViewData {
         fallback: 1,
       ),
       price: _parseMoneyAmount(priceValue),
-      currencyCode: _parseMoneyCurrency(priceValue),
+      currencyCode: _parseMoneyCurrency(priceValue, fallbackCode: fallbackCurrency),
     );
   }
 }
@@ -1481,114 +1589,219 @@ class _InterestsScreenState extends State<_InterestsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'My Interests',
-          style: TextStyle(fontWeight: FontWeight.w800),
-        ),
-        actions: [
-          if (_isSaving)
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            )
-          else
-            TextButton(
-              onPressed: _save,
-              child: const Text(
-                'Save',
-                style: TextStyle(fontWeight: FontWeight.w700, color: brandBlueDark),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.chevron_left_rounded, color: brandBlue, size: 28),
+                        SizedBox(width: 4),
+                        Text(
+                          'My Interests',
+                          style: TextStyle(
+                            color: brandBlue,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (_isSaving)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: brandBlue),
+                      ),
+                    )
+                  else
+                    Material(
+                      color: brandBlue,
+                      borderRadius: BorderRadius.circular(99),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(99),
+                        onTap: _save,
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 9),
+                          child: Text(
+                            'Save',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
-        ],
-      ),
-      body: FutureBuilder<_InterestsData>(
-        future: _future,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      formatErrorMessage(snapshot.error!),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () => setState(() => _future = _load()),
-                      child: const Text('Try again'),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          final authors = snapshot.data!.authors;
-
-          if (authors.isEmpty) {
-            return const Center(
-              child: Text('No authors available.', style: TextStyle(color: Colors.grey)),
-            );
-          }
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 16, 18, 4),
-                child: Text(
-                  'Select authors you enjoy reading.',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-                ),
-              ),
-              Expanded(
-                child: StatefulBuilder(
-                  builder: (context, setInnerState) {
-                    return ListView.separated(
-                      itemCount: authors.length,
-                      separatorBuilder: (context, _) =>
-                          const Divider(height: 1, indent: 16, endIndent: 16),
-                      itemBuilder: (context, index) {
-                        final AuthorModel author = authors[index];
-                        final isSelected = _selectedIds.contains(author.id);
-                        return CheckboxListTile(
-                          value: isSelected,
-                          activeColor: brandBlueDark,
-                          title: Text(
-                            author.name,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          onChanged: (checked) {
-                            setInnerState(() {
-                              if (checked == true) {
-                                _selectedIds.add(author.id);
-                              } else {
-                                _selectedIds.remove(author.id);
-                              }
-                            });
-                          },
-                        );
-                      },
+            Expanded(
+              child: FutureBuilder<_InterestsData>(
+                future: _future,
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              formatErrorMessage(snapshot.error!),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                            const SizedBox(height: 16),
+                            TextButton(
+                              onPressed: () { setState(() { _future = _load(); }); },
+                              child: const Text('Try again'),
+                            ),
+                          ],
+                        ),
+                      ),
                     );
-                  },
+                  }
+
+                  if (!snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final authors = snapshot.data!.authors;
+
+                  if (authors.isEmpty) {
+                    return const Center(
+                      child: Text('No authors available.', style: TextStyle(color: Colors.grey)),
+                    );
+                  }
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(18, 14, 18, 8),
+                        child: Text(
+                          'Select authors you enjoy reading.',
+                          style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                        ),
+                      ),
+                      Expanded(
+                        child: StatefulBuilder(
+                          builder: (context, setInnerState) {
+                            return ListView.separated(
+                              padding: const EdgeInsets.fromLTRB(18, 4, 18, 24),
+                              itemCount: authors.length,
+                              separatorBuilder: (context, _) => const SizedBox(height: 10),
+                              itemBuilder: (context, index) {
+                                final AuthorModel author = authors[index];
+                                final isSelected = _selectedIds.contains(author.id);
+                                return _InterestAuthorTile(
+                                  name: author.name,
+                                  isSelected: isSelected,
+                                  onTap: () {
+                                    setInnerState(() {
+                                      if (isSelected) {
+                                        _selectedIds.remove(author.id);
+                                      } else {
+                                        _selectedIds.add(author.id);
+                                      }
+                                    });
+                                  },
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InterestAuthorTile extends StatelessWidget {
+  const _InterestAuthorTile({
+    required this.name,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final String name;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: isSelected ? const Color(0xFFEAF2FF) : Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected ? brandBlue : const Color(0xFFE6E9F0),
+              width: isSelected ? 1.6 : 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: isSelected ? brandBlue : const Color(0xFFF2F4F7),
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                child: Icon(
+                  Icons.person_rounded,
+                  size: 20,
+                  color: isSelected ? Colors.white : Colors.grey.shade500,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  name,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                    color: isSelected ? brandBlueDark : const Color(0xFF1D2939),
+                  ),
+                ),
+              ),
+              Icon(
+                isSelected
+                    ? Icons.check_circle_rounded
+                    : Icons.radio_button_unchecked_rounded,
+                color: isSelected ? brandBlue : const Color(0xFFCBD2E0),
+                size: 24,
               ),
             ],
-          );
-        },
+          ),
+        ),
       ),
     );
   }
