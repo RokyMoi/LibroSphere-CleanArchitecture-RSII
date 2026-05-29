@@ -16,6 +16,7 @@ using LibroSphere.WebApi.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace LibroSphere.WebApi.Controllers.Users
 {
@@ -72,6 +73,7 @@ namespace LibroSphere.WebApi.Controllers.Users
             [FromQuery] int pageSize = 20,
             CancellationToken cancellationToken = default)
         {
+            pageSize = Math.Clamp(pageSize, 1, 100);
             var result = await _sender.Send(new GetAllUsersQuery(searchTerm, isActive, page, pageSize), cancellationToken);
 
             return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
@@ -91,6 +93,7 @@ namespace LibroSphere.WebApi.Controllers.Users
         }
 
         [HttpPut("me/profile")]
+        [EnableRateLimiting("write")]
         public async Task<IActionResult> UpdateMyProfile(
             [FromBody] UpdateProfileRequest request,
             CancellationToken cancellationToken)
@@ -137,6 +140,7 @@ namespace LibroSphere.WebApi.Controllers.Users
         }
 
         [HttpPost("me/profile-picture")]
+        [EnableRateLimiting("write")]
         public async Task<IActionResult> UploadProfilePicture(IFormFile file, CancellationToken cancellationToken)
         {
             if (file is null || file.Length == 0)
@@ -177,6 +181,7 @@ namespace LibroSphere.WebApi.Controllers.Users
         }
 
         [HttpPost("me/change-password")]
+        [EnableRateLimiting("write")]
         public async Task<IActionResult> ChangeMyPassword(
             [FromBody] ChangePasswordRequest request,
             CancellationToken cancellationToken)
@@ -275,7 +280,9 @@ namespace LibroSphere.WebApi.Controllers.Users
         [HttpGet("me/interests")]
         public async Task<IActionResult> GetMyInterests(CancellationToken cancellationToken)
         {
-            var userId = User.GetRequiredUserId();
+            Guid userId;
+            try { userId = User.GetRequiredUserId(); }
+            catch (InvalidOperationException) { return Unauthorized(); }
             var result = await _sender.Send(new GetUserInterestsQuery(userId), cancellationToken);
             return result.IsSuccess
                 ? Ok(new { authorIds = result.Value })
@@ -283,11 +290,14 @@ namespace LibroSphere.WebApi.Controllers.Users
         }
 
         [HttpPut("me/interests")]
+        [EnableRateLimiting("write")]
         public async Task<IActionResult> UpdateMyInterests(
             [FromBody] UpdateInterestsRequest request,
             CancellationToken cancellationToken)
         {
-            var userId = User.GetRequiredUserId();
+            Guid userId;
+            try { userId = User.GetRequiredUserId(); }
+            catch (InvalidOperationException) { return Unauthorized(); }
             var command = new UpdateUserInterestsCommand(userId, request.AuthorIds ?? new List<Guid>());
             var result = await _sender.Send(command, cancellationToken);
             return result.IsSuccess ? NoContent() : BadRequest(result.Error);
