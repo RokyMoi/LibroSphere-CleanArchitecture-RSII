@@ -95,6 +95,7 @@ public static class ApplicationBuilderExtensions
 
     public static void UseCustomMiddleWare(this IApplicationBuilder app)
     {
+        app.UseMiddleware<CorrelationIdMiddleware>();
         app.UseMiddleware<RequestTimingMiddleware>();
         app.UseMiddleware<ExceptionHandlingMiddleware>();
     }
