@@ -61,7 +61,15 @@ class CartScreenState extends State<CartScreen> {
       return cart.books;
     }
 
-    return Future.wait(cart.items.map((item) => session.getBook(item.bookId)));
+    if (cart.items.isEmpty) {
+      return <BookModel>[];
+    }
+
+    // The cart came from an update response that doesn't carry book details.
+    // Fetch them in a single round-trip via the cart-details endpoint instead
+    // of issuing one GET /api/book/{id} per item.
+    final detailed = await session.refreshCart(forceRefresh: true);
+    return detailed?.books ?? const <BookModel>[];
   }
 
   Future<void> refresh() async {
