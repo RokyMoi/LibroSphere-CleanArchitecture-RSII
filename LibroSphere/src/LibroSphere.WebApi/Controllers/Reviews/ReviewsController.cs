@@ -8,6 +8,7 @@ using LibroSphere.WebApi.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace LibroSphere.WebApi.Controllers.Reviews
 {
@@ -38,6 +39,7 @@ namespace LibroSphere.WebApi.Controllers.Reviews
             [FromQuery] int pageSize = 10,
             CancellationToken cancellationToken = default)
         {
+            pageSize = Math.Clamp(pageSize, 1, 100);
             var result = await _sender.Send(new GetReviewsByBookQuery(bookId, minRating, maxRating, page, pageSize), cancellationToken);
             return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
         }
@@ -51,6 +53,7 @@ namespace LibroSphere.WebApi.Controllers.Reviews
             [FromQuery] int pageSize = 10,
             CancellationToken cancellationToken = default)
         {
+            pageSize = Math.Clamp(pageSize, 1, 100);
             var userId = User.GetRequiredUserId();
             var result = await _sender.Send(new GetReviewsByUserQuery(userId, minRating, maxRating, page, pageSize), cancellationToken);
             return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
@@ -58,6 +61,7 @@ namespace LibroSphere.WebApi.Controllers.Reviews
 
         [Authorize]
         [HttpPost]
+        [EnableRateLimiting("write")]
         public async Task<IActionResult> Create([FromBody] CreateReviewRequest request, CancellationToken cancellationToken)
         {
             var userId = User.GetRequiredUserId();
@@ -72,6 +76,7 @@ namespace LibroSphere.WebApi.Controllers.Reviews
 
         [Authorize]
         [HttpPut("{id:guid}")]
+        [EnableRateLimiting("write")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateReviewRequest request, CancellationToken cancellationToken)
         {
             var userId = User.GetRequiredUserId();
@@ -81,6 +86,7 @@ namespace LibroSphere.WebApi.Controllers.Reviews
 
         [Authorize]
         [HttpDelete("{id:guid}")]
+        [EnableRateLimiting("write")]
         public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
         {
             var userId = User.GetRequiredUserId();
