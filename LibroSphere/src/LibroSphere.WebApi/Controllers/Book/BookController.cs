@@ -80,6 +80,7 @@ namespace LibroSphere.WebApi.Controllers.Book
             [FromQuery] int pageSize = 12,
             CancellationToken cancellationToken = default)
         {
+            pageSize = Math.Clamp(pageSize, 1, 100);
             var result = await _sender.Send(new GetAllBooksQuery(searchTerm, authorId, genreId, minPrice, maxPrice, minRating, page, pageSize), cancellationToken);
             return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
         }
@@ -92,6 +93,8 @@ namespace LibroSphere.WebApi.Controllers.Book
             [FromQuery] int takeRecommendations = 5,
             CancellationToken cancellationToken = default)
         {
+            pageSize = Math.Clamp(pageSize, 1, 100);
+            takeRecommendations = Math.Clamp(takeRecommendations, 1, 20);
             var booksResult = await _sender.Send(
                 new GetAllBooksQuery(searchTerm, null, null, null, null, null, page, pageSize),
                 cancellationToken);
@@ -106,10 +109,10 @@ namespace LibroSphere.WebApi.Controllers.Book
                 return Ok(CreateHomeFeedResponse(booksResult.Value));
             }
 
-            var userId = User.GetRequiredUserId();
-
             try
             {
+                var userId = User.GetRequiredUserId();
+
                 var recommendationsResult = await _sender.Send(
                     new GetRecommendedBooksQuery(userId, takeRecommendations),
                     cancellationToken);
@@ -129,8 +132,7 @@ namespace LibroSphere.WebApi.Controllers.Book
             {
                 _logger.LogWarning(
                     ex,
-                    "Home feed recommendations failed for user {UserId}. Returning books without recommendations.",
-                    userId);
+                    "Home feed recommendations failed. Returning books without recommendations.");
                 return Ok(CreateHomeFeedResponse(booksResult.Value));
             }
         }
@@ -142,6 +144,7 @@ namespace LibroSphere.WebApi.Controllers.Book
             [FromQuery] int pageSize = 12,
             CancellationToken cancellationToken = default)
         {
+            pageSize = Math.Clamp(pageSize, 1, 100);
             var booksResult = await _sender.Send(
                 new GetAllBooksQuery(null, null, null, null, null, null, page, pageSize),
                 cancellationToken);

@@ -69,6 +69,7 @@ public class AuthController : ControllerBase
         });
     }
 
+    [EnableRateLimiting("refresh")]
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh(
         [FromBody] RefreshTokenRequest request,
