@@ -44,13 +44,41 @@ namespace LibroSphere.Infrastructure.Services
                     cancellationToken: cancellationToken)))
                 .AsList();
 
-            if (candidateRows.Count == 0)
+            var profile = UserPreferenceProfile.Build(interactionRows);
+            var rankedBookIds = candidateRows.Count == 0
+                ? new List<Guid>()
+                : RankCandidates(candidateRows, profile, normalizedTake);
+
+         
+            if (rankedBookIds.Count < normalizedTake)
+            {
+                var alreadySelected = rankedBookIds.ToHashSet();
+                var fallbackBookIds = (await connection.QueryAsync<Guid>(
+                    new CommandDefinition(
+                        PopularFallbackSql,
+                        new { UserId = userId, Take = normalizedTake },
+                        cancellationToken: cancellationToken)))
+                    .AsList();
+
+                foreach (var bookId in fallbackBookIds)
+                {
+                    if (rankedBookIds.Count >= normalizedTake)
+                    {
+                        break;
+                    }
+
+                    if (alreadySelected.Add(bookId))
+                    {
+                        rankedBookIds.Add(bookId);
+                    }
+                }
+            }
+
+            if (rankedBookIds.Count == 0)
             {
                 return new List<Book>();
             }
 
-            var profile = UserPreferenceProfile.Build(interactionRows);
-            var rankedBookIds = RankCandidates(candidateRows, profile, normalizedTake);
             var books = await _bookRepository.GetByIdsWithDetailsAsync(rankedBookIds, cancellationToken);
             var booksById = books.ToDictionary(book => book.Id);
 
@@ -566,6 +594,46 @@ namespace LibroSphere.Infrastructure.Services
                 COALESCE(ps.PurchaseCount, 0) DESC,
                 COALESCE(ws.WishlistCount, 0) DESC,
                 COALESCE(cs.CartCount, 0) DESC,
+                b.Title ASC;
+            """;
+
+        // Popularity-ranked fallback used to top up the recommendation strip. Excludes ONLY books
+        // the user already owns (wishlisted/carted books are still allowed here), and returns one
+        // row per book so there are no duplicates.
+        private const string PopularFallbackSql = """
+            WITH OwnedBooks AS (
+                SELECT ub.BookId
+                FROM UserBooks ub
+                WHERE ub.UserId = @UserId
+            ),
+            ReviewStats AS (
+                SELECT
+                    r.BookId,
+                    CAST(AVG(CAST(r.Rating AS float)) AS float) AS AverageRating,
+                    COUNT(*) AS ReviewCount
+                FROM Reviews r
+                GROUP BY r.BookId
+            ),
+            PurchaseStats AS (
+                SELECT
+                    ub.BookId,
+                    COUNT(*) AS PurchaseCount
+                FROM UserBooks ub
+                GROUP BY ub.BookId
+            )
+            SELECT TOP (@Take) b.Id
+            FROM Books b
+            LEFT JOIN ReviewStats rs ON rs.BookId = b.Id
+            LEFT JOIN PurchaseStats ps ON ps.BookId = b.Id
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM OwnedBooks owned
+                WHERE owned.BookId = b.Id
+            )
+            ORDER BY
+                COALESCE(ps.PurchaseCount, 0) DESC,
+                COALESCE(rs.AverageRating, 0) DESC,
+                COALESCE(rs.ReviewCount, 0) DESC,
                 b.Title ASC;
             """;
     }
