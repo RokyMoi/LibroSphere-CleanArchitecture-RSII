@@ -21,4 +21,7 @@ public sealed record PagedResponse<T>(
 
         return new PagedResponse<T>(items, page, pageSize, totalCount);
     }
+
+    public static PagedResponse<T> Create(IReadOnlyList<T> items, int page, int pageSize, int totalCount)
+        => new(items, page, pageSize, totalCount);
 }
