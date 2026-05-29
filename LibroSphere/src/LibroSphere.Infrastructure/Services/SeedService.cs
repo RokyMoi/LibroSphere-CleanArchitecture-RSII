@@ -93,6 +93,10 @@ internal sealed class SeedService : ISeedService
         var philosophy = genres.First(x => x.Name.Value.Equals("Philosophy", StringComparison.OrdinalIgnoreCase));
         var business = genres.First(x => x.Name.Value.Equals("Business", StringComparison.OrdinalIgnoreCase));
         var fantasy = genres.First(x => x.Name.Value.Equals("Fantasy", StringComparison.OrdinalIgnoreCase));
+        var poetry = genres.First(x => x.Name.Value.Equals("Poetry", StringComparison.OrdinalIgnoreCase));
+        var historicalFiction = genres.First(x => x.Name.Value.Equals("Historical Fiction", StringComparison.OrdinalIgnoreCase));
+        var fiction = genres.First(x => x.Name.Value.Equals("Fiction", StringComparison.OrdinalIgnoreCase));
+        var romance = genres.First(x => x.Name.Value.Equals("Romance", StringComparison.OrdinalIgnoreCase));
 
         var authorDefinitions = new[]
         {
@@ -120,6 +124,21 @@ internal sealed class SeedService : ISeedService
             {
                 Name = "Lewis Carroll",
                 Biography = "English author and mathematician celebrated for imaginative fantasy and playful language."
+            },
+            new
+            {
+                Name = "Fedor Dostojevski",
+                Biography = "Russian novelist whose psychologically profound works explore morality, guilt, faith and the depths of the human soul."
+            },
+            new
+            {
+                Name = "Mesa Selimovic",
+                Biography = "Bosnian and Yugoslav writer renowned for introspective novels examining identity, power, solitude and the human condition."
+            },
+            new
+            {
+                Name = "Jovan Ducic",
+                Biography = "Serbian poet and diplomat regarded as one of the most refined lyric voices of his era."
             }
         };
 
@@ -222,6 +241,66 @@ internal sealed class SeedService : ISeedService
                 ImageLink = "https://pub-8f1c06c06115460a9c357fe92dbc674b.r2.dev/books/images/2026/04/aliceInWonderland.jpg",
                 AuthorName = "Lewis Carroll",
                 Genres = new[] { fantasy }
+            },
+            new
+            {
+                Title = "Zlocin i kazna",
+                Description = "A gripping psychological novel following a young man's descent into guilt and torment after committing a crime he believed he could justify.",
+                Price = 19.99m,
+                PdfLink = "https://pub-8f1c06c06115460a9c357fe92dbc674b.r2.dev/books/pdfs/2026/04/dostojevski_zlocinikazna.pdf",
+                ImageLink = "https://pub-8f1c06c06115460a9c357fe92dbc674b.r2.dev/books/images/2026/04/zlocin-i-kazna.jpg",
+                AuthorName = "Fedor Dostojevski",
+                Genres = new[] { classic, philosophy }
+            },
+            new
+            {
+                Title = "Tvrdjava",
+                Description = "A reflective novel about a war survivor seeking meaning, love and dignity in a society shaped by power, fear and moral compromise.",
+                Price = 16.50m,
+                PdfLink = "https://pub-8f1c06c06115460a9c357fe92dbc674b.r2.dev/books/pdfs/2026/04/mesa-selimovic-tvrdjava.pdf",
+                ImageLink = "https://pub-8f1c06c06115460a9c357fe92dbc674b.r2.dev/books/images/2026/04/Tvrdjava_selimovi%C4%87.jpg",
+                AuthorName = "Mesa Selimovic",
+                Genres = new[] { classic, historicalFiction }
+            },
+            new
+            {
+                Title = "Tisine",
+                Description = "An introspective novel exploring the quiet struggles of a man returning from war and confronting solitude, memory and inner conflict.",
+                Price = 15.90m,
+                PdfLink = "https://pub-8f1c06c06115460a9c357fe92dbc674b.r2.dev/books/pdfs/2026/04/Tisine-Mesa-Selimovic.pdf",
+                ImageLink = "https://pub-8f1c06c06115460a9c357fe92dbc674b.r2.dev/books/images/2026/04/tisine_nova_knjiga.jpg",
+                AuthorName = "Mesa Selimovic",
+                Genres = new[] { classic, fiction }
+            },
+            new
+            {
+                Title = "Pjesme",
+                Description = "A refined collection of lyric poetry celebrated for its elegance, musicality and meditations on love, beauty and the human spirit.",
+                Price = 12.50m,
+                PdfLink = "https://pub-8f1c06c06115460a9c357fe92dbc674b.r2.dev/books/pdfs/2026/04/Jovan-Ducic-Pesme.pdf",
+                ImageLink = "https://pub-8f1c06c06115460a9c357fe92dbc674b.r2.dev/books/images/2026/04/JovanDucicPesme.jpg",
+                AuthorName = "Jovan Ducic",
+                Genres = new[] { poetry, classic }
+            },
+            new
+            {
+                Title = "Bijele noci",
+                Description = "A tender and melancholic tale of a lonely dreamer who finds fleeting connection and heartbreak over a few unforgettable nights.",
+                Price = 13.40m,
+                PdfLink = "https://pub-8f1c06c06115460a9c357fe92dbc674b.r2.dev/books/pdfs/2026/04/dostojevski-bele-noci_compressed.pdf",
+                ImageLink = "https://pub-8f1c06c06115460a9c357fe92dbc674b.r2.dev/books/images/2026/04/beleNoci.jfif",
+                AuthorName = "Fedor Dostojevski",
+                Genres = new[] { classic, romance }
+            },
+            new
+            {
+                Title = "Braca Karamazovi",
+                Description = "A sweeping philosophical novel about faith, doubt, family and morality, centered on three brothers and the murder that binds their fates.",
+                Price = 22.90m,
+                PdfLink = "https://pub-8f1c06c06115460a9c357fe92dbc674b.r2.dev/books/pdfs/2026/04/Dostojevski%20-%20Bra%C4%87a%20Karamazovi.pdf",
+                ImageLink = "https://pub-8f1c06c06115460a9c357fe92dbc674b.r2.dev/books/images/2026/04/braca-karamazovi-svezak-i.jpg",
+                AuthorName = "Fedor Dostojevski",
+                Genres = new[] { classic, philosophy }
             }
         };
 
