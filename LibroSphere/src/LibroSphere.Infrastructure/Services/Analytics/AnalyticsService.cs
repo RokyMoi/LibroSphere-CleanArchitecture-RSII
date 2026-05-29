@@ -1,4 +1,4 @@
-﻿using LibroSphere.Application.Abstractions.Analytics;
+using LibroSphere.Application.Abstractions.Analytics;
 using LibroSphere.Application.Analytics.Query.GetAnalyticsOverview;
 using LibroSphere.Domain.Entities.Authors;
 using LibroSphere.Domain.Entities.Books;
@@ -14,12 +14,14 @@ namespace LibroSphere.Infrastructure.Services.Analytics;
 
 internal sealed class AnalyticsService : IAnalyticsService
 {
-    private readonly ApplicationDbContext _dbContext;
+    private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
     private readonly IAnalyticsActivityStore _activityStore;
 
-    public AnalyticsService(ApplicationDbContext dbContext, IAnalyticsActivityStore activityStore)
+    public AnalyticsService(
+        IDbContextFactory<ApplicationDbContext> dbContextFactory,
+        IAnalyticsActivityStore activityStore)
     {
-        _dbContext = dbContext;
+        _dbContextFactory = dbContextFactory;
         _activityStore = activityStore;
     }
 
@@ -27,38 +29,17 @@ internal sealed class AnalyticsService : IAnalyticsService
     {
         var cutoff = DateTime.UtcNow.AddDays(-30);
 
-        var totalAuthors = await _dbContext.Set<Author>().CountAsync(cancellationToken);
-        var totalBooks = await _dbContext.Set<Book>().CountAsync(cancellationToken);
-        var totalGenres = await _dbContext.Set<Genre>().CountAsync(cancellationToken);
-        var totalUsers = await _dbContext.Set<User>().CountAsync(cancellationToken);
-        var activeUsers = await _dbContext.Set<User>().CountAsync(x => x.IsActive, cancellationToken);
-        var totalReviews = await _dbContext.Set<Review>().CountAsync(cancellationToken);
-        var totalWishlistItems = await _dbContext.Set<WishlistItem>().CountAsync(cancellationToken);
-        var totalLibraryBooksGranted = await _dbContext.Set<UserBook>().CountAsync(cancellationToken);
+        var catalogTask = GetCatalogStatsAsync(cutoff, cancellationToken);
+        var engagementTask = GetEngagementStatsAsync(cutoff, cancellationToken);
+        var commerceTask = GetCommerceStatsAsync(cutoff, cancellationToken);
+        var activityTask = _activityStore.GetRecentAsync(recentActivityTake, cancellationToken);
 
-        var averageBookPrice = await _dbContext.Set<Book>()
-            .AverageAsync(x => (decimal?)x.Price.amount, cancellationToken) ?? 0m;
+        await Task.WhenAll(catalogTask, engagementTask, commerceTask, activityTask);
 
-        var averageReviewRating = await _dbContext.Set<Review>()
-            .AverageAsync(x => (double?)x.Rating, cancellationToken) ?? 0d;
-
-        var totalOrders = await _dbContext.Set<Order>().CountAsync(cancellationToken);
-
-        var paidOrders = await _dbContext.Set<Order>()
-            .CountAsync(x => x.Status == OrderStatus.PaymentReceived, cancellationToken);
-
-        var totalRevenue = await _dbContext.Set<Order>()
-            .Where(x => x.Status == OrderStatus.PaymentReceived)
-            .SumAsync(x => (decimal?)x.TotalAmount.amount, cancellationToken) ?? 0m;
-
-        var revenueLast30Days = await _dbContext.Set<Order>()
-            .Where(x => x.Status == OrderStatus.PaymentReceived && x.OrderDate >= cutoff)
-            .SumAsync(x => (decimal?)x.TotalAmount.amount, cancellationToken) ?? 0m;
-
-        var usersWithLast30DayLogin = await _dbContext.Set<User>()
-            .CountAsync(x => x.LastLogin.HasValue && x.LastLogin.Value >= cutoff, cancellationToken);
-
-        var recentActivity = await _activityStore.GetRecentAsync(recentActivityTake, cancellationToken);
+        var (totalAuthors, totalBooks, totalGenres, averageBookPrice, averageReviewRating) = await catalogTask;
+        var (totalUsers, activeUsers, totalReviews, totalWishlistItems, usersWithLast30DayLogin) = await engagementTask;
+        var (totalOrders, paidOrders, totalRevenue, revenueLast30Days, totalLibraryBooksGranted) = await commerceTask;
+        var recentActivity = await activityTask;
 
         return new AnalyticsOverviewResponse
         {
@@ -67,5 +48,52 @@ internal sealed class AnalyticsService : IAnalyticsService
             Engagement = EngagementAnalyticsCalculation.Calculate(totalUsers, activeUsers, totalReviews, totalWishlistItems, usersWithLast30DayLogin),
             RecentActivity = recentActivity
         };
+    }
+
+    private async Task<(int TotalAuthors, int TotalBooks, int TotalGenres, decimal AverageBookPrice, double AverageReviewRating)>
+        GetCatalogStatsAsync(DateTime cutoff, CancellationToken cancellationToken)
+    {
+        await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var totalAuthors = await db.Set<Author>().CountAsync(cancellationToken);
+        var totalBooks = await db.Set<Book>().CountAsync(cancellationToken);
+        var totalGenres = await db.Set<Genre>().CountAsync(cancellationToken);
+        var averageBookPrice = await db.Set<Book>().AverageAsync(x => (decimal?)x.Price.amount, cancellationToken) ?? 0m;
+        var averageReviewRating = await db.Set<Review>().AverageAsync(x => (double?)x.Rating, cancellationToken) ?? 0d;
+
+        return (totalAuthors, totalBooks, totalGenres, averageBookPrice, averageReviewRating);
+    }
+
+    private async Task<(int TotalUsers, int ActiveUsers, int TotalReviews, int TotalWishlistItems, int UsersWithLast30DayLogin)>
+        GetEngagementStatsAsync(DateTime cutoff, CancellationToken cancellationToken)
+    {
+        await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var totalUsers = await db.Set<User>().CountAsync(cancellationToken);
+        var activeUsers = await db.Set<User>().CountAsync(x => x.IsActive, cancellationToken);
+        var totalReviews = await db.Set<Review>().CountAsync(cancellationToken);
+        var totalWishlistItems = await db.Set<WishlistItem>().CountAsync(cancellationToken);
+        var usersWithLast30DayLogin = await db.Set<User>()
+            .CountAsync(x => x.LastLogin.HasValue && x.LastLogin.Value >= cutoff, cancellationToken);
+
+        return (totalUsers, activeUsers, totalReviews, totalWishlistItems, usersWithLast30DayLogin);
+    }
+
+    private async Task<(int TotalOrders, int PaidOrders, decimal TotalRevenue, decimal RevenueLast30Days, int TotalLibraryBooksGranted)>
+        GetCommerceStatsAsync(DateTime cutoff, CancellationToken cancellationToken)
+    {
+        await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var totalOrders = await db.Set<Order>().CountAsync(cancellationToken);
+        var paidOrders = await db.Set<Order>().CountAsync(x => x.Status == OrderStatus.PaymentReceived, cancellationToken);
+        var totalRevenue = await db.Set<Order>()
+            .Where(x => x.Status == OrderStatus.PaymentReceived)
+            .SumAsync(x => (decimal?)x.TotalAmount.amount, cancellationToken) ?? 0m;
+        var revenueLast30Days = await db.Set<Order>()
+            .Where(x => x.Status == OrderStatus.PaymentReceived && x.OrderDate >= cutoff)
+            .SumAsync(x => (decimal?)x.TotalAmount.amount, cancellationToken) ?? 0m;
+        var totalLibraryBooksGranted = await db.Set<UserBook>().CountAsync(cancellationToken);
+
+        return (totalOrders, paidOrders, totalRevenue, revenueLast30Days, totalLibraryBooksGranted);
     }
 }
