@@ -41,6 +41,7 @@ public sealed class AdminNotesController : ControllerBase
         [FromQuery] int take = 20,
         CancellationToken cancellationToken = default)
     {
+        take = Math.Clamp(take, 1, 100);
         var result = await _sender.Send(new GetLatestAdminNotesQuery(take), cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
@@ -51,6 +52,17 @@ public sealed class AdminNotesController : ControllerBase
         [FromBody] CreateAdminNoteRequest request,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(request.Title) || request.Title.Length > 200)
+            return BadRequest(new { Error = "Title is required and must be 200 characters or fewer." });
+
+        if (string.IsNullOrWhiteSpace(request.Text) || request.Text.Length > 5000)
+            return BadRequest(new { Error = "Text is required and must be 5000 characters or fewer." });
+
+        if (!string.IsNullOrEmpty(request.ImageUrl) &&
+            (!Uri.TryCreate(request.ImageUrl, UriKind.Absolute, out var uri) ||
+             (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp)))
+            return BadRequest(new { Error = "ImageUrl must be a valid absolute HTTP/HTTPS URL." });
+
         var result = await _sender.Send(
             new CreateAdminNoteCommand(request.Title, request.Text, request.ImageUrl),
             cancellationToken);
@@ -62,6 +74,10 @@ public sealed class AdminNotesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id, CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(id) || id.Length > 100 ||
+            !System.Text.RegularExpressions.Regex.IsMatch(id, @"^[a-zA-Z0-9\-_]+$"))
+            return BadRequest(new { Error = "Invalid note ID." });
+
         var result = await _sender.Send(new DeleteAdminNoteCommand(id), cancellationToken);
         return result.IsSuccess ? NoContent() : NotFound(result.Error);
     }
