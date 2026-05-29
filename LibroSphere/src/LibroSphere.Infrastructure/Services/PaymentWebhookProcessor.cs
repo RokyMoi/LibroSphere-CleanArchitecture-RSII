@@ -7,7 +7,10 @@ using LibroSphere.Domain.Entities.ManyToMany;
 using LibroSphere.Domain.Entities.ManyToMany.IRepositories;
 using LibroSphere.Domain.Entities.Orders;
 using LibroSphere.Domain.Entities.ShopCart;
+using LibroSphere.Infrastructure.Data;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Stripe;
 
 namespace LibroSphere.Infrastructure.Services;
@@ -20,6 +23,7 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
     private readonly IBookRepository _bookRepository;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<PaymentWebhookProcessor> _logger;
 
     public PaymentWebhookProcessor(
         IOrderRepository orderRepository,
@@ -27,7 +31,8 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
         ICartService cartService,
         IBookRepository bookRepository,
         IPublishEndpoint publishEndpoint,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ILogger<PaymentWebhookProcessor> logger)
     {
         _orderRepository = orderRepository;
         _userBookRepository = userBookRepository;
@@ -35,6 +40,7 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
         _bookRepository = bookRepository;
         _publishEndpoint = publishEndpoint;
         _unitOfWork = unitOfWork;
+        _logger = logger;
     }
 
     public async Task<Result> ProcessAsync(string json, string signature, string webhookSecret, CancellationToken cancellationToken = default)
@@ -64,9 +70,7 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
     private async Task<Result> HandleSucceeded(PaymentIntent? intent, CancellationToken cancellationToken)
     {
         if (intent is null)
-        {
             return Result.Failure(new Error("Stripe.Webhook.InvalidPayload", "PaymentIntent payload was missing."));
-        }
 
         intent.Metadata.TryGetValue("cartId", out var cartId);
         var order = await _orderRepository.GetByPaymentIntentIdAsync(intent.Id, cancellationToken);
@@ -74,51 +78,90 @@ internal sealed class PaymentWebhookProcessor : IPaymentWebhookProcessor
         {
             var orderResult = await CreateOrderFromPaymentIntentAsync(intent, cartId, cancellationToken);
             if (orderResult.IsFailure)
-            {
                 return Result.Failure(orderResult.Error);
-            }
-
             order = orderResult.Value;
         }
 
         var alreadyProcessed = order.Status == OrderStatus.PaymentReceived;
-
         order.UpdateStatus(OrderStatus.PaymentReceived);
 
-        foreach (var item in order.Items)
+        // Persist the status transition (and, on the create path, the new order row) in its OWN
+        // transaction. Library access is granted separately below so that a duplicate UserBook
+        // conflict can never roll the order status back to Pending.
+        try
         {
-            var alreadyHas = await _userBookRepository.HasAccessAsync(order.UserId, item.BookId, cancellationToken);
-            if (!alreadyHas)
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (DbExceptions.IsDuplicateKeyViolation(ex))
+        {
+            // A concurrent delivery (e.g. Stripe retry or a second webhook sender) already
+            // persisted this order. The status transition is idempotent, so this is safe.
+            _logger.LogWarning(
+                "Duplicate-key conflict persisting order for PaymentIntent {PaymentIntentId} — a concurrent delivery won; continuing.",
+                intent.Id);
+        }
+
+        if (!alreadyProcessed)
+        {
+            await GrantLibraryAccessAsync(order, cancellationToken);
+        }
+
+        // FIX 3 — side effects isolated: a Redis or RabbitMQ hiccup must NOT cause a 500
+        // after the DB transaction already committed.
+        if (!string.IsNullOrWhiteSpace(cartId))
+        {
+            try { await _cartService.DeleteCartAsync(cartId, cancellationToken); }
+            catch (Exception ex)
             {
-                await _userBookRepository.AddAsync(UserBook.Create(order.UserId, item.BookId));
+                _logger.LogWarning(ex, "Failed to delete cart {CartId} after payment — will be cleaned up on next access.", cartId);
             }
         }
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-        if (!string.IsNullOrWhiteSpace(cartId))
+        if (!alreadyProcessed)
         {
-            await _cartService.DeleteCartAsync(cartId, cancellationToken);
+            try
+            {
+                await _publishEndpoint.Publish(new OrderPaidIntegrationEvent(
+                    order.Id,
+                    order.BuyerEmail,
+                    order.TotalAmount.amount,
+                    order.TotalAmount.Currency.Code,
+                    order.Items
+                        .Select(item => new OrderPaidItem(
+                            item.Title,
+                            item.Price.amount,
+                            item.Price.Currency.Code,
+                            item.Quantity))
+                        .ToList()), cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to publish OrderPaidIntegrationEvent for order {OrderId}. Order is saved; event may need manual replay.", order.Id);
+            }
         }
-
-        if (alreadyProcessed)
-        {
-            return Result.Success();
-        }
-
-        await _publishEndpoint.Publish(new OrderPaidIntegrationEvent(
-            order.Id,
-            order.BuyerEmail,
-            order.TotalAmount.amount,
-            order.TotalAmount.Currency.Code,
-            order.Items
-                .Select(item => new OrderPaidItem(
-                    item.Title,
-                    item.Price.amount,
-                    item.Price.Currency.Code,
-                    item.Quantity))
-                .ToList()), cancellationToken);
 
         return Result.Success();
+    }
+
+    /// <summary>
+    /// Grants every purchased book to the buyer's library. Each grant is its own idempotent
+    /// transaction, so a duplicate on one book never affects the others or the order status.
+    /// </summary>
+    private async Task GrantLibraryAccessAsync(Order order, CancellationToken cancellationToken)
+    {
+        var bookIds = order.Items.Select(i => i.BookId).Distinct().ToList();
+        var alreadyOwned = await _userBookRepository.GetOwnedBookIdsAsync(order.UserId, bookIds, cancellationToken);
+
+        foreach (var bookId in bookIds)
+        {
+            if (alreadyOwned.Contains(bookId))
+            {
+                continue;
+            }
+
+            await _userBookRepository.AddIfNotExistsAsync(
+                UserBook.Create(order.UserId, bookId), cancellationToken);
+        }
     }
 
     private async Task<Result<Order>> CreateOrderFromPaymentIntentAsync(
