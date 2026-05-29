@@ -66,6 +66,7 @@ namespace LibroSphere.Infrastructure.Repositories
                 .OrderByDescending(o => o.OrderDate)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
+                .AsSplitQuery()
                 .Include(o => o.Items)
                 .ToListAsync(cancellationToken);
 
@@ -100,6 +101,7 @@ namespace LibroSphere.Infrastructure.Repositories
                 .OrderByDescending(o => o.OrderDate)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
+                .AsSplitQuery()
                 .Include(o => o.Items)
                 .ToListAsync(cancellationToken);
 
