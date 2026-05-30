@@ -788,20 +788,37 @@ class SessionViewModel extends ChangeNotifier {
       confirmedPaymentIntent.id,
     );
 
+    // Stripe has confirmed the charge, so the order WILL settle server-side.
+    // Clear the cart immediately so the purchased book doesn't keep showing in
+    // the shopping cart while the backend worker finishes granting access.
+    await _clearPaidCart(paymentCart.id);
+
     final latestOrder = await _services.orders.waitForPaidOrder(
       accessToken!,
       order.id,
     );
 
     if (latestOrder.status == OrderStatus.paymentReceived) {
-      await _clearPaidCart(paymentCart.id);
       _invalidateLibraryCache();
       _markLibraryChanged();
+      unawaited(_refreshOwnedAfterPurchase());
       return latestOrder;
     }
 
+    // Library access is granted asynchronously by the worker. Keep polling in
+    // the background and refresh the library/owned set the moment it lands.
     unawaited(_finalizeOrderSettlement(order.id, paymentCart.id));
     return latestOrder;
+  }
+
+  /// Re-fetches the library so the owned-book set and the "OWNED" badges become
+  /// accurate right after a purchase settles. Best-effort; ignores failures.
+  Future<void> _refreshOwnedAfterPurchase() async {
+    try {
+      await getLibraryEntries(forceRefresh: true);
+    } catch (_) {
+      // The library screen will retry on its next refresh.
+    }
   }
 
   Future<List<LibraryEntry>> getLibraryEntries({
@@ -859,14 +876,18 @@ class SessionViewModel extends ChangeNotifier {
     }
 
     try {
+      // This runs in the background, so we can afford to wait much longer than
+      // the foreground checkout poll for the worker to grant library access.
       final latestOrder = await _services.orders.waitForPaidOrder(
         token,
         orderId,
+        maxAttempts: 20,
       );
       if (latestOrder.status == OrderStatus.paymentReceived) {
         await _clearPaidCart(cartId);
         _invalidateLibraryCache();
         _markLibraryChanged();
+        await _refreshOwnedAfterPurchase();
       }
     } catch (_) {
       // Checkout already succeeded from the user's perspective.
