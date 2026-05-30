@@ -662,17 +662,6 @@ class ApiClient {
     return <Map<String, dynamic>>[];
   }
 
-  List<Map<String, dynamic>> _decodeArrayFromMap(
-    Map<String, dynamic> json,
-    String key,
-  ) {
-    final items = json[key];
-    if (items is List) {
-      return items.whereType<Map<String, dynamic>>().toList();
-    }
-    return <Map<String, dynamic>>[];
-  }
-
   List<Map<String, dynamic>> _decodeArrayFromMapAny(
     Map<String, dynamic> json,
     List<String> keys,
