@@ -122,7 +122,8 @@ class _BookFilterDialogState extends State<BookFilterDialog> {
         constraints: const BoxConstraints(maxWidth: 400),
         child: Padding(
           padding: const EdgeInsets.all(20),
-          child: Column(
+          child: SingleChildScrollView(
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -288,6 +289,7 @@ class _BookFilterDialogState extends State<BookFilterDialog> {
                 ],
               ),
             ],
+            ),
           ),
         ),
       ),
