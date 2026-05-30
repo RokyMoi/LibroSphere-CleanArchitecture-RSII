@@ -580,6 +580,7 @@ class NewestBookTile extends StatelessWidget {
     required this.rating,
     required this.onOpen,
     required this.onWishlist,
+    this.isOwned = false,
   });
 
   final BookModel book;
@@ -587,6 +588,7 @@ class NewestBookTile extends StatelessWidget {
   final double rating;
   final VoidCallback onOpen;
   final VoidCallback onWishlist;
+  final bool isOwned;
 
   @override
   Widget build(BuildContext context) {
@@ -635,28 +637,70 @@ class NewestBookTile extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  InkWell(
-                    onTap: onWishlist,
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: const BoxDecoration(
-                        color: brandBlue,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.bookmark_border_rounded,
-                        color: Colors.white,
-                        size: 24,
+                  if (isOwned)
+                    const _OwnedBadge()
+                  else
+                    InkWell(
+                      onTap: onWishlist,
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: const BoxDecoration(
+                          color: brandBlue,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.bookmark_border_rounded,
+                          color: Colors.white,
+                          size: 24,
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Modern light-green pill rendered in place of the wishlist action when the
+/// current user already owns the book.
+class _OwnedBadge extends StatelessWidget {
+  const _OwnedBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 36,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE7F6EC),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFA6E2BC)),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.check_circle_rounded,
+            color: Color(0xFF027A48),
+            size: 18,
+          ),
+          SizedBox(width: 6),
+          Text(
+            'OWNED',
+            style: TextStyle(
+              color: Color(0xFF027A48),
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

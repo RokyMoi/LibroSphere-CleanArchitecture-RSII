@@ -22,6 +22,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
       return <BookModel>[];
     }
 
+    await session.ensureOwnedBooksLoaded();
     return session.getWishlistBooks();
   }
 
@@ -132,6 +133,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
             }
 
             final book = books[index - 2];
+            final isOwned = session.ownsBook(book.id);
             return Padding(
               padding: const EdgeInsets.only(bottom: 18),
               child: Row(
@@ -147,26 +149,42 @@ class _WishlistScreenState extends State<WishlistScreen> {
                         const SizedBox(height: 2),
                         Text(session.authorNameForBook(book), style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w600)),
                         const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: PrimaryPillButton(
-                                label: 'Move to Cart',
-                                compact: true,
-                                onPressed: () => _moveToCart(book),
+                        if (isOwned)
+                          Row(
+                            children: [
+                              const _WishlistOwnedBadge(),
+                              const SizedBox(width: 10),
+                              SizedBox(
+                                width: 96,
+                                child: PrimaryPillButton(
+                                  label: 'Delete',
+                                  compact: true,
+                                  onPressed: () => _removeFromWishlist(book.id),
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 10),
-                            SizedBox(
-                              width: 96,
-                              child: PrimaryPillButton(
-                                label: 'Delete',
-                                compact: true,
-                                onPressed: () => _removeFromWishlist(book.id),
+                            ],
+                          )
+                        else
+                          Row(
+                            children: [
+                              Expanded(
+                                child: PrimaryPillButton(
+                                  label: 'Move to Cart',
+                                  compact: true,
+                                  onPressed: () => _moveToCart(book),
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
+                              const SizedBox(width: 10),
+                              SizedBox(
+                                width: 96,
+                                child: PrimaryPillButton(
+                                  label: 'Delete',
+                                  compact: true,
+                                  onPressed: () => _removeFromWishlist(book.id),
+                                ),
+                              ),
+                            ],
+                          ),
                         const SizedBox(height: 10),
                         Text('\$${book.amount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                       ],
@@ -178,6 +196,43 @@ class _WishlistScreenState extends State<WishlistScreen> {
           },
         );
       },
+    );
+  }
+}
+
+/// Light-green "OWNED" pill shown in the wishlist when the user already owns
+/// the book, replacing the "Move to Cart" action.
+class _WishlistOwnedBadge extends StatelessWidget {
+  const _WishlistOwnedBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        height: 40,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: const Color(0xFFE7F6EC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFA6E2BC)),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.check_circle_rounded, color: Color(0xFF027A48), size: 18),
+            SizedBox(width: 6),
+            Text(
+              'OWNED',
+              style: TextStyle(
+                color: Color(0xFF027A48),
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

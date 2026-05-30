@@ -53,6 +53,7 @@ class SessionViewModel extends ChangeNotifier {
       <String, PagedResult<ReviewModel>>{};
 
   final Map<String, double> _ratingCache = <String, double>{};
+  final Set<String> _ownedBookIds = <String>{};
   _TimedCacheValue<List<BookModel>>? _recommendationsCache;
   _TimedCacheValue<List<LibraryEntry>>? _libraryCache;
   _TimedCacheValue<List<BookModel>>? _wishlistBooksCache;
@@ -347,6 +348,7 @@ class SessionViewModel extends ChangeNotifier {
     _searchCache.clear();
     _reviewPageCache.clear();
     _ratingCache.clear();
+    _ownedBookIds.clear();
     _recommendationsCache = null;
     _libraryCache = null;
     _wishlistBooksCache = null;
@@ -426,6 +428,7 @@ class SessionViewModel extends ChangeNotifier {
     double? minPrice,
     double? maxPrice,
     double? minRating,
+    int page = 1,
     bool includeRecommendations = true,
   }) {
     final cacheKey = _buildFilterCacheKey(
@@ -435,6 +438,7 @@ class SessionViewModel extends ChangeNotifier {
       minPrice: minPrice,
       maxPrice: maxPrice,
       minRating: minRating,
+      page: page,
     );
     final searchCache = _searchCache[cacheKey];
     if (!_isFresh(searchCache, _catalogCacheTtl)) {
@@ -464,6 +468,7 @@ class SessionViewModel extends ChangeNotifier {
       minPrice: minPrice,
       maxPrice: maxPrice,
       minRating: minRating,
+      page: page,
     );
     final cachedResult = _searchCache[cacheKey];
     if (!forceRefresh && _isFresh(cachedResult, _catalogCacheTtl)) {
@@ -493,6 +498,7 @@ class SessionViewModel extends ChangeNotifier {
     double? minPrice,
     double? maxPrice,
     double? minRating,
+    int page = 1,
   }) {
     final parts = <String>[
       searchTerm?.trim() ?? '',
@@ -501,6 +507,7 @@ class SessionViewModel extends ChangeNotifier {
       minPrice?.toString() ?? '',
       maxPrice?.toString() ?? '',
       minRating?.toString() ?? '',
+      'p$page',
     ];
     return parts.join('|');
   }
@@ -513,7 +520,11 @@ class SessionViewModel extends ChangeNotifier {
     bool forceRefresh = false,
   }) async {
     final normalizedTerm = searchTerm?.trim() ?? '';
-    final cachedBooks = _searchCache[normalizedTerm];
+    final feedCacheKey = _buildFilterCacheKey(
+      searchTerm: normalizedTerm,
+      page: page,
+    );
+    final cachedBooks = _searchCache[feedCacheKey];
     final cachedRecommendations = _recommendationsCache;
     final hasFreshCatalog = _isFresh(cachedBooks, _catalogCacheTtl);
     final hasFreshRecommendations =
@@ -538,7 +549,7 @@ class SessionViewModel extends ChangeNotifier {
     );
 
     _primeBookCaches(feed.newest.items);
-    _searchCache[normalizedTerm] = _TimedCacheValue(feed.newest);
+    _searchCache[feedCacheKey] = _TimedCacheValue(feed.newest);
 
     if (isAuthenticated) {
       _primeBookCaches(feed.recommendations);
@@ -664,6 +675,9 @@ class SessionViewModel extends ChangeNotifier {
 
   Future<void> addToCart(BookModel book) async {
     _requireAuth();
+    if (ownsBook(book.id)) {
+      throw Exception('You already own this book.');
+    }
     await _ensureCartLoaded();
     final existingItems = List<CartItemInput>.from(
       cart?.items ?? <CartItemInput>[],
@@ -801,6 +815,7 @@ class SessionViewModel extends ChangeNotifier {
     final page = await _services.library.getLibrary(accessToken!);
     _primeBookCaches(page.items.map((entry) => entry.toBookModel()));
     _libraryCache = _TimedCacheValue(page.items);
+    _syncOwnedBookIds(page.items);
     return page.items;
   }
 
@@ -811,6 +826,30 @@ class SessionViewModel extends ChangeNotifier {
 
     final entries = await getLibraryEntries();
     return entries.any((entry) => entry.bookId == bookId);
+  }
+
+  /// Synchronous check against the locally-tracked set of owned book ids.
+  /// Populated by [getLibraryEntries] / [ensureOwnedBooksLoaded]; used by the
+  /// UI to render the "OWNED" badge and to block re-purchasing owned books.
+  bool ownsBook(String bookId) => _ownedBookIds.contains(bookId);
+
+  ValueListenable<int> get ownedState => _libraryRevision;
+
+  /// Ensures the owned-book id set is populated so synchronous [ownsBook]
+  /// checks are accurate. Safe to call repeatedly; honors the library cache.
+  Future<void> ensureOwnedBooksLoaded({bool forceRefresh = false}) async {
+    if (!isAuthenticated) {
+      _ownedBookIds.clear();
+      return;
+    }
+
+    await getLibraryEntries(forceRefresh: forceRefresh);
+  }
+
+  void _syncOwnedBookIds(List<LibraryEntry> entries) {
+    _ownedBookIds
+      ..clear()
+      ..addAll(entries.map((entry) => entry.bookId));
   }
 
   Future<void> _finalizeOrderSettlement(String orderId, String cartId) async {
@@ -864,6 +903,9 @@ class SessionViewModel extends ChangeNotifier {
 
   Future<void> addToWishlist(String bookId) async {
     _requireAuth();
+    if (ownsBook(bookId)) {
+      throw Exception('You already own this book.');
+    }
     await _services.wishlist.addToWishlist(accessToken!, bookId);
     _invalidateWishlistCache();
     _markWishlistChanged();
@@ -891,6 +933,9 @@ class SessionViewModel extends ChangeNotifier {
 
   Future<void> moveWishlistBookToCart(BookModel book) async {
     _requireAuth();
+    if (ownsBook(book.id)) {
+      throw Exception('You already own this book.');
+    }
     await addToCart(book);
     await _services.wishlist.removeFromWishlist(accessToken!, book.id);
     _invalidateWishlistCache();

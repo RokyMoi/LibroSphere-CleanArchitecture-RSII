@@ -23,10 +23,14 @@ class MobileHomeScreen extends StatefulWidget {
 
 class MobileHomeScreenState extends State<MobileHomeScreen>
     with WidgetsBindingObserver {
+  static const int _searchPageSize = 20;
+  static const int _newestPageSize = 8;
+
   final _searchController = TextEditingController();
   final Set<String> _prefetchedCoverUrls = <String>{};
   late Future<_HomeData> _future = _load();
   bool _hasLoadError = false;
+  int _page = 1;
 
   // Filter state
   String? _selectedAuthorId;
@@ -56,9 +60,15 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
     final isSearchMode = _hasActiveFilters || normalizedTerm?.isNotEmpty == true;
 
     try {
+      // Keep the owned-book set current so the "OWNED" badge renders correctly.
+      if (session.isAuthenticated) {
+        await session.ensureOwnedBooksLoaded(forceRefresh: forceRefresh);
+      }
+
       if (isSearchMode) {
         final result = await session.getBooks(
-          pageSize: 20,
+          page: _page,
+          pageSize: _searchPageSize,
           searchTerm: normalizedTerm,
           authorId: _selectedAuthorId,
           genreId: _selectedGenreId,
@@ -74,6 +84,8 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
           newest: result.items,
           searchTerm: normalizedTerm ?? '',
           totalCount: result.totalCount,
+          page: _page,
+          pageSize: _searchPageSize,
           hasActiveFilters: _hasActiveFilters,
           activeFilterDescription: _buildFilterDescription(),
           isSearchMode: true,
@@ -81,7 +93,8 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
       }
 
       final feed = await session.getHomeFeed(
-        pageSize: 8,
+        page: _page,
+        pageSize: _newestPageSize,
         takeRecommendations: 5,
         searchTerm: normalizedTerm,
         forceRefresh: forceRefresh,
@@ -92,6 +105,8 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
         newest: feed.newest.items,
         searchTerm: normalizedTerm ?? '',
         totalCount: feed.newest.totalCount,
+        page: _page,
+        pageSize: _newestPageSize,
         hasActiveFilters: false,
         activeFilterDescription: null,
         isSearchMode: false,
@@ -100,6 +115,16 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
       _hasLoadError = true;
       rethrow;
     }
+  }
+
+  void _goToPage(int nextPage) {
+    if (nextPage < 1 || nextPage == _page) {
+      return;
+    }
+    setState(() {
+      _page = nextPage;
+      _future = _load(_searchController.text);
+    });
   }
 
   void _prefetchVisibleCovers(_HomeData data) {
@@ -182,6 +207,7 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
   void _runSearch([String? rawValue]) {
     final value = (rawValue ?? _searchController.text).trim();
     setState(() {
+      _page = 1;
       _future = _load(value);
     });
   }
@@ -200,6 +226,7 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
       _minPrice = null;
       _maxPrice = null;
       _minRating = null;
+      _page = 1;
       _future = _load();
     });
   }
@@ -257,6 +284,7 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
                           setState(() {
                             _selectedAuthorId = null;
                             _selectedAuthorName = null;
+                            _page = 1;
                             _future = _load(_searchController.text);
                           });
                         },
@@ -293,6 +321,7 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
                         _selectedAuthorId = author.id;
                         _selectedAuthorName = author.name;
                       }
+                      _page = 1;
                       _future = _load(_searchController.text);
                     });
                   },
@@ -348,6 +377,7 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
         _minPrice = result.minPrice;
         _maxPrice = result.maxPrice;
         _minRating = result.minRating;
+        _page = 1;
         _future = _load(_searchController.text);
       });
     }
@@ -364,6 +394,7 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
       minPrice: _minPrice,
       maxPrice: _maxPrice,
       minRating: _minRating,
+      page: _page,
       includeRecommendations:
           _searchController.text.trim().isEmpty && !_hasActiveFilters,
     )) {
@@ -599,6 +630,7 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
                             book: book,
                             authorName: session.authorNameForBook(book),
                             rating: book.averageRating,
+                            isOwned: session.ownsBook(book.id),
                             onOpen: () => widget.onOpenBook(book),
                             onWishlist: () async {
                               try {
@@ -621,9 +653,97 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
                   ),
                 ),
               ),
+              if (data.newest.isNotEmpty && data.totalPages > 1)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 0, 18, 28),
+                    child: _PaginationBar(
+                      page: data.page,
+                      totalPages: data.totalPages,
+                      onPrevious: data.hasPreviousPage
+                          ? () => _goToPage(data.page - 1)
+                          : null,
+                      onNext: data.hasNextPage
+                          ? () => _goToPage(data.page + 1)
+                          : null,
+                    ),
+                  ),
+                ),
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// Compact "1 / N" page navigator shown beneath the Newest / Search lists.
+class _PaginationBar extends StatelessWidget {
+  const _PaginationBar({
+    required this.page,
+    required this.totalPages,
+    this.onPrevious,
+    this.onNext,
+  });
+
+  final int page;
+  final int totalPages;
+  final VoidCallback? onPrevious;
+  final VoidCallback? onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _PagerButton(
+          icon: Icons.chevron_left_rounded,
+          onTap: onPrevious,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          child: Text(
+            '$page / $totalPages',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: brandBlueDark,
+            ),
+          ),
+        ),
+        _PagerButton(
+          icon: Icons.chevron_right_rounded,
+          onTap: onNext,
+        ),
+      ],
+    );
+  }
+}
+
+class _PagerButton extends StatelessWidget {
+  const _PagerButton({required this.icon, this.onTap});
+
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onTap != null;
+    return Material(
+      color: enabled ? brandBlueDark : const Color(0xFFE6E9F0),
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Icon(
+            icon,
+            color: enabled ? Colors.white : Colors.grey.shade500,
+            size: 26,
+          ),
+        ),
       ),
     );
   }
@@ -635,6 +755,8 @@ class _HomeData {
     required this.newest,
     required this.searchTerm,
     required this.totalCount,
+    required this.page,
+    required this.pageSize,
     required this.hasActiveFilters,
     required this.isSearchMode,
     this.activeFilterDescription,
@@ -644,9 +766,16 @@ class _HomeData {
   final List<BookModel> newest;
   final String searchTerm;
   final int totalCount;
+  final int page;
+  final int pageSize;
   final bool hasActiveFilters;
   final bool isSearchMode;
   final String? activeFilterDescription;
+
+  int get totalPages =>
+      (totalCount <= 0 || pageSize <= 0) ? 1 : (totalCount / pageSize).ceil();
+  bool get hasPreviousPage => page > 1;
+  bool get hasNextPage => page < totalPages;
 }
 
 class _NoSearchResults extends StatelessWidget {
