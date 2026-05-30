@@ -491,11 +491,10 @@ namespace LibroSphere.Infrastructure.Services
                     b.AuthorId,
                     bg.GenreId,
                     CAST(3.0 AS float) AS Weight
-                FROM ShoppingCarts sc
-                INNER JOIN ShoppingCartItems sci ON sci.CartId = sc.Id
-                INNER JOIN Books b ON b.Id = sci.BookId
+                FROM CartInteractions ci
+                INNER JOIN Books b ON b.Id = ci.BookId
                 LEFT JOIN BookGenres bg ON bg.BookId = b.Id
-                WHERE sc.UserId = @UserId
+                WHERE ci.UserId = @UserId
             ),
             FavoriteAuthorSignals AS (
                 SELECT
@@ -535,10 +534,9 @@ namespace LibroSphere.Infrastructure.Services
                 INNER JOIN WishlistItems wi ON wi.WishlistId = w.Id
                 WHERE w.UserId = @UserId
                 UNION
-                SELECT sci.BookId
-                FROM ShoppingCarts sc
-                INNER JOIN ShoppingCartItems sci ON sci.CartId = sc.Id
-                WHERE sc.UserId = @UserId
+                SELECT ci.BookId
+                FROM CartInteractions ci
+                WHERE ci.UserId = @UserId
             ),
             ReviewStats AS (
                 SELECT
@@ -564,10 +562,10 @@ namespace LibroSphere.Infrastructure.Services
             ),
             CartStats AS (
                 SELECT
-                    sci.BookId,
+                    ci.BookId,
                     COUNT(*) AS CartCount
-                FROM ShoppingCartItems sci
-                GROUP BY sci.BookId
+                FROM CartInteractions ci
+                GROUP BY ci.BookId
             )
             SELECT TOP (@CandidatePoolSize)
                 b.Id AS BookId,

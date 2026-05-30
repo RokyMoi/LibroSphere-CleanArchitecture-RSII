@@ -143,6 +143,7 @@ namespace LibroSphere.Infrastructure
           
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<IUserBookRepository, UserBookRepository>();
+            services.AddScoped<LibroSphere.Domain.Entities.Recommendations.ICartInteractionRepository, CartInteractionRepository>();
 
             return services;
         }

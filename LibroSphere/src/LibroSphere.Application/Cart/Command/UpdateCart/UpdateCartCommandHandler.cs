@@ -2,6 +2,7 @@ using LibroSphere.Application.Abstractions.Messaging;
 using LibroSphere.Domain.Abstraction;
 using LibroSphere.Domain.Entities.Books;
 using LibroSphere.Domain.Entities.ManyToMany;
+using LibroSphere.Domain.Entities.Recommendations;
 using LibroSphere.Domain.Entities.ShopCart;
 
 namespace LibroSphere.Application.Cart.Command.UpdateCart
@@ -10,11 +11,16 @@ namespace LibroSphere.Application.Cart.Command.UpdateCart
     {
         private readonly ICartService _cartService;
         private readonly IBookRepository _bookRepository;
+        private readonly ICartInteractionRepository _cartInteractionRepository;
 
-        public UpdateCartCommandHandler(ICartService cartService, IBookRepository bookRepository)
+        public UpdateCartCommandHandler(
+            ICartService cartService,
+            IBookRepository bookRepository,
+            ICartInteractionRepository cartInteractionRepository)
         {
             _cartService = cartService;
             _bookRepository = bookRepository;
+            _cartInteractionRepository = cartInteractionRepository;
         }
 
         public async Task<Result<ShoppingCart>> Handle(UpdateCartCommand request, CancellationToken cancellationToken)
@@ -70,9 +76,25 @@ namespace LibroSphere.Application.Cart.Command.UpdateCart
             }
 
             var updated = await _cartService.SetCartAsync(cart);
-            return updated is not null
-                ? Result.Success(updated)
-                : Result.Failure<ShoppingCart>(Error.NullValue);
+            if (updated is null)
+            {
+                return Result.Failure<ShoppingCart>(Error.NullValue);
+            }
+
+            // Persist a durable recommender signal for every book placed in the cart. The live
+            // cart lives in Redis, so this is what the recommender reads instead of the unused
+            // SQL ShoppingCarts/ShoppingCartItems tables. Best-effort: a signal-write failure
+            // must never fail the cart update.
+            try
+            {
+                await _cartInteractionRepository.RecordAddedToCartAsync(request.UserId, bookIds, cancellationToken);
+            }
+            catch
+            {
+                // Non-critical signal — swallow so the cart operation still succeeds.
+            }
+
+            return Result.Success(updated);
         }
     }
 }
