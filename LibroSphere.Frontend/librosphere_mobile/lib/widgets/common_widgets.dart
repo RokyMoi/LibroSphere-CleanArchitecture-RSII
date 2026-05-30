@@ -666,6 +666,74 @@ class NewestBookTile extends StatelessWidget {
   }
 }
 
+/// Reusable "1 / N" page navigator with previous/next buttons, matching the
+/// catalog pager styling. Used by the Library list and the My Authors sheet.
+class PaginationControls extends StatelessWidget {
+  const PaginationControls({
+    super.key,
+    required this.page,
+    required this.totalPages,
+    this.onPrevious,
+    this.onNext,
+  });
+
+  final int page;
+  final int totalPages;
+  final VoidCallback? onPrevious;
+  final VoidCallback? onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _PagerIconButton(icon: Icons.chevron_left_rounded, onTap: onPrevious),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          child: Text(
+            '$page / $totalPages',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: brandBlueDark,
+            ),
+          ),
+        ),
+        _PagerIconButton(icon: Icons.chevron_right_rounded, onTap: onNext),
+      ],
+    );
+  }
+}
+
+class _PagerIconButton extends StatelessWidget {
+  const _PagerIconButton({required this.icon, this.onTap});
+
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onTap != null;
+    return Material(
+      color: enabled ? brandBlueDark : const Color(0xFFE6E9F0),
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Icon(
+            icon,
+            color: enabled ? Colors.white : Colors.grey.shade500,
+            size: 26,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Modern light-green pill rendered in place of the wishlist action when the
 /// current user already owns the book.
 class _OwnedBadge extends StatelessWidget {

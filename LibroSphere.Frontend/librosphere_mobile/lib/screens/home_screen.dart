@@ -260,7 +260,18 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) {
-        return SafeArea(
+        const sheetPageSize = 5;
+        var sheetPage = 1;
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            final totalPages = (favorites.length / sheetPageSize).ceil();
+            final currentPage = sheetPage.clamp(1, totalPages);
+            final start = (currentPage - 1) * sheetPageSize;
+            final end = start + sheetPageSize > favorites.length
+                ? favorites.length
+                : start + sheetPageSize;
+            final pageAuthors = favorites.sublist(start, end);
+            return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -294,7 +305,7 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
                 ),
               ),
               const Divider(height: 1),
-              ...favorites.map((author) {
+              ...pageAuthors.map((author) {
                 final isActive = _selectedAuthorId == author.id;
                 return ListTile(
                   leading: Icon(
@@ -327,9 +338,25 @@ class MobileHomeScreenState extends State<MobileHomeScreen>
                   },
                 );
               }),
+              if (totalPages > 1)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: PaginationControls(
+                    page: currentPage,
+                    totalPages: totalPages,
+                    onPrevious: currentPage > 1
+                        ? () => setSheetState(() => sheetPage = currentPage - 1)
+                        : null,
+                    onNext: currentPage < totalPages
+                        ? () => setSheetState(() => sheetPage = currentPage + 1)
+                        : null,
+                  ),
+                ),
               const SizedBox(height: 8),
             ],
           ),
+            );
+          },
         );
       },
     );

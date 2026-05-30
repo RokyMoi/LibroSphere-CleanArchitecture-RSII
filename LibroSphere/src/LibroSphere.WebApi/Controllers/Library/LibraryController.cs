@@ -1,5 +1,6 @@
 using LibroSphere.Application.Library.Query.GetBookReadLink;
 using LibroSphere.Application.Library.Query.GetMyLibrary;
+using LibroSphere.Application.Library.Query.GetMyLibraryBookIds;
 using LibroSphere.WebApi.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -30,6 +31,16 @@ namespace LibroSphere.WebApi.Controllers.Library
             var userId = User.GetRequiredUserId();
             var result = await _sender.Send(new GetMyLibraryQuery(userId, searchTerm, page, pageSize), cancellationToken);
             return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+        }
+
+        [HttpGet("owned-ids")]
+        public async Task<IActionResult> GetOwnedBookIds(CancellationToken cancellationToken)
+        {
+            var userId = User.GetRequiredUserId();
+            var result = await _sender.Send(new GetMyLibraryBookIdsQuery(userId), cancellationToken);
+            return result.IsSuccess
+                ? Ok(new { bookIds = result.Value })
+                : BadRequest(result.Error);
         }
 
         [HttpGet("{bookId:guid}/read")]

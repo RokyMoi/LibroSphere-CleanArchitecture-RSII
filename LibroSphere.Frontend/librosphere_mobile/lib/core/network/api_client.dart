@@ -367,6 +367,16 @@ class ApiClient {
     );
   }
 
+  Future<List<String>> getOwnedBookIds(String accessToken) async {
+    final response = await _get('/api/library/owned-ids', token: accessToken);
+    final json = await _decodeMap(response);
+    final list = json['bookIds'] ?? json['BookIds'];
+    if (list is List) {
+      return list.map((e) => e.toString()).toList();
+    }
+    return <String>[];
+  }
+
   Future<String> getReadUrl(String accessToken, String bookId) async {
     final response = await _get(
       '/api/library/$bookId/read',

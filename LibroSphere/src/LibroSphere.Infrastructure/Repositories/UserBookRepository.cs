@@ -83,6 +83,17 @@ namespace LibroSphere.Infrastructure.Repositories
             return owned.ToHashSet();
         }
 
+        public async Task<List<Guid>> GetAllBookIdsByUserIdAsync(
+            Guid userId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.Set<UserBook>()
+                .AsNoTracking()
+                .Where(ub => ub.UserId == userId)
+                .Select(ub => ub.BookId)
+                .ToListAsync(cancellationToken);
+        }
+
         public async Task AddAsync(UserBook userBook)
         {
             await _context.Set<UserBook>().AddAsync(userBook);

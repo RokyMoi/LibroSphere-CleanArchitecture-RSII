@@ -12,6 +12,8 @@
         Task<bool> HasAccessAsync(Guid userId, Guid bookId, CancellationToken cancellationToken = default);
         /// <summary>Returns the set of bookIds the user already owns (one DB round-trip).</summary>
         Task<HashSet<Guid>> GetOwnedBookIdsAsync(Guid userId, IEnumerable<Guid> bookIds, CancellationToken cancellationToken = default);
+        /// <summary>Returns every bookId the user owns (lightweight projection, no includes).</summary>
+        Task<List<Guid>> GetAllBookIdsByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
         Task AddAsync(UserBook userBook);
         /// <summary>
         /// Idempotently grants a book to a user in its own transaction. Returns false when the

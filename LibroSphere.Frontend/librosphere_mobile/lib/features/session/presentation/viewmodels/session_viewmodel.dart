@@ -56,6 +56,7 @@ class SessionViewModel extends ChangeNotifier {
   final Set<String> _ownedBookIds = <String>{};
   _TimedCacheValue<List<BookModel>>? _recommendationsCache;
   _TimedCacheValue<List<LibraryEntry>>? _libraryCache;
+  _TimedCacheValue<List<String>>? _ownedIdsCache;
   _TimedCacheValue<List<BookModel>>? _wishlistBooksCache;
   _TimedCacheValue<List<AuthorModel>>? _authorsCache;
   _TimedCacheValue<List<GenreModel>>? _genresCache;
@@ -351,6 +352,7 @@ class SessionViewModel extends ChangeNotifier {
     _ownedBookIds.clear();
     _recommendationsCache = null;
     _libraryCache = null;
+    _ownedIdsCache = null;
     _wishlistBooksCache = null;
     _authorsCache = null;
     _genresCache = null;
@@ -365,6 +367,7 @@ class SessionViewModel extends ChangeNotifier {
 
   void _invalidateLibraryCache() {
     _libraryCache = null;
+    _ownedIdsCache = null;
   }
 
   void _invalidateSearchAndRecommendationCaches() {
@@ -811,29 +814,36 @@ class SessionViewModel extends ChangeNotifier {
     return latestOrder;
   }
 
-  /// Re-fetches the library so the owned-book set and the "OWNED" badges become
+  /// Re-fetches the lightweight owned-id set so the "OWNED" badges become
   /// accurate right after a purchase settles. Best-effort; ignores failures.
   Future<void> _refreshOwnedAfterPurchase() async {
     try {
-      await getLibraryEntries(forceRefresh: true);
+      await _loadOwnedBookIds(forceRefresh: true);
     } catch (_) {
       // The library screen will retry on its next refresh.
     }
   }
 
-  Future<List<LibraryEntry>> getLibraryEntries({
-    bool forceRefresh = false,
+  /// Fetches a single server-paginated page of the user's library. The backend
+  /// paginates in the database, so only [pageSize] rows are materialized per
+  /// call instead of the whole collection. The "OWNED" badge id set is sourced
+  /// separately via [_loadOwnedBookIds] so it stays accurate across all pages.
+  Future<PagedResult<LibraryEntry>> getLibraryPage({
+    int page = 1,
+    int pageSize = 20,
   }) async {
     _requireAuth();
-    if (!forceRefresh && _isFresh(_libraryCache, _userCollectionCacheTtl)) {
-      return _libraryCache!.value;
-    }
-
-    final page = await _services.library.getLibrary(accessToken!);
-    _primeBookCaches(page.items.map((entry) => entry.toBookModel()));
-    _libraryCache = _TimedCacheValue(page.items);
-    _syncOwnedBookIds(page.items);
-    return page.items;
+    final result = await _executeWithAuth(
+      () => _services.library.getLibrary(
+        accessToken!,
+        page: page,
+        pageSize: pageSize,
+      ),
+    );
+    _primeBookCaches(result.items.map((entry) => entry.toBookModel()));
+    _libraryCache = _TimedCacheValue(result.items);
+    unawaited(_loadOwnedBookIds());
+    return result;
   }
 
   Future<bool> hasLibraryAccess(String bookId) async {
@@ -841,32 +851,44 @@ class SessionViewModel extends ChangeNotifier {
       return false;
     }
 
-    final entries = await getLibraryEntries();
-    return entries.any((entry) => entry.bookId == bookId);
+    await _loadOwnedBookIds();
+    return _ownedBookIds.contains(bookId);
   }
 
   /// Synchronous check against the locally-tracked set of owned book ids.
-  /// Populated by [getLibraryEntries] / [ensureOwnedBooksLoaded]; used by the
+  /// Populated by [ensureOwnedBooksLoaded] / [getLibraryPage]; used by the
   /// UI to render the "OWNED" badge and to block re-purchasing owned books.
   bool ownsBook(String bookId) => _ownedBookIds.contains(bookId);
 
   ValueListenable<int> get ownedState => _libraryRevision;
 
   /// Ensures the owned-book id set is populated so synchronous [ownsBook]
-  /// checks are accurate. Safe to call repeatedly; honors the library cache.
+  /// checks are accurate. Safe to call repeatedly; honors the cache TTL.
   Future<void> ensureOwnedBooksLoaded({bool forceRefresh = false}) async {
+    await _loadOwnedBookIds(forceRefresh: forceRefresh);
+  }
+
+  /// Loads the full set of owned book ids from the lightweight
+  /// `/api/library/owned-ids` endpoint (a single id projection, independent of
+  /// the heavy paginated library payload) and mirrors it into [_ownedBookIds].
+  Future<void> _loadOwnedBookIds({bool forceRefresh = false}) async {
     if (!isAuthenticated) {
       _ownedBookIds.clear();
+      _ownedIdsCache = null;
       return;
     }
 
-    await getLibraryEntries(forceRefresh: forceRefresh);
-  }
+    if (!forceRefresh && _isFresh(_ownedIdsCache, _userCollectionCacheTtl)) {
+      return;
+    }
 
-  void _syncOwnedBookIds(List<LibraryEntry> entries) {
+    final ids = await _executeWithAuth(
+      () => _services.library.getOwnedBookIds(accessToken!),
+    );
+    _ownedIdsCache = _TimedCacheValue(ids);
     _ownedBookIds
       ..clear()
-      ..addAll(entries.map((entry) => entry.bookId));
+      ..addAll(ids);
   }
 
   Future<void> _finalizeOrderSettlement(String orderId, String cartId) async {

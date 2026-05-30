@@ -7,8 +7,16 @@ class LibraryService {
 
   final ApiClient _apiClient;
 
-  Future<PagedResult<LibraryEntry>> getLibrary(String accessToken) {
-    return _apiClient.getLibrary(accessToken);
+  Future<PagedResult<LibraryEntry>> getLibrary(
+    String accessToken, {
+    int page = 1,
+    int pageSize = 20,
+  }) {
+    return _apiClient.getLibrary(accessToken, page: page, pageSize: pageSize);
+  }
+
+  Future<List<String>> getOwnedBookIds(String accessToken) {
+    return _apiClient.getOwnedBookIds(accessToken);
   }
 
   Future<String> getReadUrl(String accessToken, String bookId) {

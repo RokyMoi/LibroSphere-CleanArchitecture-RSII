@@ -1687,6 +1687,9 @@ class _InterestsScreenState extends State<_InterestsScreen> {
                     );
                   }
 
+                  const interestsPageSize = 8;
+                  var interestsPage = 1;
+
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1700,27 +1703,64 @@ class _InterestsScreenState extends State<_InterestsScreen> {
                       Expanded(
                         child: StatefulBuilder(
                           builder: (context, setInnerState) {
-                            return ListView.separated(
-                              padding: const EdgeInsets.fromLTRB(18, 4, 18, 24),
-                              itemCount: authors.length,
-                              separatorBuilder: (context, _) => const SizedBox(height: 10),
-                              itemBuilder: (context, index) {
-                                final AuthorModel author = authors[index];
-                                final isSelected = _selectedIds.contains(author.id);
-                                return _InterestAuthorTile(
-                                  name: author.name,
-                                  isSelected: isSelected,
-                                  onTap: () {
-                                    setInnerState(() {
-                                      if (isSelected) {
-                                        _selectedIds.remove(author.id);
-                                      } else {
-                                        _selectedIds.add(author.id);
-                                      }
-                                    });
-                                  },
-                                );
-                              },
+                            final totalPages =
+                                (authors.length / interestsPageSize).ceil();
+                            final currentPage =
+                                interestsPage.clamp(1, totalPages);
+                            final start = (currentPage - 1) * interestsPageSize;
+                            final end = start + interestsPageSize > authors.length
+                                ? authors.length
+                                : start + interestsPageSize;
+                            final pageAuthors = authors.sublist(start, end);
+
+                            return Column(
+                              children: [
+                                Expanded(
+                                  child: ListView.separated(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(18, 4, 18, 16),
+                                    itemCount: pageAuthors.length,
+                                    separatorBuilder: (context, _) =>
+                                        const SizedBox(height: 10),
+                                    itemBuilder: (context, index) {
+                                      final AuthorModel author =
+                                          pageAuthors[index];
+                                      final isSelected =
+                                          _selectedIds.contains(author.id);
+                                      return _InterestAuthorTile(
+                                        name: author.name,
+                                        isSelected: isSelected,
+                                        onTap: () {
+                                          setInnerState(() {
+                                            if (isSelected) {
+                                              _selectedIds.remove(author.id);
+                                            } else {
+                                              _selectedIds.add(author.id);
+                                            }
+                                          });
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                                if (totalPages > 1)
+                                  Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                        18, 4, 18, 12),
+                                    child: PaginationControls(
+                                      page: currentPage,
+                                      totalPages: totalPages,
+                                      onPrevious: currentPage > 1
+                                          ? () => setInnerState(() =>
+                                              interestsPage = currentPage - 1)
+                                          : null,
+                                      onNext: currentPage < totalPages
+                                          ? () => setInnerState(() =>
+                                              interestsPage = currentPage + 1)
+                                          : null,
+                                    ),
+                                  ),
+                              ],
                             );
                           },
                         ),
